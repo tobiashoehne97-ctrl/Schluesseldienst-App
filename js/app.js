@@ -25,9 +25,6 @@ function loadLogo(inp){
 
 function tab(m,n){document.querySelectorAll("#"+m+" .tabs .tab").forEach((t,i)=>t.classList.toggle("on",i===n));for(let i=0;i<4;i++)document.getElementById(m+"_"+i).classList.toggle("hidden",i!==n);}
 
-function v(id){return(document.getElementById(id)?.value||"").trim();}
-function chk(nm){return[...document.querySelectorAll(`[name="${nm}"]:checked`)].map(c=>c.value).join(", ");}
-function rad(nm){return document.querySelector(`[name="${nm}"]:checked`)?.value||"";}
 
 function ostern(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,day);}
 function ftage(y){const o=ostern(y),a=(b,d)=>{const x=new Date(b);x.setDate(x.getDate()+d);return x;},f=d=>d.toISOString().split("T")[0];return new Set([`${y}-01-01`,`${y}-01-06`,f(a(o,-2)),f(o),f(a(o,1)),`${y}-05-01`,f(a(o,39)),f(a(o,49)),f(a(o,50)),f(a(o,60)),`${y}-08-15`,`${y}-10-03`,`${y}-11-01`,`${y}-12-25`,`${y}-12-26`]);}
