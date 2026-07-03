@@ -21,20 +21,7 @@ function loadLogo(inp){
   r.readAsDataURL(f);
 }
 
-function go(id) {
-  ["menu","to","rb","an","archiv","auftraege","zeit"].forEach(x => {
-    const el = document.getElementById(x);
-    if(el) { el.classList.add("hidden"); el.style.display="none"; }
-  });
-  const target = document.getElementById(id || "menu");
-  if(target) { target.classList.remove("hidden"); target.style.display="block"; }
-  if(id==="to") iTO();
-  if(id==="rb") iRB();
-  if(id==="an") iAN();
-  if(id==="archiv") loadArchiv();
-  if(id==="auftraege") renderAuftraege();
-  if(id==="zeit") iZeit();
-}
+
 
 function tab(m,n){document.querySelectorAll("#"+m+" .tabs .tab").forEach((t,i)=>t.classList.toggle("on",i===n));for(let i=0;i<4;i++)document.getElementById(m+"_"+i).classList.toggle("hidden",i!==n);}
 
