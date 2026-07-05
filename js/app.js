@@ -258,42 +258,81 @@ function testArchiv() {
 }
 
 // ── Auftraege heute ────────────────────────────────────────────────────────
-var AUFTRAEGE = [];
-var auftragCounter = 1;
+function ensureAuftragsDaten() {
+  if (typeof AppData === "undefined") {
+    return;
+  }
+  if (!Array.isArray(AppData.auftraege)) {
+    AppData.auftraege = [];
+  }
+}
+
+function getNextAuftragsId() {
+  ensureAuftragsDaten();
+  if (!Array.isArray(AppData.auftraege) || !AppData.auftraege.length) {
+    return 1;
+  }
+  var ids = AppData.auftraege.map(function(a){ return Number(a.id) || 0; });
+  return Math.max.apply(null, ids) + 1;
+}
+
+function initAuftraege() {
+  ensureAuftragsDaten();
+  renderAuftraege();
+}
 
 function addAuftrag() {
   var vn = v("auf_vn"), nn = v("auf_nn");
   if (!vn && !nn) { alert("Bitte mindestens einen Namen eingeben."); return; }
-  AUFTRAEGE.push({
-    id: auftragCounter++,
-    vn: vn, nn: nn,
-    fi: v("auf_fi"), adr: v("auf_adr"), tel: v("auf_tel"), notiz: v("auf_notiz"),
+
+  ensureAuftragsDaten();
+  var auftrag = {
+    id: getNextAuftragsId(),
+    vn: vn,
+    nn: nn,
+    fi: v("auf_fi"),
+    adr: v("auf_adr"),
+    tel: v("auf_tel"),
+    notiz: v("auf_notiz"),
     erledigt: false
-  });
+  };
+
+  AppData.auftraege.push(auftrag);
+
   ["auf_vn","auf_nn","auf_fi","auf_adr","auf_tel","auf_notiz"].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.value = "";
   });
+
+  if (typeof saveAppData === "function") {
+    saveAppData();
+  }
+  if (window.EventBus && typeof EventBus.publish === "function") {
+    EventBus.publish("auftrag:created", auftrag);
+  }
+
   renderAuftraege();
 }
 
 function renderAuftraege() {
+  ensureAuftragsDaten();
   var list = document.getElementById("auftrag-liste");
   var empty = document.getElementById("auftrag-empty");
   var badge = document.getElementById("auftrag-badge");
   if (!list) return;
   list.innerHTML = "";
 
-  var offen = AUFTRAEGE.filter(function(a){ return !a.erledigt; });
-  if (badge) badge.textContent = AUFTRAEGE.length ? (offen.length + " offen") : "";
+  var auftraege = Array.isArray(AppData.auftraege) ? AppData.auftraege : [];
+  var offen = auftraege.filter(function(a){ return !a.erledigt; });
+  if (badge) badge.textContent = auftraege.length ? (offen.length + " offen") : "";
 
-  if (!AUFTRAEGE.length) {
+  if (!auftraege.length) {
     if (empty) empty.style.display = "block";
     return;
   }
   if (empty) empty.style.display = "none";
 
-  AUFTRAEGE.forEach(function(a) {
+  auftraege.forEach(function(a) {
     var card = document.createElement("div");
     card.className = "card";
     card.style.cssText = "margin-bottom:12px;padding:16px 18px;" + (a.erledigt ? "opacity:0.45" : "");
@@ -335,14 +374,38 @@ function renderAuftraege() {
 }
 
 function removeAuftrag(id) {
-  AUFTRAEGE = AUFTRAEGE.filter(function(a){ return a.id !== id; });
+  ensureAuftragsDaten();
+  var auftrag = AppData.auftraege.find(function(a){ return a.id === id; });
+  if (!auftrag) {
+    renderAuftraege();
+    return;
+  }
+
+  AppData.auftraege = AppData.auftraege.filter(function(a){ return a.id !== id; });
+
+  if (typeof saveAppData === "function") {
+    saveAppData();
+  }
+  if (window.EventBus && typeof EventBus.publish === "function") {
+    EventBus.publish("auftrag:deleted", auftrag);
+  }
+
   renderAuftraege();
 }
 
 function starteAuftrag(id) {
-  var a = AUFTRAEGE.find(function(x){ return x.id === id; });
+  ensureAuftragsDaten();
+  var a = AppData.auftraege.find(function(x){ return x.id === id; });
   if (!a) return;
   a.erledigt = true;
+
+  if (typeof saveAppData === "function") {
+    saveAppData();
+  }
+  if (window.EventBus && typeof EventBus.publish === "function") {
+    EventBus.publish("auftrag:updated", a);
+  }
+
   // Regiebericht mit den Daten vorbefuellen
   go("rb");
   setTimeout(function() {

@@ -6,6 +6,7 @@
 <title>Schlüsseldienst Christian Höhne</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dashboard.css">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -30,6 +31,61 @@
 
 <!-- HAUPTMENU -->
 <div id="menu">
+  <div id="dashboard" class="dashboard-shell">
+    <div class="dashboard-header">
+      <div>
+        <div class="dashboard-eyebrow">Dashboard</div>
+        <h2 class="dashboard-title">Willkommen zur&uuml;ck</h2>
+        <p class="dashboard-subtitle">Schl&uuml;sseldienst Christian H&ouml;hne</p>
+      </div>
+      <div class="dashboard-date-card">
+        <span class="dashboard-label">Heute</span>
+        <strong id="dashboard-date">--</strong>
+      </div>
+    </div>
+
+    <div class="dashboard-stats">
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">Arbeitszeit heute</div>
+        <div class="dashboard-value" id="stat-arbeitszeit">--</div>
+      </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">Offene Auftr&auml;ge</div>
+        <div class="dashboard-value" id="stat-offene-auftraege">--</div>
+      </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">Dokumente heute</div>
+        <div class="dashboard-value" id="stat-dokumente">--</div>
+      </div>
+      <div class="dashboard-card">
+        <div class="dashboard-card-label">Umsatz heute</div>
+        <div class="dashboard-value" id="stat-umsatz">--</div>
+      </div>
+    </div>
+
+    <div class="dashboard-quick">
+      <div class="dashboard-section-title">Schnellzugriff</div>
+      <div class="dashboard-actions">
+        <button class="dashboard-action" onclick="go('to')">
+          <span class="dashboard-action-icon">&#128273;</span>
+          <span class="dashboard-action-text">T&uuml;r&ouml;ffnung</span>
+        </button>
+        <button class="dashboard-action" onclick="go('rb')">
+          <span class="dashboard-action-icon">&#128203;</span>
+          <span class="dashboard-action-text">Regiebericht</span>
+        </button>
+        <button class="dashboard-action" onclick="go('an')">
+          <span class="dashboard-action-icon">&#128269;</span>
+          <span class="dashboard-action-text">Erstbesichtigung</span>
+        </button>
+        <button class="dashboard-action" onclick="go('archiv')">
+          <span class="dashboard-action-icon">&#128218;</span>
+          <span class="dashboard-action-text">Archiv</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div style="text-align:center;padding:10px 0 24px;font-size:13px;color:#5a8ab8;letter-spacing:.1em;text-transform:uppercase">Was m&ouml;chten Sie erfassen?</div>
   <button class="mbtn" style="--c:#1a3a6a" onclick="go('to')">
     <span style="font-size:36px">&#128273;</span>
@@ -348,9 +404,14 @@
   </div>
 </div>
 
+<script src="js/data.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/eventBus.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/navigation.js"></script>
 <script src="js/pdf.js"></script>
 <script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/appInit.js"></script>
 </body>
 </html>
