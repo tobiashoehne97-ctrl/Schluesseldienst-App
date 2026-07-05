@@ -160,6 +160,12 @@
     <label class="lbl">Stra&szlig;e &amp; Hausnummer</label><input class="mb12" id="to_adr" placeholder="Musterstra&szlig;e 1">
     <div class="g2 mb12"><div><label class="lbl">PLZ</label><input id="to_plz" placeholder="92224"></div><div><label class="lbl">Ort</label><input id="to_ort" placeholder="Amberg"></div></div>
     <label class="lbl">Telefon</label><input id="to_tel" type="tel">
+    <button
+    class="btnS"
+    style="width:100%;margin-top:10px"
+   onclick="navigateToCustomer('TO')">
+    🧭 Navigation starten
+</button>
   </div>
   <div class="card"><div class="sec">Art des Problems</div>
     <label class="chk"><input type="checkbox" name="to_sa" value="Tür zugefallen"> T&uuml;r zugefallen</label>
@@ -276,6 +282,9 @@
     <div class="g2 mb12"><div><label class="lbl">PLZ</label><input id="rb_plz" placeholder="92224"></div><div><label class="lbl">Ort</label><input id="rb_ort" placeholder="Amberg"></div></div>
     <div class="g2"><div><label class="lbl">Telefon</label><input id="rb_tel" type="tel"></div><div><label class="lbl">Datum</label><input id="rb_dat" type="date"></div></div>
   </div>
+  <button onclick="navigateToCustomer('RB')">
+    🧭 Navigation starten
+</button>
   <button class="btnP" style="width:100%;padding:13px" onclick="tab('rb',1)">Weiter &rarr;</button>
 </div>
 <div id="rb_1" class="hidden">
@@ -336,6 +345,9 @@
     <label class="lbl">G&uuml;ltig bis</label><input class="mb12" id="an_guel" type="date">
     <label class="lbl">Objektbeschreibung</label><textarea id="an_beschr" style="min-height:70px;resize:vertical" placeholder="Art des Objekts..."></textarea>
   </div>
+  <button onclick="navigateToCustomer('AN')">
+    🧭 Navigation starten
+</button>
   <button class="btnP" style="width:100%;padding:13px" onclick="tab('an',1)">Weiter &rarr;</button>
 </div>
 <div id="an_1" class="hidden">
@@ -400,6 +412,9 @@
   <label class="lbl">Adresse / Baustelle</label><input class="mb12" id="auf_adr" placeholder="Musterstra&szlig;e 1, Amberg">
   <label class="lbl">Telefon</label><input class="mb12" id="auf_tel" type="tel">
   <label class="lbl">Was ist zu tun?</label><textarea id="auf_notiz" style="min-height:60px;resize:vertical" placeholder="z.B. Zylinder tauschen, Tresor &ouml;ffnen..."></textarea>
+  <button onclick="navigateToCustomer('AUF')">
+    🧭 Navigation starten
+</button>
   <button class="btnP" style="width:100%;padding:13px;margin-top:12px" onclick="addAuftrag()">+ Auftrag hinzuf&uuml;gen</button>
 </div>
 <div id="auftrag-liste"></div>

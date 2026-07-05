@@ -447,3 +447,41 @@ function selectCustomerUniversal(prefix, id) {
     document.getElementById(map.suche).blur();
 
 }
+function navigateToAddress(address) {
+
+    if (!address || address.trim() === "") {
+        alert("Keine Adresse vorhanden.");
+        return;
+    }
+
+    const url = "https://maps.apple.com/?q=" + encodeURIComponent(address);
+
+    window.open(url, "_blank");
+
+}
+function navigateToCustomer(prefix) {
+
+    const map = customerFieldMap[prefix];
+
+    if (!map) return;
+
+    let address = "";
+
+    // Formulare mit PLZ und Ort
+    if (map.plz && map.ort) {
+
+        address =
+            document.getElementById(map.strasse).value + ", " +
+            document.getElementById(map.plz).value + " " +
+            document.getElementById(map.ort).value;
+
+    } else {
+
+        // Aufträge haben nur ein Adressfeld
+        address = document.getElementById(map.strasse).value;
+
+    }
+
+    navigateToAddress(address);
+
+}
