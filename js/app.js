@@ -424,31 +424,87 @@ function starteAuftrag(id) {
 }
 
 // ── Arbeitszeit ───────────────────────────────────────────────────────────
+function ensureArbeitszeitDaten() {
+  if (typeof AppData === "undefined") {
+    return;
+  }
+  if (!AppData.arbeitszeit) {
+    AppData.arbeitszeit = {
+      eingestempelt: false,
+      start: null,
+      heute: []
+    };
+  }
+  if (!Array.isArray(AppData.arbeitszeit.heute)) {
+    AppData.arbeitszeit.heute = [];
+  }
+}
+
+function calculateArbeitszeitHeute() {
+  ensureArbeitszeitDaten();
+  var heute = new Date().toDateString();
+  return (AppData.arbeitszeit.heute || []).reduce(function(total, eintrag) {
+    if (!eintrag || !eintrag.start || !eintrag.ende) {
+      return total;
+    }
+    var start = new Date(eintrag.start);
+    var ende = new Date(eintrag.ende);
+    if (start.toDateString() === heute && ende.toDateString() === heute) {
+      return total + Math.round((ende - start) / 60000);
+    }
+    return total;
+  }, 0);
+}
+
 function getZeitEintraege() {
-  try { return JSON.parse(localStorage.getItem("arbeitszeit") || "[]"); }
-  catch(e) { return []; }
+  ensureArbeitszeitDaten();
+  return AppData.arbeitszeit.heute || [];
 }
+
 function saveZeitEintraege(arr) {
-  try { localStorage.setItem("arbeitszeit", JSON.stringify(arr)); } catch(e) {}
+  ensureArbeitszeitDaten();
+  AppData.arbeitszeit.heute = Array.isArray(arr) ? arr : [];
+  if (typeof saveAppData === "function") {
+    saveAppData();
+  }
 }
+
 function getAktiverStempel() {
-  try { return JSON.parse(localStorage.getItem("arbeitszeit_aktiv") || "null"); }
-  catch(e) { return null; }
+  ensureArbeitszeitDaten();
+  return AppData.arbeitszeit.eingestempelt ? AppData.arbeitszeit : null;
 }
+
 function setAktiverStempel(val) {
-  try {
-    if (val) localStorage.setItem("arbeitszeit_aktiv", JSON.stringify(val));
-    else localStorage.removeItem("arbeitszeit_aktiv");
-  } catch(e) {}
+  ensureArbeitszeitDaten();
+  if (val) {
+    AppData.arbeitszeit.eingestempelt = true;
+    AppData.arbeitszeit.start = val.start;
+  } else {
+    AppData.arbeitszeit.eingestempelt = false;
+    AppData.arbeitszeit.start = null;
+  }
+  if (typeof saveAppData === "function") {
+    saveAppData();
+  }
 }
 
 var zeitInterval = null;
 
-function iZeit() {
+function initArbeitszeit() {
+  ensureArbeitszeitDaten();
   updateZeitAnzeige();
-  if (zeitInterval) clearInterval(zeitInterval);
-  zeitInterval = setInterval(updateZeitAnzeige, 1000);
   renderZeitHeute();
+  if (zeitInterval) {
+    clearInterval(zeitInterval);
+  }
+  zeitInterval = setInterval(updateZeitAnzeige, 1000);
+  if (window.EventBus && typeof EventBus.publish === "function") {
+    EventBus.publish("arbeitszeit:update", AppData.arbeitszeit);
+  }
+}
+
+function iZeit() {
+  initArbeitszeit();
 }
 
 function updateZeitAnzeige() {
@@ -463,7 +519,7 @@ function updateZeitAnzeige() {
   var pad = function(n){ return String(n).padStart(2,"0"); };
   clockEl.textContent = pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds());
 
-  if (aktiv) {
+  if (aktiv && aktiv.start) {
     statusEl.textContent = "Eingestempelt";
     statusEl.style.color = "#4caf50";
     var start = new Date(aktiv.start);
@@ -483,20 +539,39 @@ function updateZeitAnzeige() {
 }
 
 function toggleStempel() {
-  var aktiv = getAktiverStempel();
+  ensureArbeitszeitDaten();
   var now = new Date();
-  if (aktiv) {
+  if (AppData.arbeitszeit.eingestempelt && AppData.arbeitszeit.start) {
     // Ausstempeln
+    var start = AppData.arbeitszeit.start;
+    var diffMin = Math.round((now - new Date(start)) / 60000);
     var eintraege = getZeitEintraege();
-    eintraege.unshift({ start: aktiv.start, ende: now.toISOString() });
+    eintraege.unshift({ start: start, ende: now.toISOString(), dauer: diffMin });
     saveZeitEintraege(eintraege);
-    setAktiverStempel(null);
+    AppData.arbeitszeit.eingestempelt = false;
+    AppData.arbeitszeit.start = null;
+    if (typeof saveAppData === "function") {
+      saveAppData();
+    }
+    if (window.EventBus && typeof EventBus.publish === "function") {
+      EventBus.publish("arbeitszeit:stop", AppData.arbeitszeit);
+    }
   } else {
     // Einstempeln
-    setAktiverStempel({ start: now.toISOString() });
+    AppData.arbeitszeit.eingestempelt = true;
+    AppData.arbeitszeit.start = now.toISOString();
+    if (typeof saveAppData === "function") {
+      saveAppData();
+    }
+    if (window.EventBus && typeof EventBus.publish === "function") {
+      EventBus.publish("arbeitszeit:start", AppData.arbeitszeit);
+    }
   }
   updateZeitAnzeige();
   renderZeitHeute();
+  if (window.EventBus && typeof EventBus.publish === "function") {
+    EventBus.publish("arbeitszeit:update", AppData.arbeitszeit);
+  }
 }
 
 function renderZeitHeute() {
@@ -505,20 +580,19 @@ function renderZeitHeute() {
   if (!listEl) return;
   var heute = new Date().toDateString();
   var eintraege = getZeitEintraege().filter(function(e) {
-    return new Date(e.start).toDateString() === heute;
+    return e && e.start && e.ende && new Date(e.start).toDateString() === heute;
   });
   var pad = function(n){ return String(n).padStart(2,"0"); };
-  var totalMin = 0;
+  var totalMin = calculateArbeitszeitHeute();
   if (!eintraege.length) {
     listEl.innerHTML = "<div style='color:#4a7aaa;font-size:13px'>Noch keine Eintr&auml;ge heute.<\/div>";
   } else {
     listEl.innerHTML = eintraege.map(function(e) {
       var s = new Date(e.start), en = new Date(e.ende);
-      var diffMin = Math.round((en - s) / 60000);
-      totalMin += diffMin;
+      var diffMin = e.dauer || Math.round((en - s) / 60000);
       var h = Math.floor(diffMin/60), m = diffMin%60;
-      return "<div style='display:flex;justify-content:space-between;padding:4px 0'><span>" 
-        + pad(s.getHours())+":"+pad(s.getMinutes()) + " &ndash; " + pad(en.getHours())+":"+pad(en.getMinutes()) 
+      return "<div style='display:flex;justify-content:space-between;padding:4px 0'><span>"
+        + pad(s.getHours())+":"+pad(s.getMinutes()) + " &ndash; " + pad(en.getHours())+":"+pad(en.getMinutes())
         + "<\/span><span style='color:#7eb3e0'>" + h + "h " + m + "min<\/span><\/div>";
     }).join("");
   }

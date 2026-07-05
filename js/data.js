@@ -9,7 +9,10 @@ const AppData = {
 
     archiv: [],
 
-    kunden: [],
+    kunden: {
+    liste: [],
+    letzterIndex: 0
+},
 
     dokumente: [],
 
