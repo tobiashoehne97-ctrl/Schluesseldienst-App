@@ -147,13 +147,13 @@
     <div class="sec">Bestehenden Kunden auswählen</div>
 
     <input
-        id="kundeSuche"
+        id="kundeSucheTO"
         type="text"
         placeholder="Name, Telefon oder Ort eingeben..."
-        oninput="searchCustomer(this.value)"
+        oninput="searchCustomer('TO', this.value)"
     >
 
-    <div id="customerSearchResult" style="margin-top:10px"></div>
+    <div id="customerSearchResultTO" style="margin-top:10px"></div>
 
 </div>
     <div class="g2 mb12"><div><label class="lbl">Vorname</label><input id="to_vn" placeholder="Max"></div><div><label class="lbl">Nachname</label><input id="to_nn" placeholder="Mustermann"></div></div>
@@ -263,7 +263,7 @@
         id="kundeSucheRB"
         type="text"
         placeholder="Name, Telefon oder Ort eingeben..."
-        oninput="searchCustomerRB(this.value)"
+        oninput="searchCustomer('RB', this.value)"
     >
 
     <div id="customerSearchResultRB" style="margin-top:10px"></div>
@@ -313,6 +313,19 @@
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px"><button class="btnS" style="padding:8px 14px;font-size:13px" onclick="go(null)">&larr; &Uuml;bersicht</button><span style="font-size:18px;font-weight:800;flex:1">&#128269; Erstbesichtigung</span><button class="btnD" style="padding:8px 12px;font-size:12px" onclick="leereFormular('an')">&#128465; Leeren</button></div>
 <div class="tabs"><button class="tab on" onclick="tab('an',0)"><div>&#9312;</div>Kundendaten</button><button class="tab" onclick="tab('an',1)"><div>&#9313;</div>Aufma&szlig;</button><button class="tab" onclick="tab('an',2)"><div>&#9314;</div>Angebot</button><button class="tab" onclick="tab('an',3)"><div>&#9315;</div>Abschluss</button></div>
 <div id="an_0">
+  <div class="card">
+
+    <div class="sec">Bestehenden Kunden auswählen</div>
+
+    <input
+        id="kundeSucheAN"
+        type="text"
+        placeholder="Name, Telefon oder Ort eingeben..."
+        oninput="searchCustomer('AN', this.value)"
+    >
+
+    <div id="customerSearchResultAN" style="margin-top:10px"></div>
+</div>
   <div class="card"><div class="sec">Kunde &amp; Objekt</div>
     <div class="g2 mb12"><div><label class="lbl">Vorname</label><input id="an_vn" placeholder="Max"></div><div><label class="lbl">Nachname</label><input id="an_nn" placeholder="Mustermann"></div></div>
     <label class="lbl">Firma</label><input class="mb12" id="an_fi" placeholder="optional">
@@ -368,6 +381,20 @@
 </div>
 <div class="card">
   <div class="sec">Neuen Auftrag anlegen</div>
+  <div class="card">
+
+    <div class="sec">Bestehenden Kunden auswählen</div>
+
+    <input
+        id="kundeSucheAUF"
+        type="text"
+        placeholder="Name, Telefon oder Ort eingeben..."
+        oninput="searchCustomer('AUF', this.value)"
+    >
+
+    <div id="customerSearchResultAUF" style="margin-top:10px"></div>
+
+</div>
   <div class="g2 mb12"><div><label class="lbl">Vorname</label><input id="auf_vn" placeholder="Max"></div><div><label class="lbl">Nachname</label><input id="auf_nn" placeholder="Mustermann"></div></div>
   <label class="lbl">Firma</label><input class="mb12" id="auf_fi" placeholder="optional">
   <label class="lbl">Adresse / Baustelle</label><input class="mb12" id="auf_adr" placeholder="Musterstra&szlig;e 1, Amberg">

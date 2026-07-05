@@ -1,4 +1,54 @@
+let currentSearchPrefix = "";
 let currentCustomerId = null;
+const customerFieldMap = {
+
+    TO: {
+        vorname: "to_vn",
+        nachname: "to_nn",
+        firma: null,
+        strasse: "to_adr",
+        plz: "to_plz",
+        ort: "to_ort",
+        telefon: "to_tel",
+        suche: "kundeSucheTO",
+        ergebnis: "customerSearchResultTO"
+    },
+
+    RB: {
+        vorname: "rb_vn",
+        nachname: "rb_nn",
+        firma: "rb_fi",
+        strasse: "rb_adr",
+        plz: "rb_plz",
+        ort: "rb_ort",
+        telefon: "rb_tel",
+        suche: "kundeSucheRB",
+        ergebnis: "customerSearchResultRB"
+    },
+
+    AN:{
+    vorname: "an_vn",
+    nachname: "an_nn",
+    firma: "an_fi",
+    strasse: "an_adr",
+    plz: "an_plz",
+    ort: "an_ort",
+    telefon: "an_tel",
+    suche: "kundeSucheAN",
+    ergebnis: "customerSearchResultAN"
+},
+    AUF: {
+    vorname: "auf_vn",
+    nachname: "auf_nn",
+    firma: "auf_fi",
+    strasse: "auf_adr",
+    plz: null,
+    ort: null,
+    telefon: "auf_tel",
+    suche: "kundeSucheAUF",
+    ergebnis: "customerSearchResultAUF"
+},
+};
 function generateCustomerId(){
 
     AppData.kunden.letzterIndex++;
@@ -320,63 +370,13 @@ function editCustomer(id) {
     document.getElementById("kundeEmail").value = customer.email;
 
 }
-function searchCustomer(searchText) {
+function searchCustomer(prefix, searchText) {
 
-    const result = document.getElementById("customerSearchResult");
+    currentSearchPrefix = prefix;
 
-    result.innerHTML = "";
+    const result = document.getElementById("customerSearchResult" + prefix);
 
-    if (searchText.trim().length < 2) {
-        return;
-    }
-
-    const customers = findCustomers(searchText);
-
-    customers.forEach(customer => {
-
-        const div = document.createElement("div");
-
-        div.className = "card";
-        div.style.cursor = "pointer";
-        div.style.marginBottom = "8px";
-
-        div.innerHTML = `
-            <strong>${customer.nachname}, ${customer.vorname}</strong><br>
-            ${customer.strasse}<br>
-            ${customer.plz} ${customer.ort}<br>
-            📞 ${customer.telefon}
-        `;
-
-        div.onclick = () => selectCustomer(customer.id);
-
-        result.appendChild(div);
-
-    });
-
-}
-function selectCustomer(id) {
-
-    const customer = getCustomerById(id);
-
-    if (!customer) return;
-
-    document.getElementById("to_vn").value = customer.vorname;
-    document.getElementById("to_nn").value = customer.nachname;
-    document.getElementById("to_adr").value = customer.strasse;
-    document.getElementById("to_plz").value = customer.plz;
-    document.getElementById("to_ort").value = customer.ort;
-    document.getElementById("to_tel").value = customer.telefon;
-
-    document.getElementById("kundeSuche").value =
-        customer.nachname + ", " + customer.vorname;
-
-    document.getElementById("customerSearchResult").innerHTML = "";
-    document.getElementById("kundeSuche").blur();
-
-}
-function searchCustomerRB(searchText) {
-
-    const result = document.getElementById("customerSearchResultRB");
+    if (!result) return;
 
     result.innerHTML = "";
 
@@ -388,45 +388,62 @@ function searchCustomerRB(searchText) {
 
     customers.forEach(customer => {
 
-        const div = document.createElement("div");
+        const card = document.createElement("div");
 
-        div.className = "card";
-        div.style.cursor = "pointer";
-        div.style.marginBottom = "8px";
+        card.className = "card";
+        card.style.cursor = "pointer";
+        card.style.marginBottom = "8px";
 
-        div.innerHTML = `
+        card.innerHTML = `
             <strong>${customer.nachname}, ${customer.vorname}</strong><br>
             ${customer.strasse}<br>
             ${customer.plz} ${customer.ort}<br>
             📞 ${customer.telefon}
         `;
 
-        div.onclick = () => selectCustomerRB(customer.id);
+        card.onclick = () => selectCustomerUniversal(prefix, customer.id);
 
-        result.appendChild(div);
+        result.appendChild(card);
 
     });
 
 }
-function selectCustomerRB(id) {
+function selectCustomerUniversal(prefix, id) {
 
     const customer = getCustomerById(id);
 
     if (!customer) return;
 
-    document.getElementById("rb_vn").value = customer.vorname;
-    document.getElementById("rb_nn").value = customer.nachname;
-    document.getElementById("rb_fi").value = customer.firma;
-    document.getElementById("rb_adr").value = customer.strasse;
-    document.getElementById("rb_plz").value = customer.plz;
-    document.getElementById("rb_ort").value = customer.ort;
-    document.getElementById("rb_tel").value = customer.telefon;
+    const map = customerFieldMap[prefix];
 
-    document.getElementById("kundeSucheRB").value =
+    if (!map) return;
+
+    document.getElementById(map.vorname).value = customer.vorname;
+    document.getElementById(map.nachname).value = customer.nachname;
+
+    if (map.firma) {
+        document.getElementById(map.firma).value = customer.firma;
+    }
+
+    if (map.plz && map.ort) {
+
+    document.getElementById(map.strasse).value = customer.strasse;
+    document.getElementById(map.plz).value = customer.plz;
+    document.getElementById(map.ort).value = customer.ort;
+
+} else {
+
+    document.getElementById(map.strasse).value =
+        `${customer.strasse}, ${customer.plz} ${customer.ort}`;
+
+}
+    document.getElementById(map.telefon).value = customer.telefon;
+
+    document.getElementById(map.suche).value =
         customer.nachname + ", " + customer.vorname;
 
-    document.getElementById("customerSearchResultRB").innerHTML = "";
+    document.getElementById(map.ergebnis).innerHTML = "";
 
-    document.getElementById("kundeSucheRB").blur();
+    document.getElementById(map.suche).blur();
 
 }
