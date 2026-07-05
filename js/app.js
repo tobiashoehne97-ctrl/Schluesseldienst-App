@@ -457,18 +457,22 @@ function calculateArbeitszeitHeute() {
 }
 
 function getZeitEintraege() {
-  ensureArbeitszeitDaten();
-  return AppData.arbeitszeit.heute || [];
+
+    ensureArbeitszeitDaten();
+
+    return AppData.arbeitszeit.eintraege || [];
+
 }
 
 function saveZeitEintraege(arr) {
-  ensureArbeitszeitDaten();
-  AppData.arbeitszeit.heute = Array.isArray(arr) ? arr : [];
-  if (typeof saveAppData === "function") {
-    saveAppData();
-  }
-}
 
+    ensureArbeitszeitDaten();
+
+    AppData.arbeitszeit.eintraege = Array.isArray(arr) ? arr : [];
+
+    saveAppData();
+
+}
 function getAktiverStempel() {
   ensureArbeitszeitDaten();
   return AppData.arbeitszeit.eingestempelt ? AppData.arbeitszeit : null;
@@ -544,10 +548,22 @@ function toggleStempel() {
   if (AppData.arbeitszeit.eingestempelt && AppData.arbeitszeit.start) {
     // Ausstempeln
     var start = AppData.arbeitszeit.start;
-    var diffMin = Math.round((now - new Date(start)) / 60000);
-    var eintraege = getZeitEintraege();
-    eintraege.unshift({ start: start, ende: now.toISOString(), dauer: diffMin });
-    saveZeitEintraege(eintraege);
+
+var eintraege = getZeitEintraege();
+
+eintraege.unshift({
+
+    id: generateWorkEntryId(),
+
+    datum: start.split("T")[0],
+
+    start: start,
+
+    ende: now.toISOString()
+
+});
+
+saveZeitEintraege(eintraege);
     AppData.arbeitszeit.eingestempelt = false;
     AppData.arbeitszeit.start = null;
     if (typeof saveAppData === "function") {

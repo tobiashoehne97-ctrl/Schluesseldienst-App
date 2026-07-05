@@ -102,3 +102,84 @@ function genPDF(mod){
   document.getElementById("pdfPreviewName").textContent = nr;
   document.getElementById("pdfMod").classList.add("open");
 }
+function generateWorkJournalPDF() {
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF({
+        unit: "mm",
+        format: "a4"
+    });
+
+    const month = Number(document.getElementById("azMonat").value);
+    const year = Number(document.getElementById("azJahr").value);
+
+    const mitarbeiter =
+        document.getElementById("azMitarbeiter").value || "-";
+
+    const personalnummer =
+        document.getElementById("azPersonalnummer").value || "-";
+
+    const monate = [
+        "Januar","Februar","März","April","Mai","Juni",
+        "Juli","August","September","Oktober","November","Dezember"
+    ];
+
+    pH(
+        doc,
+        "Arbeitszeitnachweis",
+        monate[month - 1] + " " + year,
+        "",
+        new Date().toLocaleDateString("de-DE")
+    );
+
+    let y = 60;
+
+    y = pSec(doc, y, "MITARBEITER", [
+        ["Name:", mitarbeiter],
+        ["Personalnummer:", personalnummer]
+    ]);
+        const entries = getWorkEntries()
+        .filter(entry => {
+
+            const date = new Date(entry.datum);
+
+            return (
+                date.getFullYear() === year &&
+                date.getMonth() + 1 === month
+            );
+
+        })
+        .sort((a, b) => new Date(a.datum) - new Date(b.datum));
+
+    let totalMinutes = 0;
+
+    const rows = entries.map(entry => {
+
+        const minutes = calculateWorkDuration(
+            entry.start,
+            entry.ende
+        );
+
+        totalMinutes += minutes;
+
+        return [
+            entry.datum,
+            `${entry.start.substring(11,16)} - ${entry.ende.substring(11,16)} (${formatMinutes(minutes)})`
+        ];
+
+    });
+
+    y = pSec(doc, y, "ARBEITSZEITEN", rows);
+
+    y = pSec(doc, y, "GESAMT", [
+        ["Gesamtstunden:", formatMinutes(totalMinutes)]
+    ]);
+
+    pF(doc);
+
+    doc.save(
+        `Arbeitszeit_${monate[month-1]}_${year}.pdf`
+    );
+
+}

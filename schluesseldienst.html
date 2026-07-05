@@ -441,6 +441,129 @@
   <div id="zeit-heute-liste" style="font-size:14px;color:#a0c4e8"></div>
   <div id="zeit-heute-summe" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(59,110,165,0.3);font-size:15px;font-weight:700;color:#4fc3f7"></div>
 </div>
+<div class="card">
+
+    <div class="sec">Arbeitszeit nachtragen</div>
+
+    <div class="g3 mb12">
+
+        <div>
+            <label class="lbl">Datum</label>
+            <input id="azDatum" type="date">
+        </div>
+
+        <div>
+            <label class="lbl">Beginn</label>
+            <input id="azStart" type="time">
+        </div>
+
+        <div>
+            <label class="lbl">Ende</label>
+            <input id="azEnde" type="time">
+        </div>
+
+    </div>
+
+    <button
+        class="btnP"
+        style="width:100%"
+        onclick="saveManualWorkEntry()">
+        
+
+        ➕ Arbeitszeit speichern
+
+    </button>
+
+</div>
+<div class="card">
+<div class="card">
+
+    <div class="sec">Monatsjournal</div>
+
+    <div class="g2 mb12">
+
+        <div>
+            <label class="lbl">Mitarbeiter</label>
+            <input id="azMitarbeiter">
+        </div>
+
+        <div>
+            <label class="lbl">Personalnummer</label>
+            <input id="azPersonalnummer">
+        </div>
+
+    </div>
+
+    <div class="g2 mb12">
+
+    <div>
+
+        <label class="lbl">Monat</label>
+
+        <select id="azMonat">
+
+            <option value="1">Januar</option>
+            <option value="2">Februar</option>
+            <option value="3">März</option>
+            <option value="4">April</option>
+            <option value="5">Mai</option>
+            <option value="6">Juni</option>
+            <option value="7" selected>Juli</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Dezember</option>
+
+        </select>
+
+    </div>
+
+    <div>
+
+        <label class="lbl">Jahr</label>
+
+        <input
+            id="azJahr"
+            type="number"
+            value="2026">
+
+    </div>
+
+</div>
+
+<button
+    class="btnP"
+    style="width:100%"
+    onclick="renderMonthlyJournal()">
+
+    📅 Monatsjournal anzeigen
+
+</button>
+</select>
+        </div>
+
+        <div style="display:flex;align-items:flex-end">
+
+            <button
+                class="btnP"
+                style="width:100%"
+                onclick="renderMonthlyJournal()">
+
+                📅 Monatsjournal anzeigen
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+    <div class="sec">Monatsjournal</div>
+
+    <div id="workJournal"></div>
+
+</div>
 </div>
 <div id="kunden" class="hidden">
 
@@ -560,6 +683,7 @@
 <script src="js/storage.js"></script>
 <script src="js/eventBus.js"></script>
 <script src="js/kunden.js"></script>
+<script src="js/arbeitszeit.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/navigation.js"></script>
 <script src="js/pdf.js"></script>

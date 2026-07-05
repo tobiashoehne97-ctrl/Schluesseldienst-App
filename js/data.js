@@ -1,9 +1,12 @@
 const AppData = {
     arbeitszeit: {
-        eingestempelt: false,
-        start: null,
-        heute: []
-    },
+    eingestempelt: false,
+    start: null,
+
+    eintraege: [],
+
+    letzterIndex: 0
+},
 
     auftraege: [],
 
@@ -13,7 +16,10 @@ const AppData = {
     liste: [],
     letzterIndex: 0
 },
-
+    mitarbeiter: {
+    name: "",
+    personalnummer: ""
+},
     dokumente: [],
 
     statistik: {

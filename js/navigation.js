@@ -10,5 +10,13 @@ function go(id) {
   if(id==="an") iAN();
   if(id==="archiv") loadArchiv();
   if(id==="auftraege") renderAuftraege();
-  if(id==="zeit") iZeit();
+  if (id === "zeit") {
+
+    iZeit();
+
+    loadEmployeeData();
+
+    renderWorkJournal();
+
+}
 }
