@@ -320,3 +320,113 @@ function editCustomer(id) {
     document.getElementById("kundeEmail").value = customer.email;
 
 }
+function searchCustomer(searchText) {
+
+    const result = document.getElementById("customerSearchResult");
+
+    result.innerHTML = "";
+
+    if (searchText.trim().length < 2) {
+        return;
+    }
+
+    const customers = findCustomers(searchText);
+
+    customers.forEach(customer => {
+
+        const div = document.createElement("div");
+
+        div.className = "card";
+        div.style.cursor = "pointer";
+        div.style.marginBottom = "8px";
+
+        div.innerHTML = `
+            <strong>${customer.nachname}, ${customer.vorname}</strong><br>
+            ${customer.strasse}<br>
+            ${customer.plz} ${customer.ort}<br>
+            📞 ${customer.telefon}
+        `;
+
+        div.onclick = () => selectCustomer(customer.id);
+
+        result.appendChild(div);
+
+    });
+
+}
+function selectCustomer(id) {
+
+    const customer = getCustomerById(id);
+
+    if (!customer) return;
+
+    document.getElementById("to_vn").value = customer.vorname;
+    document.getElementById("to_nn").value = customer.nachname;
+    document.getElementById("to_adr").value = customer.strasse;
+    document.getElementById("to_plz").value = customer.plz;
+    document.getElementById("to_ort").value = customer.ort;
+    document.getElementById("to_tel").value = customer.telefon;
+
+    document.getElementById("kundeSuche").value =
+        customer.nachname + ", " + customer.vorname;
+
+    document.getElementById("customerSearchResult").innerHTML = "";
+    document.getElementById("kundeSuche").blur();
+
+}
+function searchCustomerRB(searchText) {
+
+    const result = document.getElementById("customerSearchResultRB");
+
+    result.innerHTML = "";
+
+    if (searchText.trim().length < 2) {
+        return;
+    }
+
+    const customers = findCustomers(searchText);
+
+    customers.forEach(customer => {
+
+        const div = document.createElement("div");
+
+        div.className = "card";
+        div.style.cursor = "pointer";
+        div.style.marginBottom = "8px";
+
+        div.innerHTML = `
+            <strong>${customer.nachname}, ${customer.vorname}</strong><br>
+            ${customer.strasse}<br>
+            ${customer.plz} ${customer.ort}<br>
+            📞 ${customer.telefon}
+        `;
+
+        div.onclick = () => selectCustomerRB(customer.id);
+
+        result.appendChild(div);
+
+    });
+
+}
+function selectCustomerRB(id) {
+
+    const customer = getCustomerById(id);
+
+    if (!customer) return;
+
+    document.getElementById("rb_vn").value = customer.vorname;
+    document.getElementById("rb_nn").value = customer.nachname;
+    document.getElementById("rb_fi").value = customer.firma;
+    document.getElementById("rb_adr").value = customer.strasse;
+    document.getElementById("rb_plz").value = customer.plz;
+    document.getElementById("rb_ort").value = customer.ort;
+    document.getElementById("rb_tel").value = customer.telefon;
+
+    document.getElementById("kundeSucheRB").value =
+        customer.nachname + ", " + customer.vorname;
+
+    document.getElementById("customerSearchResultRB").innerHTML = "";
+
+    document.getElementById("kundeSucheRB").blur();
+
+}

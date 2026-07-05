@@ -142,6 +142,20 @@
 
 <div id="to_0">
   <div class="card"><div class="sec">Kundendaten</div>
+  <div class="card">
+
+    <div class="sec">Bestehenden Kunden auswählen</div>
+
+    <input
+        id="kundeSuche"
+        type="text"
+        placeholder="Name, Telefon oder Ort eingeben..."
+        oninput="searchCustomer(this.value)"
+    >
+
+    <div id="customerSearchResult" style="margin-top:10px"></div>
+
+</div>
     <div class="g2 mb12"><div><label class="lbl">Vorname</label><input id="to_vn" placeholder="Max"></div><div><label class="lbl">Nachname</label><input id="to_nn" placeholder="Mustermann"></div></div>
     <label class="lbl">Stra&szlig;e &amp; Hausnummer</label><input class="mb12" id="to_adr" placeholder="Musterstra&szlig;e 1">
     <div class="g2 mb12"><div><label class="lbl">PLZ</label><input id="to_plz" placeholder="92224"></div><div><label class="lbl">Ort</label><input id="to_ort" placeholder="Amberg"></div></div>
@@ -241,6 +255,20 @@
 <div class="tabs"><button class="tab on" onclick="tab('rb',0)"><div>&#9312;</div>Kundendaten</button><button class="tab" onclick="tab('rb',1)"><div>&#9313;</div>Arbeitszeit</button><button class="tab" onclick="tab('rb',2)"><div>&#9314;</div>Material</button><button class="tab" onclick="tab('rb',3)"><div>&#9315;</div>Abschluss</button></div>
 <div id="rb_0">
   <div class="card"><div class="sec">Kunde &amp; Baustelle</div>
+  <div class="card">
+
+    <div class="sec">Bestehenden Kunden auswählen</div>
+
+    <input
+        id="kundeSucheRB"
+        type="text"
+        placeholder="Name, Telefon oder Ort eingeben..."
+        oninput="searchCustomerRB(this.value)"
+    >
+
+    <div id="customerSearchResultRB" style="margin-top:10px"></div>
+
+</div>
     <div class="g2 mb12"><div><label class="lbl">Vorname</label><input id="rb_vn" placeholder="Max"></div><div><label class="lbl">Nachname</label><input id="rb_nn" placeholder="Mustermann"></div></div>
     <label class="lbl">Firma</label><input class="mb12" id="rb_fi" placeholder="optional">
     <label class="lbl">Baustelle / Projekt</label><input class="mb12" id="rb_bau" placeholder="z.B. Wohnanlage Nordstr.">
