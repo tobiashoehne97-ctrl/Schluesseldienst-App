@@ -45,5 +45,7 @@ if (document.readyState === "loading") {
 } else {
   initApplication();
 }
-
+if (typeof renderCustomerList === "function") {
+    renderCustomerList();
+}
 console.log("Application started");

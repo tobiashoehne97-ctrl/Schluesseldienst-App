@@ -118,6 +118,21 @@
     <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Archiv</div><div style="font-size:13px;color:#7eb3e0">Alle gespeicherten Dokumente</div></div>
     <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
   </button>
+  <button class="mbtn" style="--c:#0a2f4f" onclick="go('kunden')">
+    <span style="font-size:36px">👥</span>
+
+    <div>
+        <div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">
+            Kundenverwaltung
+        </div>
+
+        <div style="font-size:13px;color:#7eb3e0">
+            Kunden anlegen · suchen · bearbeiten
+        </div>
+    </div>
+
+    <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
+</button>
 </div>
 
 <!-- TUROEFFNUNG -->
@@ -357,8 +372,75 @@
   <div id="zeit-heute-summe" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(59,110,165,0.3);font-size:15px;font-weight:700;color:#4fc3f7"></div>
 </div>
 </div>
+<div id="kunden" class="hidden">
 
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+    <button class="btnS" style="padding:8px 14px;font-size:13px" onclick="go(null)">
+        &larr; Übersicht
+    </button>
+
+    <span style="font-size:20px;font-weight:800">
+        👥 Kundenverwaltung
+    </span>
+</div>
+
+<div class="card">
+
+    <div class="sec">Neuen Kunden anlegen</div>
+
+    <div class="g2 mb12">
+        <div>
+            <label class="lbl">Vorname</label>
+            <input id="kundeVorname">
+        </div>
+
+        <div>
+            <label class="lbl">Nachname</label>
+            <input id="kundeNachname">
+        </div>
+    </div>
+
+    <label class="lbl">Firma</label>
+    <input id="kundeFirma" class="mb12">
+
+    <label class="lbl">Straße</label>
+    <input id="kundeStrasse" class="mb12">
+
+    <div class="g2 mb12">
+        <div>
+            <label class="lbl">PLZ</label>
+            <input id="kundePlz">
+        </div>
+
+        <div>
+            <label class="lbl">Ort</label>
+            <input id="kundeOrt">
+        </div>
+    </div>
+
+    <label class="lbl">Telefon</label>
+    <input id="kundeTelefon" class="mb12">
+
+    <label class="lbl">E-Mail</label>
+    <input id="kundeEmail" class="mb12">
+
+    <button class="btnP" style="width:100%;padding:13px" onclick="saveCustomer()">
+        💾 Kunde speichern
+    </button>
+
+</div>
+
+<div class="card">
+
+    <div class="sec">Kundenliste</div>
+
+    <div id="customerList"></div>
+
+</div>
+
+</div>
 <!-- ARCHIV -->
+ 
 <div id="archiv" class="hidden">
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
   <button class="btnS" style="padding:8px 14px;font-size:13px" onclick="go(null)">&larr; &Uuml;bersicht</button>
@@ -407,6 +489,7 @@
 <script src="js/data.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/eventBus.js"></script>
+<script src="js/kunden.js"></script>
 <script src="js/utils.js"></script>
 <script src="js/navigation.js"></script>
 <script src="js/pdf.js"></script>
