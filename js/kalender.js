@@ -1108,6 +1108,7 @@ function openRegiebericht(id){
     "<button class=\"btnS\" style=\"width:100%;padding:13px;margin-top:12px\" onclick=\"printRegiebericht('"+String(entry.id).replace(/'/g,"\\'")+"')\">🖨️ Drucken / Als PDF speichern</button>"+
     "<button class=\"btnP\" style=\"width:100%;padding:13px;margin-top:8px\" onclick=\"closeServiceModal()\">✓ Schließen</button>"
   );
+  document.getElementById("serviceModal")?.classList.add("service-report-modal");
 }
 
 function printRegiebericht(id){
