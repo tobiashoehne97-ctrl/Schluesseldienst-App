@@ -988,3 +988,27 @@ window.showServiceEmailInput=showServiceEmailInput;
 window.finishServiceAndReturn=finishServiceAndReturn;
 window.openServiceModal=openServiceModal;
 window.closeServiceModal=closeServiceModal;
+
+
+function openRegiebericht(id){
+  const entry=(AppData.kalender?.eintraege||[]).find(e=>String(e.id)===String(id));
+  if(!entry?.regiebericht){ alert("Für diesen Termin ist noch kein Regiebericht vorhanden."); return; }
+  const r=entry.regiebericht;
+  const customer=[entry.vorname,entry.nachname].filter(Boolean).join(" ")||"—";
+  const address=[[entry.strasse,entry.hausnummer].filter(Boolean).join(" "),[entry.postleitzahl,entry.ort].filter(Boolean).join(" ")].filter(Boolean).join(", ")||"—";
+  const mats=(r.material||[]).map(m=>"<tr><td>"+escapeHtml(m.name||"Material")+"</td><td>"+(m.menge||1)+"</td><td>"+(Number(m.preis||0)*Number(m.menge||1)).toFixed(2)+" €</td></tr>").join("")||"<tr><td colspan=\"3\">Kein Material erfasst</td></tr>";
+  const html="<div style=\"background:#fff;color:#172033;border-radius:10px;padding:22px;font-family:Arial,sans-serif\">"+
+    "<div style=\"display:flex;justify-content:space-between;border-bottom:3px solid #164e7a;padding-bottom:14px\"><div><div style=\"font-size:23px;font-weight:900;color:#123f62\">SCHLÜSSELDIENST HÖHNE</div><div style=\"color:#64748b\">Regiebericht / Arbeitsnachweis</div></div><b>"+escapeHtml(entry.datum||"")+"</b></div>"+
+    "<div style=\"margin:16px 0;padding:10px;background:#eaf5ed;border-left:5px solid #22c55e;font-weight:bold\">"+(entry.status==="rechnung"?"🟣 Abgeschlossen – Rechnung erforderlich":entry.status==="offen"?"🔴 Nicht abgeschlossen / Folgetermin erforderlich":"🟢 Einsatz abgeschlossen")+"</div>"+
+    "<h3>👤 Kundendaten</h3><p><b>"+escapeHtml(customer)+"</b><br>"+escapeHtml(entry.telefonnummer||"—")+"<br>"+escapeHtml(address)+"</p>"+
+    "<h3>🕒 Einsatzdaten</h3><p>Beginn: <b>"+escapeHtml(String(r.gestartet||entry.von||"—"))+"</b><br>Ende: <b>"+escapeHtml(String(r.beendet||entry.bis||"—"))+"</b><br>Arbeitszeit: <b>"+Number(r.arbeitszeit_minuten||0)+" Minuten</b></p>"+
+    "<h3>🔎 Vorgefunden</h3><div style=\"white-space:pre-wrap\">"+escapeHtml(r.vorgefunden||"Keine Angaben")+"</div>"+
+    "<h3>🔧 Durchgeführte Arbeiten</h3><div style=\"white-space:pre-wrap\">"+escapeHtml(r.gemacht||"Keine Angaben")+"</div>"+
+    "<h3>📦 Verwendetes Material</h3><table style=\"width:100%;border-collapse:collapse\"><tr><th style=\"text-align:left;border-bottom:1px solid #ccc;padding:6px\">Material</th><th>Menge</th><th>Preis</th></tr>"+mats+"</table>"+
+    "<h3 style=\"margin-top:20px\">"+(r.zahlungsart==="bar"?"💶 Barzahlung":"🧾 Rechnung")+"</h3>"+
+    (r.zahlungsart==="bar"?"<p>Gesamtsumme: <b>"+Number(r.gesamtsumme||0).toFixed(2)+" €</b><br>Kunde gab: <b>"+Number(r.gegeben||0).toFixed(2)+" €</b><br>Wechselgeld: <b>"+Number(r.wechselgeld||0).toFixed(2)+" €</b></p>":"<p>Rechnung ist durch das Büro zu erstellen.</p>")+
+    "<h3>✍️ Kundenunterschrift</h3>"+(r.unterschrift?"<img src=\""+r.unterschrift+"\" style=\"max-width:100%;height:120px;border:1px solid #ddd\">":"<div style=\"padding:30px;border:1px dashed #aaa\">Keine Unterschrift hinterlegt</div>")+
+    "</div>";
+  openServiceModal("📄 Regiebericht",html+"<button class=\"btnS\" style=\"width:100%;padding:13px;margin-top:12px\" onclick=\"window.print()\">🖨️ Drucken / Als PDF speichern</button><button class=\"btnP\" style=\"width:100%;padding:13px;margin-top:8px\" onclick=\"closeServiceModal()\">✓ Schließen</button>");
+}
+window.openRegiebericht=openRegiebericht;
