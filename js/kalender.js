@@ -606,6 +606,7 @@ let activeServicePhotos=[];
 
 function openServiceModal(title,content){
   const modal=document.getElementById("serviceModal");
+  modal?.classList.remove("service-report-modal");
   const titleEl=document.getElementById("service_modal_titel");
   const contentEl=document.getElementById("service_modal_content");
   if(!modal||!contentEl)return;
