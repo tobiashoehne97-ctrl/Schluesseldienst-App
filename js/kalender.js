@@ -774,9 +774,85 @@ function openCashPayment(){
     '<label class="lbl" style="margin-top:12px">Kunde gibt (€)</label><input id="service_given" type="number" step="0.01" oninput="calculateChange()" placeholder="z. B. 100">'+
     '<div id="service_change" style="font-size:20px;font-weight:800;margin:14px 0">Wechselgeld: 0,00 €</div>'+
     '<div class="sec">Unterschrift Kunde</div>'+
-    '<div style="border:2px dashed #3b82c4;border-radius:8px;padding:18px;text-align:center;color:#8fb3d4">✍️ Unterschriftenfeld – digitale Signatur folgt im nächsten Schritt</div>'+
+    '<div style="border:1px solid #3b82c4;border-radius:8px;background:#fff;overflow:hidden">'+
+      '<canvas id="service_signature" style="width:100%;height:170px;display:block;touch-action:none;cursor:crosshair"></canvas>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:12px;color:#8fb3d4"><span>Bitte hier mit dem Finger unterschreiben</span><button class="btnS" type="button" onclick="clearServiceSignature()">🧹 Löschen</button></div>'+
     '<button class="btnP" style="width:100%;padding:14px;margin-top:18px" onclick="finishService(\'bar\')">💾 Barzahlung abschließen</button>'
   );
+  setTimeout(setupServiceSignature,0);
+}
+
+function setupServiceSignature(){
+  const canvas=document.getElementById("service_signature");
+  if(!canvas) return;
+
+  const rect=canvas.getBoundingClientRect();
+  const ratio=window.devicePixelRatio||1;
+  canvas.width=Math.max(1,Math.round(rect.width*ratio));
+  canvas.height=Math.max(1,Math.round(rect.height*ratio));
+
+  const ctx=canvas.getContext("2d");
+  ctx.scale(ratio,ratio);
+  ctx.lineWidth=2.2;
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+  ctx.strokeStyle="#111827";
+
+  let drawing=false;
+  let hasSignature=false;
+  let last=null;
+
+  const point=(event)=>{
+    const r=canvas.getBoundingClientRect();
+    const source=event.touches?event.touches[0]:event;
+    return {x:source.clientX-r.left,y:source.clientY-r.top};
+  };
+
+  const start=(event)=>{
+    event.preventDefault();
+    drawing=true;
+    last=point(event);
+    hasSignature=true;
+  };
+
+  const move=(event)=>{
+    if(!drawing)return;
+    event.preventDefault();
+    const current=point(event);
+    ctx.beginPath();
+    ctx.moveTo(last.x,last.y);
+    ctx.lineTo(current.x,current.y);
+    ctx.stroke();
+    last=current;
+  };
+
+  const end=(event)=>{
+    if(event)event.preventDefault();
+    drawing=false;
+    last=null;
+  };
+
+  canvas.addEventListener("pointerdown",start);
+  canvas.addEventListener("pointermove",move);
+  canvas.addEventListener("pointerup",end);
+  canvas.addEventListener("pointerleave",end);
+  canvas.addEventListener("pointercancel",end);
+
+  window.serviceSignature={
+    canvas,
+    has:()=>hasSignature,
+    clear:()=>{
+      const r=canvas.getBoundingClientRect();
+      ctx.clearRect(0,0,r.width,r.height);
+      hasSignature=false;
+    },
+    data:()=>hasSignature?canvas.toDataURL("image/png"):null
+  };
+}
+
+function clearServiceSignature(){
+  window.serviceSignature?.clear();
 }
 
 function calculateChange(){
@@ -796,12 +872,22 @@ function openInvoicePayment(){
     '<div style="padding:10px;background:#0b2235;border-radius:8px;margin-bottom:14px">⏱️ Arbeitszeit aktuell: <b>'+duration+' Minuten</b></div>'+
     '<div class="sec">Material für die Rechnung</div><ul style="line-height:1.8">'+materials+'</ul>'+
     '<div class="sec">Unterschrift Kunde</div>'+
-    '<div style="border:2px dashed #a855f7;border-radius:8px;padding:18px;text-align:center;color:#c4b5fd">✍️ Unterschriftenfeld – digitale Signatur folgt im nächsten Schritt</div>'+
+    '<div style="border:1px solid #a855f7;border-radius:8px;background:#fff;overflow:hidden">'+
+      '<canvas id="service_signature" style="width:100%;height:170px;display:block;touch-action:none;cursor:crosshair"></canvas>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:12px;color:#8fb3d4"><span>Bitte hier mit dem Finger unterschreiben</span><button class="btnS" type="button" onclick="clearServiceSignature()">🧹 Löschen</button></div>'+
     '<button class="btnP" style="width:100%;padding:14px;margin-top:18px" onclick="finishService(\'rechnung\')">💾 Für Rechnung abschließen</button>'
   );
+  setTimeout(setupServiceSignature,0);
 }
 
 async function finishService(paymentType){
+  if(!window.serviceSignature?.has()){
+    alert("Bitte lassen Sie den Kunden zuerst unterschreiben.");
+    return;
+  }
+
+  const signature=window.serviceSignature.data();
   const started=activeServiceStartedAt?new Date(activeServiceStartedAt):new Date();
   const duration=Math.max(1,Math.round((Date.now()-started.getTime())/60000));
   const total=paymentType==="bar"?Number(document.getElementById("service_total")?.value||0):null;
@@ -816,7 +902,8 @@ async function finishService(paymentType){
     zahlungsart:paymentType,
     gesamtsumme:total,
     gegeben:given,
-    wechselgeld:paymentType==="bar"?Math.max(0,given-total):null
+    wechselgeld:paymentType==="bar"?Math.max(0,given-total):null,
+    unterschrift:signature
   };
 
   await updateServiceEntry({status:paymentType==="rechnung"?"rechnung":"erledigt",regiebericht:report});
@@ -893,6 +980,7 @@ window.markServiceFollowUp=markServiceFollowUp;
 window.openServicePaymentStep=openServicePaymentStep;
 window.openCashPayment=openCashPayment;
 window.calculateChange=calculateChange;
+window.clearServiceSignature=clearServiceSignature;
 window.openInvoicePayment=openInvoicePayment;
 window.finishService=finishService;
 window.openServiceEmailStep=openServiceEmailStep;
