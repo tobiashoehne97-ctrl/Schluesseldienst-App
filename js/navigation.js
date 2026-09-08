@@ -1,5 +1,5 @@
 function go(id) {
-  ["menu","to","rb","an","archiv","auftraege","zeit"].forEach(x => {
+  ["menu","to","rb","an","archiv","auftraege","zeit","kunden","kalender"].forEach(x => {
     const el = document.getElementById(x);
     if(el) { el.classList.add("hidden"); el.style.display="none"; }
   });
@@ -10,6 +10,7 @@ function go(id) {
   if(id==="an") iAN();
   if(id==="archiv") loadArchiv();
   if(id==="auftraege") renderAuftraege();
+  if(id==="kalender") initKalender();
   if (id === "zeit") {
 
     iZeit();
