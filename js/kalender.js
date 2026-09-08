@@ -644,10 +644,35 @@ function startServiceProcess(id){
 function startNavigation(){
   const entry=getServiceEntry();
   if(!entry){openServiceReportStep();return;}
-  const address=[entry.strasse,entry.hausnummer,entry.postleitzahl,entry.ort].filter(Boolean).join(" ") || entry.adresse || "";
-  if(address){
-    window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(address),"_blank");
+
+  const address=[entry.strasse,entry.hausnummer,entry.postleitzahl,entry.ort]
+    .filter(Boolean)
+    .join(" ")
+    || entry.adresse
+    || "";
+
+  if(!address){
+    openServiceReportStep();
+    return;
   }
+
+  const encodedAddress=encodeURIComponent(address);
+  const ua=navigator.userAgent||"";
+  const isIOS=/iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+  const isAndroid=/Android/i.test(ua);
+
+  if(isIOS){
+    // Apple Maps auf iPhone/iPad
+    window.location.href="https://maps.apple.com/?daddr="+encodedAddress+"&dirflg=d";
+  }else if(isAndroid){
+    // Android Intent öffnet bevorzugt eine installierte Navigations-/Karten-App
+    window.location.href="geo:0,0?q="+encodedAddress;
+  }else{
+    // PC / Büro: Google Maps
+    window.open("https://www.google.com/maps/dir/?api=1&destination="+encodedAddress,"_blank");
+  }
+
+  // Der Einsatzprozess läuft direkt weiter. Die Navigation kann parallel geöffnet bleiben.
   openServiceReportStep();
 }
 
