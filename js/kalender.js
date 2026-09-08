@@ -995,25 +995,80 @@ window.openServiceModal=openServiceModal;
 window.closeServiceModal=closeServiceModal;
 
 
+function formatRegieberichtDate(value){
+  if(!value) return "—";
+  const d=new Date(value);
+  if(!Number.isNaN(d.getTime())) return d.toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"});
+  return String(value);
+}
+
+function buildRegieberichtHtml(entry){
+  const r=entry.regiebericht||{};
+  const customer=[entry.vorname,entry.nachname].filter(Boolean).join(" ")||"—";
+  const addressLine=[entry.strasse,entry.hausnummer].filter(Boolean).join(" ");
+  const placeLine=[entry.postleitzahl,entry.ort].filter(Boolean).join(" ");
+  const address=[addressLine,placeLine].filter(Boolean).join("<br>")||"—";
+  const isInvoice=r.zahlungsart==="rechnung";
+  const materialRows=(r.material||[]).map(m=>{
+    const qty=Number(m.menge)||1;
+    const price=Number(m.preis)||0;
+    return "<tr><td>"+escapeHtml(m.name||"Material")+"</td><td class=\"num\">"+qty+"</td>"+(isInvoice?"":"<td class=\"num\">"+(qty*price).toFixed(2).replace(".",",")+" €</td>")+"</tr>";
+  }).join("") || "<tr><td colspan=\""+(isInvoice?2:3)+"\">Kein Material erfasst</td></tr>";
+
+  const statusText=entry.status==="rechnung"
+    ? "Abgeschlossen – Rechnung durch Büro erforderlich"
+    : entry.status==="offen"
+      ? "Nicht abgeschlossen – Folgetermin erforderlich"
+      : "Einsatz abgeschlossen";
+
+  const totalMaterial=(r.material||[]).reduce((sum,m)=>sum+(Number(m.menge)||1)*(Number(m.preis)||0),0);
+
+  return "<div class=\"rb-paper\">"+
+    "<div class=\"rb-watermark rb-left\"></div><div class=\"rb-watermark rb-right\"></div>"+
+    "<div class=\"rb-header\">"+
+      "<div class=\"rb-logo\"><div class=\"rb-logo-top\">Schlüsseldienst</div><div class=\"rb-logo-name\">Christian Höhne</div><div class=\"rb-key\">⌁🔑⌁</div></div>"+
+      "<div class=\"rb-company\"><div class=\"rb-slogan\">Sicherheit seit 1972</div><div>Schlüsseldienst Christian Höhne<br>Viehmarktgasse 6<br>92224 Amberg</div><div class=\"rb-contact\">09621 / 13 12 8<br>info@schluesseldienst-hoehne.de<br>www.schluesseldienst-hoehne.de</div></div>"+
+    "</div>"+
+    "<div class=\"rb-address-row\"><div><div class=\"rb-label\">Empfänger:in</div><div class=\"rb-customer\">"+escapeHtml(customer)+"<br>"+address+"</div></div><div class=\"rb-date\">Amberg, den "+(entry.datum?entry.datum.split("-").reverse().join("."):"—")+"</div></div>"+
+    "<div class=\"rb-title\">Regiebericht</div>"+
+    "<div class=\"rb-status "+(entry.status==="offen"?"open":entry.status==="rechnung"?"invoice":"done")+"\">"+escapeHtml(statusText)+"</div>"+
+    "<section><h3>Einsatzdaten</h3><div class=\"rb-grid\"><div><b>Einsatz:</b><br>"+escapeHtml(entry.titel||"Außendiensttermin")+"</div><div><b>Arbeitszeit:</b><br>"+Number(r.arbeitszeit_minuten||0)+" Minuten</div><div><b>Beginn:</b><br>"+escapeHtml(formatRegieberichtDate(r.gestartet||entry.von))+"</div><div><b>Ende:</b><br>"+escapeHtml(formatRegieberichtDate(r.beendet||entry.bis))+"</div></div></section>"+
+    "<section><h3>Vorgefunden</h3><div class=\"rb-text\">"+escapeHtml(r.vorgefunden||"Keine Angaben").replace(/\n/g,"<br>")+"</div></section>"+
+    "<section><h3>Durchgeführte Arbeiten</h3><div class=\"rb-text\">"+escapeHtml(r.gemacht||"Keine Angaben").replace(/\n/g,"<br>")+"</div></section>"+
+    "<section><h3>Verwendetes Material</h3><table><thead><tr><th>Material</th><th class=\"num\">Menge</th>"+(isInvoice?"":"<th class=\"num\">Preis</th>")+"</tr></thead><tbody>"+materialRows+"</tbody></table>"+(isInvoice?"":"<div class=\"rb-total\"><span>Material / Gesamtbetrag</span><b>"+Number(r.gesamtsumme??totalMaterial).toFixed(2).replace(".",",")+" €</b></div>")+"</section>"+
+    "<section><h3>"+(isInvoice?"Rechnung":"Barzahlung")+"</h3>"+(isInvoice
+      ? "<div class=\"rb-note\">Die Abrechnung erfolgt durch das Büro. Preise sind in diesem Kunden-Regiebericht nicht aufgeführt.</div>"
+      : "<div class=\"rb-payment\"><div>Gesamtsumme <b>"+Number(r.gesamtsumme||0).toFixed(2).replace(".",",")+" €</b></div><div>Gegeben <b>"+Number(r.gegeben||0).toFixed(2).replace(".",",")+" €</b></div><div>Wechselgeld <b>"+Number(r.wechselgeld||0).toFixed(2).replace(".",",")+" €</b></div></div>")+"</section>"+
+    "<section><h3>Kundenbestätigung</h3><div class=\"rb-sign-note\">Mit der Unterschrift bestätigt der Kunde die ausgeführten Arbeiten und die Richtigkeit der Angaben.</div>"+(r.unterschrift?"<div class=\"rb-sign\"><img src=\""+r.unterschrift+"\"></div>":"<div class=\"rb-sign rb-sign-empty\">Keine Unterschrift hinterlegt</div>")+"<div class=\"rb-sign-line\"><span>"+escapeHtml(customer)+"</span><span>Unterschrift Kunde</span></div></section>"+
+    "<div class=\"rb-footer\"><div><b>SCHLÜSSELDIENST CHRISTIAN HÖHNE</b><br>Viehmarktgasse 6 · 92224 Amberg</div><div>Fon: 09621/13128<br>Fon: 0170 / 474 2557<br>www.schluesseldienst-hoehne.de</div><div>USt.-IdNr. DE 169302242<br>Sicherheit seit 1972</div></div>"+
+  "</div>";
+}
+
+function getRegieberichtPrintCss(){
+  return `*{box-sizing:border-box}body{margin:0;background:#e5e7eb;font-family:Arial,Helvetica,sans-serif;color:#1f2937}.rb-paper{position:relative;width:210mm;min-height:297mm;margin:0 auto;background:#fff;overflow:hidden;padding:17mm 16mm 15mm}.rb-header{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}.rb-logo{color:#164b7d;line-height:1;text-align:left;min-width:76mm}.rb-logo-top{font-size:10mm;font-weight:700;letter-spacing:.7mm;transform:skewY(-7deg)}.rb-logo-name{font-size:8mm;font-style:italic;font-weight:700;margin-top:1mm}.rb-key{font-size:4mm;margin:1mm 0 0 22mm}.rb-company{text-align:left;font-size:3.2mm;line-height:1.45;width:70mm}.rb-slogan{font-size:9mm;color:#2b5d8e;font-family:Georgia,serif;letter-spacing:.4mm;margin-bottom:3mm}.rb-contact{margin-top:4mm}.rb-address-row{display:flex;justify-content:space-between;margin-top:18mm;position:relative;z-index:2}.rb-label{font-size:3mm;margin-bottom:2mm}.rb-customer{font-size:3.6mm;line-height:1.4}.rb-date{font-size:3mm;margin-top:12mm}.rb-title{font-size:6mm;font-weight:700;margin:32mm 0 6mm;position:relative;z-index:2}.rb-status{display:inline-block;padding:2.5mm 4mm;border-radius:2mm;font-size:3mm;font-weight:700;margin-bottom:6mm}.rb-status.done{background:#dcfce7;color:#166534}.rb-status.invoice{background:#f3e8ff;color:#7e22ce}.rb-status.open{background:#fee2e2;color:#b91c1c}section{position:relative;z-index:2;margin:5mm 0;padding:0}h3{font-size:3.5mm;color:#164b7d;margin:0 0 2.5mm;padding-bottom:1.5mm;border-bottom:.5mm solid #cbd5e1}.rb-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm;font-size:3mm;line-height:1.45}.rb-text{font-size:3.1mm;line-height:1.55;min-height:7mm}table{width:100%;border-collapse:collapse;font-size:3mm}th{background:#e8eef5;color:#164b7d;text-align:left;padding:2mm}td{padding:2mm;border-bottom:.3mm solid #dbe3ec}.num{text-align:right}.rb-total{display:flex;justify-content:space-between;background:#164b7d;color:#fff;padding:3mm 4mm;margin-top:3mm;font-size:3.5mm}.rb-payment{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2mm;background:#f8fafc;padding:3mm;font-size:3mm}.rb-payment b{display:block;font-size:3.5mm;margin-top:1mm}.rb-note{background:#f5f3ff;border-left:1mm solid #8b5cf6;padding:3mm;font-size:3mm;line-height:1.45}.rb-sign-note{font-size:2.8mm;color:#475569;margin-bottom:3mm}.rb-sign{height:28mm;border:.3mm solid #cbd5e1;background:#fff;display:flex;align-items:center;padding:2mm}.rb-sign img{max-height:24mm;max-width:100%}.rb-sign-empty{border-style:dashed;color:#94a3b8;font-size:3mm}.rb-sign-line{display:flex;justify-content:space-between;font-size:2.8mm;margin-top:2mm;color:#475569}.rb-footer{position:absolute;left:16mm;right:16mm;bottom:8mm;border-top:.3mm solid #cbd5e1;padding-top:3mm;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4mm;font-size:2.5mm;line-height:1.45;z-index:2}.rb-watermark{position:absolute;z-index:0;opacity:.07;background:#164b7d}.rb-left{left:-35mm;top:95mm;width:50mm;height:100mm;border-radius:0 30mm 30mm 0}.rb-right{right:-22mm;top:80mm;width:28mm;height:130mm;border-radius:14mm 0 0 14mm}.rb-right:after{content:"";position:absolute;left:-16mm;bottom:-12mm;width:45mm;height:45mm;border-radius:50%;border:10mm solid #164b7d;background:#fff}@media print{body{background:#fff}.rb-paper{margin:0;width:210mm;min-height:297mm;box-shadow:none}.no-print{display:none!important}}`;
+}
+
 function openRegiebericht(id){
   const entry=(AppData.kalender?.eintraege||[]).find(e=>String(e.id)===String(id));
   if(!entry?.regiebericht){ alert("Für diesen Termin ist noch kein Regiebericht vorhanden."); return; }
-  const r=entry.regiebericht;
-  const customer=[entry.vorname,entry.nachname].filter(Boolean).join(" ")||"—";
-  const address=[[entry.strasse,entry.hausnummer].filter(Boolean).join(" "),[entry.postleitzahl,entry.ort].filter(Boolean).join(" ")].filter(Boolean).join(", ")||"—";
-  const mats=(r.material||[]).map(m=>"<tr><td>"+escapeHtml(m.name||"Material")+"</td><td>"+(m.menge||1)+"</td><td>"+(Number(m.preis||0)*Number(m.menge||1)).toFixed(2)+" €</td></tr>").join("")||"<tr><td colspan=\"3\">Kein Material erfasst</td></tr>";
-  const html="<div style=\"background:#fff;color:#172033;border-radius:10px;padding:22px;font-family:Arial,sans-serif\">"+
-    "<div style=\"display:flex;justify-content:space-between;border-bottom:3px solid #164e7a;padding-bottom:14px\"><div><div style=\"font-size:23px;font-weight:900;color:#123f62\">SCHLÜSSELDIENST HÖHNE</div><div style=\"color:#64748b\">Regiebericht / Arbeitsnachweis</div></div><b>"+escapeHtml(entry.datum||"")+"</b></div>"+
-    "<div style=\"margin:16px 0;padding:10px;background:#eaf5ed;border-left:5px solid #22c55e;font-weight:bold\">"+(entry.status==="rechnung"?"🟣 Abgeschlossen – Rechnung erforderlich":entry.status==="offen"?"🔴 Nicht abgeschlossen / Folgetermin erforderlich":"🟢 Einsatz abgeschlossen")+"</div>"+
-    "<h3>👤 Kundendaten</h3><p><b>"+escapeHtml(customer)+"</b><br>"+escapeHtml(entry.telefonnummer||"—")+"<br>"+escapeHtml(address)+"</p>"+
-    "<h3>🕒 Einsatzdaten</h3><p>Beginn: <b>"+escapeHtml(String(r.gestartet||entry.von||"—"))+"</b><br>Ende: <b>"+escapeHtml(String(r.beendet||entry.bis||"—"))+"</b><br>Arbeitszeit: <b>"+Number(r.arbeitszeit_minuten||0)+" Minuten</b></p>"+
-    "<h3>🔎 Vorgefunden</h3><div style=\"white-space:pre-wrap\">"+escapeHtml(r.vorgefunden||"Keine Angaben")+"</div>"+
-    "<h3>🔧 Durchgeführte Arbeiten</h3><div style=\"white-space:pre-wrap\">"+escapeHtml(r.gemacht||"Keine Angaben")+"</div>"+
-    "<h3>📦 Verwendetes Material</h3><table style=\"width:100%;border-collapse:collapse\"><tr><th style=\"text-align:left;border-bottom:1px solid #ccc;padding:6px\">Material</th><th>Menge</th><th>Preis</th></tr>"+mats+"</table>"+
-    "<h3 style=\"margin-top:20px\">"+(r.zahlungsart==="bar"?"💶 Barzahlung":"🧾 Rechnung")+"</h3>"+
-    (r.zahlungsart==="bar"?"<p>Gesamtsumme: <b>"+Number(r.gesamtsumme||0).toFixed(2)+" €</b><br>Kunde gab: <b>"+Number(r.gegeben||0).toFixed(2)+" €</b><br>Wechselgeld: <b>"+Number(r.wechselgeld||0).toFixed(2)+" €</b></p>":"<p>Rechnung ist durch das Büro zu erstellen.</p>")+
-    "<h3>✍️ Kundenunterschrift</h3>"+(r.unterschrift?"<img src=\""+r.unterschrift+"\" style=\"max-width:100%;height:120px;border:1px solid #ddd\">":"<div style=\"padding:30px;border:1px dashed #aaa\">Keine Unterschrift hinterlegt</div>")+
-    "</div>";
-  openServiceModal("📄 Regiebericht",html+"<button class=\"btnS\" style=\"width:100%;padding:13px;margin-top:12px\" onclick=\"window.print()\">🖨️ Drucken / Als PDF speichern</button><button class=\"btnP\" style=\"width:100%;padding:13px;margin-top:8px\" onclick=\"closeServiceModal()\">✓ Schließen</button>");
+  const html=buildRegieberichtHtml(entry);
+  openServiceModal("📄 Regiebericht",
+    "<style>"+getRegieberichtPrintCss()+"</style>"+
+    "<div style=\"overflow:auto;background:#dbe2ea;padding:10px;border-radius:10px\"><div style=\"transform-origin:top center\">"+html+"</div></div>"+
+    "<button class=\"btnS\" style=\"width:100%;padding:13px;margin-top:12px\" onclick=\"printRegiebericht('"+String(entry.id).replace(/'/g,"\\'")+"')\">🖨️ Drucken / Als PDF speichern</button>"+
+    "<button class=\"btnP\" style=\"width:100%;padding:13px;margin-top:8px\" onclick=\"closeServiceModal()\">✓ Schließen</button>"
+  );
 }
+
+function printRegiebericht(id){
+  const entry=(AppData.kalender?.eintraege||[]).find(e=>String(e.id)===String(id));
+  if(!entry?.regiebericht) return alert("Für diesen Termin ist noch kein Regiebericht vorhanden.");
+  const win=window.open("","_blank");
+  if(!win){ alert("Das Druckfenster konnte nicht geöffnet werden. Bitte Pop-ups erlauben."); return; }
+  win.document.open();
+  win.document.write("<!doctype html><html><head><meta charset=\"utf-8\"><title>Regiebericht</title><style>"+getRegieberichtPrintCss()+"</style></head><body>"+buildRegieberichtHtml(entry)+"<script>window.onload=()=>window.print();<\/script></body></html>");
+  win.document.close();
+}
+
 window.openRegiebericht=openRegiebericht;
+window.printRegiebericht=printRegiebericht;
