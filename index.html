@@ -205,6 +205,23 @@
     <button class="btnP" style="width:100%;padding:13px" onclick="saveKalenderEntry()">💾 Eintrag speichern</button>
   </div>
 
+  <div class="card" style="padding-bottom:12px">
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="kal_tab_woche" class="btnP" style="flex:1;padding:10px" onclick="showKalenderView('woche')">📅 Woche</button>
+      <button id="kal_tab_liste" class="btnS" style="flex:1;padding:10px" onclick="showKalenderView('liste')">📋 Liste</button>
+    </div>
+    <div id="kalenderWoche">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+        <button class="btnS" style="padding:8px 12px" onclick="changeKalenderWeek(-1)">←</button>
+        <div id="kal_woche_titel" style="font-weight:800;text-align:center"></div>
+        <button class="btnS" style="padding:8px 12px" onclick="changeKalenderWeek(1)">→</button>
+      </div>
+      <button class="btnS" style="width:100%;padding:8px;margin-bottom:12px;font-size:12px" onclick="goKalenderToday()">Heute</button>
+      <div id="kalenderWocheGrid"></div>
+    </div>
+  </div>
+
+  <div id="kalenderListeBereich">
   <div class="card">
     <div class="sec">Geplante Einsätze</div>
     <label class="lbl">Datum filtern</label>
@@ -215,6 +232,7 @@
   </div>
 
   <div id="kalenderListe"></div>
+  </div>
 </div>
 
 <!-- TUROEFFNUNG -->
