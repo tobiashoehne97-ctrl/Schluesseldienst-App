@@ -17,6 +17,7 @@ function normalizeKalenderEntry(row){
     adresse: row.adresse || "",
     nachname: row.nachname || "",
     vorname: row.vorname || "",
+    telefonnummer: row.telefonnummer || "",
     strasse: row.strasse || "",
     hausnummer: row.hausnummer || "",
     postleitzahl: row.postleitzahl || "",
@@ -61,6 +62,7 @@ async function saveKalenderEntry(){
     status:document.getElementById("kal_status").value,
     nachname:document.getElementById("kal_nachname").value.trim()||null,
     vorname:document.getElementById("kal_vorname").value.trim()||null,
+    telefonnummer:document.getElementById("kal_telefonnummer").value.trim()||null,
     strasse:document.getElementById("kal_strasse").value.trim()||null,
     hausnummer:document.getElementById("kal_hausnummer").value.trim()||null,
     postleitzahl:document.getElementById("kal_postleitzahl").value.trim()||null,
@@ -94,7 +96,7 @@ async function saveKalenderEntry(){
 }
 
 function clearKalenderForm(){
-  ["kal_titel","kal_nachname","kal_vorname","kal_strasse","kal_hausnummer","kal_postleitzahl","kal_ort","kal_beschreibung","kal_von","kal_bis"].forEach(id=>document.getElementById(id).value="");
+  ["kal_titel","kal_nachname","kal_vorname","kal_telefonnummer","kal_strasse","kal_hausnummer","kal_postleitzahl","kal_ort","kal_beschreibung","kal_von","kal_bis"].forEach(id=>document.getElementById(id).value="");
 }
 
 async function deleteKalenderEntry(id){
@@ -143,6 +145,7 @@ function renderKalender(){
       '<div style="min-width:0"><div style="font-size:16px;font-weight:800">'+escapeHtml(e.titel)+'</div>'+
       '<div style="font-size:13px;color:#7eb3e0;margin-top:5px">📅 '+e.datum.split("-").reverse().join(".")+' · 🕒 '+(e.von||"")+(e.bis?"–"+e.bis:"")+'</div>'+
       ((e.nachname||e.vorname)?'<div style="font-size:13px;color:#d0e4f5;margin-top:5px">👤 '+escapeHtml([e.vorname,e.nachname].filter(Boolean).join(" "))+'</div>':"")+
+      (e.telefonnummer?'<div style="font-size:13px;color:#a0c4e8;margin-top:5px">📞 <a href="tel:'+escapeHtml(e.telefonnummer)+'" style="color:inherit">'+escapeHtml(e.telefonnummer)+'</a></div>':"")+
       ((e.strasse||e.ort||e.adresse)?'<div style="font-size:13px;color:#a0c4e8;margin-top:5px">📍 '+escapeHtml(e.strasse?([e.strasse,e.hausnummer].filter(Boolean).join(" ")+(e.postleitzahl||e.ort?" · "+[e.postleitzahl,e.ort].filter(Boolean).join(" "):"")):e.adresse)+'</div>':"")+
       (e.beschreibung?'<div style="font-size:13px;color:#a0c4e8;margin-top:5px">'+escapeHtml(e.beschreibung)+'</div>':"")+
       '</div><button class="btnD" style="height:38px" onclick="deleteKalenderEntry(\''+e.id+'\')">✕</button></div>'+
