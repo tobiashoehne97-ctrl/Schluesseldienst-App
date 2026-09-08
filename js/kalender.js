@@ -928,10 +928,50 @@ function openServiceEmailStep(paymentType){
 
 function showServiceEmailInput(){
   document.getElementById("service_email_area").innerHTML=
-    '<label class="lbl" style="margin-top:16px">E-Mail-Adresse</label>'+
-    '<input id="service_customer_email" type="email" placeholder="kunde@beispiel.de">'+
-    '<div style="font-size:12px;color:#8fb3d4;margin:8px 0">Der E-Mail-Versand wird im nächsten Schritt mit der finalen PDF-Erstellung verbunden.</div>'+
-    '<button class="btnP" style="width:100%;padding:12px" onclick="finishServiceAndReturn()">📧 Speichern & abschließen</button>';
+    '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #254b6a">'+
+    '<label class="lbl">E-Mail-Adresse des Empfängers</label>'+
+    '<input id="service_customer_email" type="email" placeholder="firma@beispiel.de" autocomplete="email">'+
+    '<div style="font-size:12px;color:#8fb3d4;margin:8px 0">Die Adresse wird nur für diesen Versand verwendet und nicht automatisch beim Kunden gespeichert.</div>'+
+    '<button id="service_send_mail_btn" class="btnP" style="width:100%;padding:12px" onclick="sendServiceRegiebericht()">📧 Bericht senden</button>'+
+    '</div>';
+}
+
+async function sendServiceRegiebericht(){
+  const email=document.getElementById("service_customer_email")?.value.trim();
+  const entry=getServiceEntry();
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    alert("Bitte eine gültige E-Mail-Adresse eingeben.");
+    return;
+  }
+  if(!entry?.regiebericht){
+    alert("Der Regiebericht wurde nicht gefunden.");
+    return;
+  }
+
+  const btn=document.getElementById("service_send_mail_btn");
+  if(btn){btn.disabled=true;btn.textContent="⏳ Bericht wird gesendet...";}
+
+  try{
+    const response=await fetch("/.netlify/functions/send-regiebericht",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        email,
+        entry,
+        html:buildRegieberichtHtml(entry)
+      })
+    });
+
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(result.error||"E-Mail konnte nicht versendet werden.");
+
+    alert("📧 Der Regiebericht wurde erfolgreich an "+email+" versendet.");
+    finishServiceAndReturn();
+  }catch(err){
+    console.error("E-Mail-Versand fehlgeschlagen:",err);
+    alert("Der E-Mail-Versand konnte nicht durchgeführt werden: "+err.message);
+    if(btn){btn.disabled=false;btn.textContent="📧 Bericht senden";}
+  }
 }
 
 function finishServiceAndReturn(){
@@ -990,6 +1030,7 @@ window.openInvoicePayment=openInvoicePayment;
 window.finishService=finishService;
 window.openServiceEmailStep=openServiceEmailStep;
 window.showServiceEmailInput=showServiceEmailInput;
+window.sendServiceRegiebericht=sendServiceRegiebericht;
 window.finishServiceAndReturn=finishServiceAndReturn;
 window.openServiceModal=openServiceModal;
 window.closeServiceModal=closeServiceModal;
@@ -1000,6 +1041,14 @@ function formatRegieberichtDate(value){
   const d=new Date(value);
   if(!Number.isNaN(d.getTime())) return d.toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"});
   return String(value);
+}
+
+function getRegieberichtLogoHtml(){
+  const appLogo=document.getElementById("logoImg");
+  const stored=window.logoUrl || localStorage.getItem("logoUrl");
+  const src=(appLogo && appLogo.tagName==="IMG" ? appLogo.src : "") || stored || "";
+  if(src) return '<img class="rb-logo-image" src="'+src.replace(/"/g,"&quot;")+'" alt="Schlüsseldienst Höhne">';
+  return '<div class="rb-logo-fallback">Schlüsseldienst<br><strong>Christian Höhne</strong></div>';
 }
 
 function buildRegieberichtHtml(entry){
@@ -1026,7 +1075,7 @@ function buildRegieberichtHtml(entry){
   return "<div class=\"rb-paper\">"+
     "<div class=\"rb-watermark rb-left\"></div><div class=\"rb-watermark rb-right\"></div>"+
     "<div class=\"rb-header\">"+
-      "<div class=\"rb-logo\"><div class=\"rb-logo-top\">Schlüsseldienst</div><div class=\"rb-logo-name\">Christian Höhne</div><div class=\"rb-key\">⌁🔑⌁</div></div>"+
+      "<div class=\"rb-logo\">"+getRegieberichtLogoHtml()+"</div>"+
       "<div class=\"rb-company\"><div class=\"rb-slogan\">Sicherheit seit 1972</div><div>Schlüsseldienst Christian Höhne<br>Viehmarktgasse 6<br>92224 Amberg</div><div class=\"rb-contact\">09621 / 13 12 8<br>info@schluesseldienst-hoehne.de<br>www.schluesseldienst-hoehne.de</div></div>"+
     "</div>"+
     "<div class=\"rb-address-row\"><div><div class=\"rb-label\">Empfänger:in</div><div class=\"rb-customer\">"+escapeHtml(customer)+"<br>"+address+"</div></div><div class=\"rb-date\">Amberg, den "+(entry.datum?entry.datum.split("-").reverse().join("."):"—")+"</div></div>"+
@@ -1045,7 +1094,7 @@ function buildRegieberichtHtml(entry){
 }
 
 function getRegieberichtPrintCss(){
-  return `*{box-sizing:border-box}body{margin:0;background:#e5e7eb;font-family:Arial,Helvetica,sans-serif;color:#1f2937}.rb-paper{position:relative;width:210mm;min-height:297mm;margin:0 auto;background:#fff;overflow:hidden;padding:17mm 16mm 15mm}.rb-header{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}.rb-logo{color:#164b7d;line-height:1;text-align:left;min-width:76mm}.rb-logo-top{font-size:10mm;font-weight:700;letter-spacing:.7mm;transform:skewY(-7deg)}.rb-logo-name{font-size:8mm;font-style:italic;font-weight:700;margin-top:1mm}.rb-key{font-size:4mm;margin:1mm 0 0 22mm}.rb-company{text-align:left;font-size:3.2mm;line-height:1.45;width:70mm}.rb-slogan{font-size:9mm;color:#2b5d8e;font-family:Georgia,serif;letter-spacing:.4mm;margin-bottom:3mm}.rb-contact{margin-top:4mm}.rb-address-row{display:flex;justify-content:space-between;margin-top:18mm;position:relative;z-index:2}.rb-label{font-size:3mm;margin-bottom:2mm}.rb-customer{font-size:3.6mm;line-height:1.4}.rb-date{font-size:3mm;margin-top:12mm}.rb-title{font-size:6mm;font-weight:700;margin:32mm 0 6mm;position:relative;z-index:2}.rb-status{display:inline-block;padding:2.5mm 4mm;border-radius:2mm;font-size:3mm;font-weight:700;margin-bottom:6mm}.rb-status.done{background:#dcfce7;color:#166534}.rb-status.invoice{background:#f3e8ff;color:#7e22ce}.rb-status.open{background:#fee2e2;color:#b91c1c}section{position:relative;z-index:2;margin:5mm 0;padding:0}h3{font-size:3.5mm;color:#164b7d;margin:0 0 2.5mm;padding-bottom:1.5mm;border-bottom:.5mm solid #cbd5e1}.rb-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm;font-size:3mm;line-height:1.45}.rb-text{font-size:3.1mm;line-height:1.55;min-height:7mm}table{width:100%;border-collapse:collapse;font-size:3mm}th{background:#e8eef5;color:#164b7d;text-align:left;padding:2mm}td{padding:2mm;border-bottom:.3mm solid #dbe3ec}.num{text-align:right}.rb-total{display:flex;justify-content:space-between;background:#164b7d;color:#fff;padding:3mm 4mm;margin-top:3mm;font-size:3.5mm}.rb-payment{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2mm;background:#f8fafc;padding:3mm;font-size:3mm}.rb-payment b{display:block;font-size:3.5mm;margin-top:1mm}.rb-note{background:#f5f3ff;border-left:1mm solid #8b5cf6;padding:3mm;font-size:3mm;line-height:1.45}.rb-sign-note{font-size:2.8mm;color:#475569;margin-bottom:3mm}.rb-sign{height:28mm;border:.3mm solid #cbd5e1;background:#fff;display:flex;align-items:center;padding:2mm}.rb-sign img{max-height:24mm;max-width:100%}.rb-sign-empty{border-style:dashed;color:#94a3b8;font-size:3mm}.rb-sign-line{display:flex;justify-content:space-between;font-size:2.8mm;margin-top:2mm;color:#475569}.rb-footer{position:absolute;left:16mm;right:16mm;bottom:8mm;border-top:.3mm solid #cbd5e1;padding-top:3mm;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4mm;font-size:2.5mm;line-height:1.45;z-index:2}.rb-watermark{position:absolute;z-index:0;opacity:.07;background:#164b7d}.rb-left{left:-35mm;top:95mm;width:50mm;height:100mm;border-radius:0 30mm 30mm 0}.rb-right{right:-22mm;top:80mm;width:28mm;height:130mm;border-radius:14mm 0 0 14mm}.rb-right:after{content:"";position:absolute;left:-16mm;bottom:-12mm;width:45mm;height:45mm;border-radius:50%;border:10mm solid #164b7d;background:#fff}@media print{body{background:#fff}.rb-paper{margin:0;width:210mm;min-height:297mm;box-shadow:none}.no-print{display:none!important}}`;
+  return `*{box-sizing:border-box}body{margin:0;background:#e5e7eb;font-family:Arial,Helvetica,sans-serif;color:#1f2937}.rb-paper{position:relative;width:210mm;min-height:297mm;margin:0 auto;background:#fff;overflow:hidden;padding:17mm 16mm 15mm}.rb-header{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}.rb-logo{min-width:76mm;max-width:82mm}.rb-logo-image{display:block;width:100%;height:auto;max-height:34mm;object-fit:contain;object-position:left top}.rb-logo-fallback{color:#164b7d;font-size:8mm;font-weight:700;line-height:1.05}.rb-company{text-align:left;font-size:3.2mm;line-height:1.45;width:70mm}.rb-slogan{font-size:9mm;color:#2b5d8e;font-family:Georgia,serif;letter-spacing:.4mm;margin-bottom:3mm}.rb-contact{margin-top:4mm}.rb-address-row{display:flex;justify-content:space-between;margin-top:18mm;position:relative;z-index:2}.rb-label{font-size:3mm;margin-bottom:2mm}.rb-customer{font-size:3.6mm;line-height:1.4}.rb-date{font-size:3mm;margin-top:12mm}.rb-title{font-size:6mm;font-weight:700;margin:32mm 0 6mm;position:relative;z-index:2}.rb-status{display:inline-block;padding:2.5mm 4mm;border-radius:2mm;font-size:3mm;font-weight:700;margin-bottom:6mm}.rb-status.done{background:#dcfce7;color:#166534}.rb-status.invoice{background:#f3e8ff;color:#7e22ce}.rb-status.open{background:#fee2e2;color:#b91c1c}section{position:relative;z-index:2;margin:5mm 0;padding:0}h3{font-size:3.5mm;color:#164b7d;margin:0 0 2.5mm;padding-bottom:1.5mm;border-bottom:.5mm solid #cbd5e1}.rb-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm;font-size:3mm;line-height:1.45}.rb-text{font-size:3.1mm;line-height:1.55;min-height:7mm}table{width:100%;border-collapse:collapse;font-size:3mm}th{background:#e8eef5;color:#164b7d;text-align:left;padding:2mm}td{padding:2mm;border-bottom:.3mm solid #dbe3ec}.num{text-align:right}.rb-total{display:flex;justify-content:space-between;background:#164b7d;color:#fff;padding:3mm 4mm;margin-top:3mm;font-size:3.5mm}.rb-payment{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2mm;background:#f8fafc;padding:3mm;font-size:3mm}.rb-payment b{display:block;font-size:3.5mm;margin-top:1mm}.rb-note{background:#f5f3ff;border-left:1mm solid #8b5cf6;padding:3mm;font-size:3mm;line-height:1.45}.rb-sign-note{font-size:2.8mm;color:#475569;margin-bottom:3mm}.rb-sign{height:28mm;border:.3mm solid #cbd5e1;background:#fff;display:flex;align-items:center;padding:2mm}.rb-sign img{max-height:24mm;max-width:100%}.rb-sign-empty{border-style:dashed;color:#94a3b8;font-size:3mm}.rb-sign-line{display:flex;justify-content:space-between;font-size:2.8mm;margin-top:2mm;color:#475569}.rb-footer{position:absolute;left:16mm;right:16mm;bottom:8mm;border-top:.3mm solid #cbd5e1;padding-top:3mm;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:4mm;font-size:2.5mm;line-height:1.45;z-index:2}.rb-watermark{position:absolute;z-index:0;opacity:.07;background:#164b7d}.rb-left{left:-35mm;top:95mm;width:50mm;height:100mm;border-radius:0 30mm 30mm 0}.rb-right{right:-22mm;top:80mm;width:28mm;height:130mm;border-radius:14mm 0 0 14mm}.rb-right:after{content:"";position:absolute;left:-16mm;bottom:-12mm;width:45mm;height:45mm;border-radius:50%;border:10mm solid #164b7d;background:#fff}@media screen and (max-width:900px){body{background:#fff}.rb-paper{width:100%;min-height:auto;padding:22px 18px 28px;margin:0}.rb-header{gap:16px}.rb-logo{min-width:0;width:52%}.rb-company{width:48%;font-size:11px}.rb-slogan{font-size:25px}.rb-address-row{margin-top:42px}.rb-title{margin:55px 0 14px;font-size:28px}.rb-grid{font-size:12px}.rb-text,table,.rb-payment{font-size:12px}.rb-footer{position:relative;left:auto;right:auto;bottom:auto;margin-top:40px;font-size:10px}}@media screen and (max-width:600px){.rb-paper{padding:14px 12px 22px}.rb-header{display:block}.rb-logo{width:100%;max-width:280px;margin-bottom:16px}.rb-company{width:100%;font-size:12px}.rb-slogan{font-size:24px}.rb-address-row{margin-top:28px;display:block}.rb-date{margin-top:16px}.rb-title{margin:34px 0 12px;font-size:26px}.rb-grid{grid-template-columns:1fr;gap:8px}.rb-payment{grid-template-columns:1fr;gap:8px}.rb-footer{grid-template-columns:1fr;gap:10px}.rb-watermark{display:none}section{margin:18px 0}h3{font-size:16px}.rb-status{font-size:12px}.rb-sign-line{display:block}.rb-sign-line span{display:block;margin-top:5px}}@media print{body{background:#fff}.rb-paper{margin:0;width:210mm;min-height:297mm;box-shadow:none}.no-print{display:none!important}}`;
 }
 
 function openRegiebericht(id){
@@ -1054,7 +1103,7 @@ function openRegiebericht(id){
   const html=buildRegieberichtHtml(entry);
   openServiceModal("📄 Regiebericht",
     "<style>"+getRegieberichtPrintCss()+"</style>"+
-    "<div style=\"overflow:auto;background:#dbe2ea;padding:10px;border-radius:10px\"><div style=\"transform-origin:top center\">"+html+"</div></div>"+
+    "<div style=\"overflow:auto;background:#dbe2ea;padding:0;border-radius:10px;width:100%\"><div style=\"width:100%\">"+html+"</div></div>"+
     "<button class=\"btnS\" style=\"width:100%;padding:13px;margin-top:12px\" onclick=\"printRegiebericht('"+String(entry.id).replace(/'/g,"\\'")+"')\">🖨️ Drucken / Als PDF speichern</button>"+
     "<button class=\"btnP\" style=\"width:100%;padding:13px;margin-top:8px\" onclick=\"closeServiceModal()\">✓ Schließen</button>"
   );
