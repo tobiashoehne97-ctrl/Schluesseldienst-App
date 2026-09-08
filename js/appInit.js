@@ -1,5 +1,11 @@
-function initApplication() {
+async function initApplication() {
   try {
+    // Zentrale Supabase-Verbindung zuerst aufbauen, damit Kalender und Archiv
+    // zuverlässig auf Datenbank und Storage zugreifen können.
+    if (typeof initSupabase === "function") {
+      await initSupabase();
+    }
+
     if (typeof loadAppData === "function") {
       loadAppData();
       console.log("Data loaded");
