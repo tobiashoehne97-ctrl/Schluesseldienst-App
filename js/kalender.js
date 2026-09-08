@@ -530,7 +530,8 @@ function openKalenderEntryDetails(id){
       '🕒 '+escapeHtml(entry.von||"--:--")+(entry.bis?" – "+escapeHtml(entry.bis):"")+
       '</div>'+
       (entry.beschreibung?'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #254b6a">📝 '+escapeHtml(entry.beschreibung)+'</div>':"")+
-      '<button class="btnP" style="width:100%;padding:14px;margin-top:18px" onclick="startServiceProcess(\''+escapeHtml(entry.id)+'\')">▶️ Arbeit / Einsatz starten</button>'+
+      (entry.regiebericht?'<button class="btnS" style="width:100%;padding:13px;margin-top:14px" onclick="openRegiebericht(\''+escapeHtml(entry.id)+'\')">📄 Regiebericht öffnen</button>':"")+
+      ((entry.status==="erledigt"||entry.status==="rechnung"||entry.status==="offen")?'<div style="margin-top:14px;padding:10px;border-radius:8px;background:rgba(34,197,94,.10);font-size:13px;color:#c8e6d0">Dieser Einsatz wurde bereits bearbeitet.</div>':'<button class="btnP" style="width:100%;padding:14px;margin-top:18px" onclick="startServiceProcess(\''+escapeHtml(entry.id)+'\')">▶️ Arbeit / Einsatz starten</button>')+
       '<div style="display:flex;gap:8px;margin-top:10px">'+
       '<button class="btnS" style="flex:1" onclick="closeKalenderModal()">← Zurück</button>'+
       '<button class="btnD" data-id="'+escapeHtml(entry.id)+'" onclick="deleteKalenderEntry(this.dataset.id);closeKalenderModal()">🗑 Löschen</button>'+
@@ -913,7 +914,8 @@ async function finishService(paymentType){
 function openServiceEmailStep(paymentType){
   const entry=getServiceEntry();
   openServiceModal("📧 Regiebericht versenden",
-    '<div style="font-size:16px;margin-bottom:14px">Soll der Regiebericht an den Kunden per E-Mail geschickt werden?</div>'+
+    '<div style="font-size:16px;margin-bottom:14px">Der Regiebericht wurde erstellt. Soll er an den Kunden per E-Mail geschickt werden?</div>'+
+    '<button class="btnS" style="width:100%;padding:13px;margin-bottom:12px" onclick="openRegiebericht(\''+escapeHtml(entry?.id||activeServiceId)+'\')">📄 Regiebericht jetzt ansehen</button>'+
     '<div style="display:flex;gap:10px">'+
     '<button class="btnS" style="flex:1;padding:14px" onclick="finishServiceAndReturn()">Nein</button>'+
     '<button class="btnP" style="flex:1;padding:14px" onclick="showServiceEmailInput()">Ja, senden</button>'+
@@ -931,6 +933,7 @@ function showServiceEmailInput(){
 }
 
 function finishServiceAndReturn(){
+  const finishedId=activeServiceId;
   closeServiceModal();
   activeServiceId=null;
   activeServiceStartedAt=null;
@@ -938,7 +941,7 @@ function finishServiceAndReturn(){
   window.activeServiceReport=null;
   renderKalender();
   renderKalenderWeek();
-  alert("Einsatz wurde erfolgreich abgeschlossen.");
+  alert("Einsatz wurde erfolgreich abgeschlossen. Der Regiebericht kann jederzeit über den Termin geöffnet werden.");
 }
 
 async function updateServiceEntry(changes){
