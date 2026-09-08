@@ -22,6 +22,32 @@
 .pdf-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;min-height:0;flex:1}
 .pdf-preview-area{position:relative;min-height:0;background:#1b2b44;display:flex;align-items:stretch;justify-content:stretch;padding:10px}
 #pdfFrame{width:100%;height:100%;border:0;border-radius:8px;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+/* Regiebericht aus dem Außendienst bewusst deutlich breiter als die normalen Dialoge */
+#serviceModal.service-report-modal{padding:18px!important}
+#serviceModal.service-report-modal>div:first-child{
+  width:calc(100vw - 36px)!important;
+  max-width:1450px!important;
+  margin:0 auto!important;
+  min-height:calc(100vh - 36px);
+  max-height:none!important;
+  padding:18px 22px!important;
+}
+#serviceModal.service-report-modal #service_modal_content{width:100%!important}
+#serviceModal.service-report-modal .rb-paper{
+  width:210mm!important;
+  max-width:100%!important;
+  margin:0 auto!important;
+}
+@media(max-width:900px){
+  #serviceModal.service-report-modal{padding:0!important}
+  #serviceModal.service-report-modal>div:first-child{
+    width:100vw!important;
+    min-height:100vh!important;
+    border-radius:0!important;
+    padding:14px!important;
+  }
+}
+
 .pdf-preview-empty{position:absolute;display:flex;flex-direction:column;align-items:center;gap:12px;color:#9bb9d7;text-align:center}
 .pdf-actions{overflow-y:auto;padding:18px;background:#102440;border-left:1px solid rgba(59,110,165,.35);display:flex;flex-direction:column;gap:10px}
 .pdf-action-title{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7eb3e0}
