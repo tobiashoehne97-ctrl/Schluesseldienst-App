@@ -100,6 +100,8 @@ function genPDF(mod){
   window._currentPdfUri = pdfUri;
   window._currentPdfNr = nr;
   document.getElementById("pdfPreviewName").textContent = nr;
+  const sideName=document.getElementById("pdfPreviewNameSide"); if(sideName) sideName.textContent=nr;
+  if(typeof showPdfPreview==="function") showPdfPreview(pdfUri);
   document.getElementById("pdfMod").classList.add("open");
 }
 function generateWorkJournalPDF() {
