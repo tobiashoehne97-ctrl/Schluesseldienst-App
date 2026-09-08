@@ -217,6 +217,26 @@ async function delArchiv(nr) {
 }
 
 
+function showPdfPreview(pdfUri){
+  const frame=document.getElementById("pdfFrame");
+  const empty=document.getElementById("pdfPreviewEmpty");
+  if(!frame||!pdfUri)return;
+  try{
+    const arr=pdfUri.split(',');
+    const mime=(arr[0].match(/:(.*?);/)||[])[1]||"application/pdf";
+    const bstr=atob(arr[1]);
+    const u8=new Uint8Array(bstr.length);
+    for(let i=0;i<bstr.length;i++)u8[i]=bstr.charCodeAt(i);
+    if(window._pdfPreviewBlobUrl) URL.revokeObjectURL(window._pdfPreviewBlobUrl);
+    window._pdfPreviewBlobUrl=URL.createObjectURL(new Blob([u8],{type:mime}));
+    frame.src=window._pdfPreviewBlobUrl;
+    if(empty) empty.style.display="none";
+  }catch(e){
+    frame.src=pdfUri;
+    if(empty) empty.style.display="none";
+  }
+}
+
 function openPdfNative(){
   if(!window._currentPdfUri) return;
   // Convert data URI to Blob, then open blob URL - works on iOS Safari
