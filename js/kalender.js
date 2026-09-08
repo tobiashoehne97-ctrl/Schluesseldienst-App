@@ -66,17 +66,34 @@ async function saveKalenderEntry(){
     return;
   }
 
-  if(typ!=="verfuegbarkeit" && !titel){
+  if(typ!=="verfuegbarkeit" && typ!=="geschaeft" && !titel){
     alert("Bitte einen Titel eingeben.");
     return;
   }
 
-  const finalTitel=typ==="verfuegbarkeit" ? "Verfügbarkeit – "+mitarbeiter : titel;
+  const businessStatus=document.getElementById("kal_geschaeft_status")?.value || "offen";
+  const businessMap={
+    offen:{titel:"Geschäft geöffnet",status:"geschaeft"},
+    geschlossen:{titel:"Geschäft geschlossen",status:"geschlossen"},
+    aussendienst:{titel:"Außendienst – Geschäft geschlossen",status:"geschlossen"}
+  };
+
+  const finalTitel=typ==="verfuegbarkeit"
+    ? "Verfügbarkeit – "+mitarbeiter
+    : typ==="geschaeft"
+      ? businessMap[businessStatus].titel
+      : titel;
+
+  const finalStatus=typ==="verfuegbarkeit"
+    ? "verfuegbar"
+    : typ==="geschaeft"
+      ? businessMap[businessStatus].status
+      : document.getElementById("kal_status").value;
 
   const entry={
     titel:finalTitel, datum, von:von+":00", bis:bis?bis+":00":null,
     typ,
-    status:typ==="verfuegbarkeit" ? "verfuegbar" : document.getElementById("kal_status").value,
+    status:finalStatus,
     mitarbeiter:typ==="verfuegbarkeit" ? mitarbeiter : null,
     nachname:document.getElementById("kal_nachname").value.trim()||null,
     vorname:document.getElementById("kal_vorname").value.trim()||null,
@@ -293,7 +310,8 @@ function renderKalenderWeek(){
       const iso=isoDateLocal(date);
       const allEntries=(AppData.kalender.eintraege||[]).filter(e=>e.datum===iso);
       const availability=allEntries.filter(e=>e.typ==="verfuegbarkeit");
-      const workEntries=allEntries.filter(e=>e.typ!=="verfuegbarkeit");
+      const businessEntries=allEntries.filter(e=>e.typ==="geschaeft");
+      const workEntries=allEntries.filter(e=>e.typ!=="verfuegbarkeit" && e.typ!=="geschaeft");
 
       const dayCard=document.createElement("div");
       dayCard.style.cssText="cursor:pointer;padding:12px;border-radius:10px;background:#102a40;border:1px solid "+(iso===today?"#3b82c4":"#254b6a")+";min-height:112px;position:relative;overflow:hidden";
@@ -345,7 +363,18 @@ function renderKalenderWeek(){
       info.style.cssText="margin-top:15px;font-size:13px;color:"+(workEntries.length?"#d9eafa":"#71869b");
       info.textContent=workEntries.length
         ? "📌 "+workEntries.length+" "+(workEntries.length===1?"Termin":"Termine")
-        : (availability.length ? "🟢 "+availability.map(e=>e.mitarbeiter||"Verfügbar").join(" · ") : "Keine Termine");
+        : (availability.length ? "🟢 "+availability.map(e=>e.mitarbeiter||"Verfügbar").join(" · ") : (businessEntries.length ? "Geschäftsplanung hinterlegt" : "Keine Termine"));
+
+      if(businessEntries.length){
+        const business=businessEntries[0];
+        const badge=document.createElement("div");
+        const isClosed=business.status==="geschlossen";
+        badge.style.cssText="margin-top:9px;display:inline-block;padding:4px 7px;border-radius:999px;font-size:11px;font-weight:800;background:"+(isClosed?"rgba(100,116,139,.22)":"rgba(20,184,166,.16)")+";color:"+(isClosed?"#b6c2d0":"#5eead4");
+        badge.textContent=isClosed
+          ? (String(business.titel).includes("Außendienst")?"🚐 Außendienst / geschlossen":"⚫ Geschlossen")
+          : "🏪 Geöffnet";
+        dayCard.appendChild(badge);
+      }
 
       dayCard.appendChild(plus);
       dayCard.appendChild(heading);
@@ -405,18 +434,21 @@ function toggleKalenderFormByType(){
   const standardFields=document.getElementById("kal_standard_fields");
   const standardDetails=document.getElementById("kal_standard_details");
   const availabilityFields=document.getElementById("kal_verfuegbarkeit_fields");
+  const businessFields=document.getElementById("kal_geschaeft_fields");
 
   const isAvailability=typ==="verfuegbarkeit";
-  standardFields?.classList.toggle("hidden",isAvailability);
-  standardDetails?.classList.toggle("hidden",isAvailability);
+  const isBusiness=typ==="geschaeft";
+
+  standardFields?.classList.toggle("hidden",isAvailability||isBusiness);
+  standardDetails?.classList.toggle("hidden",isAvailability||isBusiness);
   availabilityFields?.classList.toggle("hidden",!isAvailability);
+  businessFields?.classList.toggle("hidden",!isBusiness);
 
   if(isAvailability){
     const status=document.getElementById("kal_status");
     if(status) status.value="verfuegbar";
   }
 }
-
 function openKalenderCreate(date){
   const form=document.getElementById("kalenderFormCard");
   if(!form) return;
