@@ -5,6 +5,10 @@ function initApplication() {
       console.log("Data loaded");
     }
 
+    if (typeof initKalender === "function") {
+      initKalender();
+    }
+
     if (typeof initDashboard === "function") {
       initDashboard();
       console.log("Dashboard initialized");
