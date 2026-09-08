@@ -514,31 +514,43 @@ function openKalenderDay(date){
   openKalenderModal("📅 Tagesübersicht",wrapper);
 }
 function openKalenderEntryDetails(id){
-  const e=AppData.kalender?.eintraege?.find(x=>String(x.id)===String(id));
-  if(!e) return;
-  const customer=[e.vorname,e.nachname].filter(Boolean).join(" ") || "Kein Kunde hinterlegt";
-  const address=e.strasse
-    ? [e.strasse,e.hausnummer].filter(Boolean).join(" ")+(e.postleitzahl||e.ort?"<br>"+[e.postleitzahl,e.ort].filter(Boolean).join(" "):"")
-    : (e.adresse||"Keine Adresse hinterlegt");
+  const entry=AppData.kalender?.eintraege?.find(x=>String(x.id)===String(id));
+  if(!entry) return;
 
-  const html='<div class="card" style="margin:0;border-left:5px solid '+getStatusColor(e.status)+'">'+
-    '<div style="font-size:20px;font-weight:800;margin-bottom:12px">'+escapeHtml(e.titel)+'</div>'+
-    '<div style="line-height:1.8;color:#c8dced">'+
-    '👤 '+escapeHtml(customer)+'<br>'+
-    (e.telefonnummer?'📞 <a href="tel:'+escapeHtml(e.telefonnummer)+'" style="color:#8fc5ff">'+escapeHtml(e.telefonnummer)+'</a><br>':"")+
-    '📍 '+address+'<br>'+
-    '🕒 '+escapeHtml(e.von||"--:--")+(e.bis?" – "+escapeHtml(e.bis):"")+'<br>'+
-    '🏷️ Status: '+escapeHtml(e.status)+
-    '</div>'+
-    (e.beschreibung?'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #254b6a">📝 '+escapeHtml(e.beschreibung)+'</div>':"")+
-    '<div style="display:flex;gap:8px;margin-top:18px">'+
-    '<button class="btnS" style="flex:1" onclick="closeKalenderModal()">← Zurück</button>'+
-    '<button class="btnD" data-id="'+escapeHtml(e.id)+'" onclick="deleteKalenderEntry(this.dataset.id);closeKalenderModal()">🗑 Löschen</button>'+
-    '</div></div>';
+  if(entry.typ==="termin" || entry.typ==="notdienst"){
+    const customer=[entry.vorname,entry.nachname].filter(Boolean).join(" ") || "Kein Kunde hinterlegt";
+    const address=[entry.strasse,entry.hausnummer,entry.postleitzahl,entry.ort].filter(Boolean).join(" ") || entry.adresse || "Keine Adresse hinterlegt";
 
+    const html='<div class="card" style="margin:0;border-left:5px solid '+getStatusColor(entry.status)+'">'+
+      '<div style="font-size:20px;font-weight:800;margin-bottom:12px">'+escapeHtml(entry.titel)+'</div>'+
+      '<div style="line-height:1.9;color:#c8dced">'+
+      '👤 '+escapeHtml(customer)+'<br>'+
+      (entry.telefonnummer?'📞 '+escapeHtml(entry.telefonnummer)+'<br>':"")+
+      '📍 '+escapeHtml(address)+'<br>'+
+      '🕒 '+escapeHtml(entry.von||"--:--")+(entry.bis?" – "+escapeHtml(entry.bis):"")+
+      '</div>'+
+      (entry.beschreibung?'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #254b6a">📝 '+escapeHtml(entry.beschreibung)+'</div>':"")+
+      '<button class="btnP" style="width:100%;padding:14px;margin-top:18px" onclick="startServiceProcess(\''+escapeHtml(entry.id)+'\')">▶️ Arbeit / Einsatz starten</button>'+
+      '<div style="display:flex;gap:8px;margin-top:10px">'+
+      '<button class="btnS" style="flex:1" onclick="closeKalenderModal()">← Zurück</button>'+
+      '<button class="btnD" data-id="'+escapeHtml(entry.id)+'" onclick="deleteKalenderEntry(this.dataset.id);closeKalenderModal()">🗑 Löschen</button>'+
+      '</div></div>';
+
+    openKalenderModal("📋 Außendiensttermin",html);
+    return;
+  }
+
+  const customer=[entry.vorname,entry.nachname].filter(Boolean).join(" ") || "Kein Kunde hinterlegt";
+  const address=entry.strasse
+    ? [entry.strasse,entry.hausnummer].filter(Boolean).join(" ")+(entry.postleitzahl||entry.ort?"<br>"+[entry.postleitzahl,entry.ort].filter(Boolean).join(" "):"")
+    : (entry.adresse||"Keine Adresse hinterlegt");
+
+  const html='<div class="card" style="margin:0;border-left:5px solid '+getStatusColor(entry.status)+'">'+
+    '<div style="font-size:20px;font-weight:800;margin-bottom:12px">'+escapeHtml(entry.titel)+'</div>'+
+    '<div style="line-height:1.8;color:#c8dced">👤 '+escapeHtml(customer)+'<br>📍 '+address+'<br>🕒 '+escapeHtml(entry.von||"--:--")+(entry.bis?" – "+escapeHtml(entry.bis):"")+'</div>'+
+    '<div style="display:flex;gap:8px;margin-top:18px"><button class="btnS" style="flex:1" onclick="closeKalenderModal()">← Zurück</button><button class="btnD" data-id="'+escapeHtml(entry.id)+'" onclick="deleteKalenderEntry(this.dataset.id);closeKalenderModal()">🗑 Löschen</button></div></div>';
   openKalenderModal("📋 Termindetails",html);
 }
-
 
 /* Kalender-Steuerung bewusst zusätzlich global binden:
    Dadurch funktionieren die Buttons auch dann zuverlässig, wenn die Anwendung
@@ -580,3 +592,286 @@ if(document.readyState==="loading"){
 }else{
   setTimeout(initKalenderUI,0);
 }
+
+
+/* =========================
+   AUSSENDIENST / REGIEBERICHT
+========================= */
+let activeServiceId=null;
+let activeServiceStartedAt=null;
+let activeServicePhotos=[];
+
+function openServiceModal(title,content){
+  const modal=document.getElementById("serviceModal");
+  const titleEl=document.getElementById("service_modal_titel");
+  const contentEl=document.getElementById("service_modal_content");
+  if(!modal||!contentEl)return;
+  titleEl.textContent=title;
+  contentEl.innerHTML=content;
+  modal.classList.remove("hidden");
+  document.body.style.overflow="hidden";
+}
+
+function closeServiceModal(){
+  document.getElementById("serviceModal")?.classList.add("hidden");
+  document.body.style.overflow="";
+}
+
+function getServiceEntry(){
+  return AppData.kalender?.eintraege?.find(e=>String(e.id)===String(activeServiceId));
+}
+
+function startServiceProcess(id){
+  activeServiceId=id;
+  activeServiceStartedAt=new Date().toISOString();
+  activeServicePhotos=[];
+  closeKalenderModal();
+
+  const entry=getServiceEntry();
+  if(!entry)return;
+
+  const address=[entry.strasse,entry.hausnummer,entry.postleitzahl,entry.ort].filter(Boolean).join(" ") || entry.adresse || "";
+  openServiceModal("🚐 Einsatz starten",
+    '<div class="card" style="margin:0">'+
+    '<div style="font-size:18px;font-weight:800">'+escapeHtml(entry.titel)+'</div>'+
+    '<div style="margin-top:10px;color:#b9d2e8">📍 '+escapeHtml(address||"Keine Adresse hinterlegt")+'</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">'+
+    '<button class="btnP" style="padding:16px" onclick="startNavigation()">🧭 Navigation starten</button>'+
+    '<button class="btnS" style="padding:16px" onclick="openServiceReportStep()">🚐 Ohne Navigation</button>'+
+    '</div></div>');
+}
+
+function startNavigation(){
+  const entry=getServiceEntry();
+  if(!entry){openServiceReportStep();return;}
+  const address=[entry.strasse,entry.hausnummer,entry.postleitzahl,entry.ort].filter(Boolean).join(" ") || entry.adresse || "";
+  if(address){
+    window.open("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(address),"_blank");
+  }
+  openServiceReportStep();
+}
+
+function openServiceReportStep(){
+  const entry=getServiceEntry();
+  if(!entry)return;
+
+  openServiceModal("📝 Regiebericht – Einsatz", 
+    '<div class="sec">Was wurde vorgefunden?</div>'+
+    '<textarea id="service_vorgefunden" class="mb12" style="width:100%;min-height:90px" placeholder="Situation beim Kunden beschreiben ..."></textarea>'+
+    '<div class="sec">Was wurde gemacht?</div>'+
+    '<textarea id="service_gemacht" class="mb12" style="width:100%;min-height:90px" placeholder="Durchgeführte Arbeiten ..."></textarea>'+
+    '<div class="sec">Material</div>'+
+    '<div id="service_material_list"></div>'+
+    '<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:7px;margin-bottom:8px">'+
+      '<input id="service_mat_name" placeholder="Material / Artikel">'+
+      '<input id="service_mat_menge" type="number" min="1" value="1" placeholder="Menge">'+
+      '<input id="service_mat_preis" type="number" min="0" step="0.01" placeholder="Preis €">'+
+    '</div>'+
+    '<button type="button" class="btnS" style="width:100%;margin-bottom:14px" onclick="addServiceMaterial()">＋ Material hinzufügen</button>'+
+    '<div class="sec">Fotos</div>'+
+    '<input id="service_fotos" type="file" accept="image/*" capture="environment" multiple onchange="handleServicePhotos(this)">'+
+    '<div id="service_photo_info" style="font-size:12px;color:#8fb3d4;margin-top:7px">Noch keine Fotos hinzugefügt</div>'+
+    '<button class="btnP" style="width:100%;padding:14px;margin-top:20px" onclick="openServiceCompletionStep()">Weiter →</button>'
+  );
+
+  window.activeServiceMaterials=[];
+}
+
+function addServiceMaterial(){
+  const name=document.getElementById("service_mat_name")?.value.trim();
+  const menge=Number(document.getElementById("service_mat_menge")?.value||1);
+  const preis=Number(document.getElementById("service_mat_preis")?.value||0);
+  if(!name)return alert("Bitte Material eingeben.");
+  window.activeServiceMaterials=window.activeServiceMaterials||[];
+  window.activeServiceMaterials.push({name,menge,preis});
+  document.getElementById("service_mat_name").value="";
+  document.getElementById("service_mat_menge").value=1;
+  document.getElementById("service_mat_preis").value="";
+  renderServiceMaterials();
+}
+
+function renderServiceMaterials(){
+  const list=document.getElementById("service_material_list");
+  if(!list)return;
+  const mats=window.activeServiceMaterials||[];
+  list.innerHTML=mats.length?mats.map((m,i)=>
+    '<div style="display:flex;justify-content:space-between;background:#0b2235;padding:8px;border-radius:7px;margin-bottom:6px">'+
+    '<span>'+escapeHtml(m.name)+' · '+m.menge+'×</span><span>'+m.preis.toFixed(2)+' € <button class="btnD" style="padding:2px 6px;margin-left:6px" onclick="removeServiceMaterial('+i+')">×</button></span></div>'
+  ).join(""):'<div style="font-size:12px;color:#71869b;margin-bottom:8px">Noch kein Material erfasst</div>';
+}
+
+function removeServiceMaterial(index){
+  window.activeServiceMaterials.splice(index,1);
+  renderServiceMaterials();
+}
+
+function handleServicePhotos(input){
+  activeServicePhotos=Array.from(input.files||[]);
+  const info=document.getElementById("service_photo_info");
+  if(info)info.textContent=activeServicePhotos.length+" Foto(s) ausgewählt";
+}
+
+function openServiceCompletionStep(){
+  window.activeServiceReport={
+    vorgefunden:document.getElementById("service_vorgefunden")?.value||"",
+    gemacht:document.getElementById("service_gemacht")?.value||"",
+    material:window.activeServiceMaterials||[],
+    fotos:activeServicePhotos.map(f=>f.name)
+  };
+
+  openServiceModal("✅ Einsatz abschließen",
+    '<div style="font-size:17px;font-weight:800;margin-bottom:10px">Konnte der Termin abgeschlossen werden?</div>'+
+    '<button class="btnP" style="width:100%;padding:15px;margin-bottom:10px" onclick="openServicePaymentStep()">✅ Ja, Termin abgeschlossen</button>'+
+    '<button class="btnS" style="width:100%;padding:15px" onclick="markServiceFollowUp()">🔧 Nein, Folgetermin erforderlich</button>'
+  );
+}
+
+async function markServiceFollowUp(){
+  await updateServiceEntry({status:"offen",regiebericht:{...window.activeServiceReport,abgeschlossen:false,gestartet:activeServiceStartedAt,beendet:new Date().toISOString()}});
+  closeServiceModal();
+  alert("Termin wurde als nicht abgeschlossen markiert. Das Büro kann den Regiebericht prüfen und einen Folgetermin planen.");
+}
+
+function openServicePaymentStep(){
+  const total=(window.activeServiceReport.material||[]).reduce((sum,m)=>sum+(Number(m.menge)||1)*(Number(m.preis)||0),0);
+  openServiceModal("💳 Zahlungsart",
+    '<div style="font-size:17px;font-weight:800;margin-bottom:12px">Wie möchte der Kunde bezahlen?</div>'+
+    '<button class="btnP" style="width:100%;padding:15px;margin-bottom:10px" onclick="openCashPayment()">💶 Bar bezahlen</button>'+
+    '<button class="btnS" style="width:100%;padding:15px" onclick="openInvoicePayment()">🧾 Rechnung</button>'+
+    '<div style="margin-top:14px;color:#8fb3d4;font-size:13px">Materialsumme aktuell: '+total.toFixed(2)+' €</div>'
+  );
+}
+
+function openCashPayment(){
+  const materialTotal=(window.activeServiceReport.material||[]).reduce((sum,m)=>sum+(Number(m.menge)||1)*(Number(m.preis)||0),0);
+  openServiceModal("💶 Barzahlung",
+    '<label class="lbl">Gesamtsumme (€)</label><input id="service_total" type="number" step="0.01" value="'+materialTotal.toFixed(2)+'" oninput="calculateChange()">'+
+    '<label class="lbl" style="margin-top:12px">Kunde gibt (€)</label><input id="service_given" type="number" step="0.01" oninput="calculateChange()" placeholder="z. B. 100">'+
+    '<div id="service_change" style="font-size:20px;font-weight:800;margin:14px 0">Wechselgeld: 0,00 €</div>'+
+    '<div class="sec">Unterschrift Kunde</div>'+
+    '<div style="border:2px dashed #3b82c4;border-radius:8px;padding:18px;text-align:center;color:#8fb3d4">✍️ Unterschriftenfeld – digitale Signatur folgt im nächsten Schritt</div>'+
+    '<button class="btnP" style="width:100%;padding:14px;margin-top:18px" onclick="finishService(\'bar\')">💾 Barzahlung abschließen</button>'
+  );
+}
+
+function calculateChange(){
+  const total=Number(document.getElementById("service_total")?.value||0);
+  const given=Number(document.getElementById("service_given")?.value||0);
+  const change=Math.max(0,given-total);
+  const el=document.getElementById("service_change");
+  if(el)el.textContent="Wechselgeld: "+change.toFixed(2).replace(".",",")+" €";
+}
+
+function openInvoicePayment(){
+  const started=activeServiceStartedAt?new Date(activeServiceStartedAt):new Date();
+  const duration=Math.max(1,Math.round((Date.now()-started.getTime())/60000));
+  const materials=(window.activeServiceReport.material||[]).map(m=>'<li>'+escapeHtml(m.name)+' · '+m.menge+'×</li>').join("")||"<li>Kein Material</li>";
+
+  openServiceModal("🧾 Rechnung",
+    '<div style="padding:10px;background:#0b2235;border-radius:8px;margin-bottom:14px">⏱️ Arbeitszeit aktuell: <b>'+duration+' Minuten</b></div>'+
+    '<div class="sec">Material für die Rechnung</div><ul style="line-height:1.8">'+materials+'</ul>'+
+    '<div class="sec">Unterschrift Kunde</div>'+
+    '<div style="border:2px dashed #a855f7;border-radius:8px;padding:18px;text-align:center;color:#c4b5fd">✍️ Unterschriftenfeld – digitale Signatur folgt im nächsten Schritt</div>'+
+    '<button class="btnP" style="width:100%;padding:14px;margin-top:18px" onclick="finishService(\'rechnung\')">💾 Für Rechnung abschließen</button>'
+  );
+}
+
+async function finishService(paymentType){
+  const started=activeServiceStartedAt?new Date(activeServiceStartedAt):new Date();
+  const duration=Math.max(1,Math.round((Date.now()-started.getTime())/60000));
+  const total=paymentType==="bar"?Number(document.getElementById("service_total")?.value||0):null;
+  const given=paymentType==="bar"?Number(document.getElementById("service_given")?.value||0):null;
+
+  const report={
+    ...window.activeServiceReport,
+    abgeschlossen:true,
+    gestartet:activeServiceStartedAt,
+    beendet:new Date().toISOString(),
+    arbeitszeit_minuten:duration,
+    zahlungsart:paymentType,
+    gesamtsumme:total,
+    gegeben:given,
+    wechselgeld:paymentType==="bar"?Math.max(0,given-total):null
+  };
+
+  await updateServiceEntry({status:paymentType==="rechnung"?"rechnung":"erledigt",regiebericht:report});
+  openServiceEmailStep(paymentType);
+}
+
+function openServiceEmailStep(paymentType){
+  const entry=getServiceEntry();
+  openServiceModal("📧 Regiebericht versenden",
+    '<div style="font-size:16px;margin-bottom:14px">Soll der Regiebericht an den Kunden per E-Mail geschickt werden?</div>'+
+    '<div style="display:flex;gap:10px">'+
+    '<button class="btnS" style="flex:1;padding:14px" onclick="finishServiceAndReturn()">Nein</button>'+
+    '<button class="btnP" style="flex:1;padding:14px" onclick="showServiceEmailInput()">Ja, senden</button>'+
+    '</div>'+
+    '<div id="service_email_area"></div>'
+  );
+}
+
+function showServiceEmailInput(){
+  document.getElementById("service_email_area").innerHTML=
+    '<label class="lbl" style="margin-top:16px">E-Mail-Adresse</label>'+
+    '<input id="service_customer_email" type="email" placeholder="kunde@beispiel.de">'+
+    '<div style="font-size:12px;color:#8fb3d4;margin:8px 0">Der E-Mail-Versand wird im nächsten Schritt mit der finalen PDF-Erstellung verbunden.</div>'+
+    '<button class="btnP" style="width:100%;padding:12px" onclick="finishServiceAndReturn()">📧 Speichern & abschließen</button>';
+}
+
+function finishServiceAndReturn(){
+  closeServiceModal();
+  activeServiceId=null;
+  activeServiceStartedAt=null;
+  window.activeServiceMaterials=[];
+  window.activeServiceReport=null;
+  renderKalender();
+  renderKalenderWeek();
+  alert("Einsatz wurde erfolgreich abgeschlossen.");
+}
+
+async function updateServiceEntry(changes){
+  const index=AppData.kalender.eintraege.findIndex(e=>String(e.id)===String(activeServiceId));
+  if(index<0)return;
+  AppData.kalender.eintraege[index]={...AppData.kalender.eintraege[index],...changes};
+
+  const updated=AppData.kalender.eintraege[index];
+
+  if(window.supabaseReady && window.supabaseClient && !String(updated.id).startsWith("LOCAL-")){
+    const payload={
+      status:updated.status,
+      regiebericht:updated.regiebericht || null
+    };
+    const {error}=await window.supabaseClient.from("kalender_eintraege").update(payload).eq("id",updated.id);
+    if(error){
+      console.error(error);
+      alert("Status wurde lokal gespeichert. Supabase konnte den Regiebericht noch nicht speichern: "+error.message);
+      saveAppData();
+    }else{
+      await loadKalenderFromSupabase();
+    }
+  }else{
+    saveAppData();
+  }
+
+  renderKalender();
+  renderKalenderWeek();
+}
+
+window.startServiceProcess=startServiceProcess;
+window.startNavigation=startNavigation;
+window.openServiceReportStep=openServiceReportStep;
+window.addServiceMaterial=addServiceMaterial;
+window.removeServiceMaterial=removeServiceMaterial;
+window.handleServicePhotos=handleServicePhotos;
+window.openServiceCompletionStep=openServiceCompletionStep;
+window.markServiceFollowUp=markServiceFollowUp;
+window.openServicePaymentStep=openServicePaymentStep;
+window.openCashPayment=openCashPayment;
+window.calculateChange=calculateChange;
+window.openInvoicePayment=openInvoicePayment;
+window.finishService=finishService;
+window.openServiceEmailStep=openServiceEmailStep;
+window.showServiceEmailInput=showServiceEmailInput;
+window.finishServiceAndReturn=finishServiceAndReturn;
+window.openServiceModal=openServiceModal;
+window.closeServiceModal=closeServiceModal;
