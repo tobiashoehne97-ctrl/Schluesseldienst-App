@@ -71,7 +71,7 @@ async function saveKalenderEntry(){
     beschreibung:document.getElementById("kal_beschreibung").value.trim()||null
   };
 
-  const btn=event?.target;
+  const btn=(typeof window.event!=="undefined" ? window.event.target : null);
   if(btn){btn.disabled=true;btn.textContent="⏳ Wird gespeichert...";}
 
   try{
@@ -371,27 +371,55 @@ function openKalenderCreate(date){
 
 function openKalenderDay(date){
   ensureKalenderData();
-  const entries=AppData.kalender.eintraege
-    .filter(e=>e.datum===date)
+  const entries=(AppData.kalender.eintraege||[])
+    .filter(entry=>entry.datum===date)
     .sort((a,b)=>(a.von||"").localeCompare(b.von||""));
 
-  const dateText=new Date(date+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  const dateText=new Date(date+"T12:00:00").toLocaleDateString("de-DE",{
+    weekday:"long",day:"2-digit",month:"long",year:"numeric"
+  });
 
-  const html='<div style="font-size:14px;color:#8fb3d4;margin-bottom:14px">'+dateText+'</div>'+
-    '<button class="btnP" style="width:100%;padding:12px;margin-bottom:14px" onclick="openKalenderCreate(\\''+date+'\\')">➕ Neuen Termin hinzufügen</button>'+
-    (entries.length ? entries.map(e=>{
-      const customer=[e.vorname,e.nachname].filter(Boolean).join(" ");
-      return '<div onclick="openKalenderEntryDetails(\\''+e.id+'\\')" style="border-left:5px solid '+getStatusColor(e.status)+';background:#0b2235;border-radius:9px;padding:12px;margin-bottom:9px;cursor:pointer">'+
-        '<div style="display:flex;justify-content:space-between;gap:10px"><div>'+
-        '<div style="font-weight:800">'+escapeHtml(e.titel)+'</div>'+
-        '<div style="font-size:13px;color:#7eb3e0;margin-top:5px">🕒 '+(e.von||"--:--")+(e.bis?" – "+e.bis:"")+'</div>'+
-        (customer?'<div style="font-size:13px;color:#c7dced;margin-top:4px">👤 '+escapeHtml(customer)+'</div>':"")+
-        '</div><div style="font-size:12px;color:'+getStatusColor(e.status)+';font-weight:800">'+escapeHtml(e.status)+'</div></div></div>';
-    }).join("") : '<div style="text-align:center;padding:28px;color:#71869b">Keine Termine an diesem Tag</div>');
+  const wrapper=document.createElement("div");
+  const intro=document.createElement("div");
+  intro.style.cssText="font-size:14px;color:#8fb3d4;margin-bottom:14px";
+  intro.textContent=dateText;
+  wrapper.appendChild(intro);
 
-  openKalenderModal("📅 Tagesübersicht",html);
+  const addBtn=document.createElement("button");
+  addBtn.type="button";
+  addBtn.className="btnP";
+  addBtn.style.cssText="width:100%;padding:12px;margin-bottom:14px";
+  addBtn.textContent="➕ Neuen Termin hinzufügen";
+  addBtn.onclick=()=>openKalenderCreate(date);
+  wrapper.appendChild(addBtn);
+
+  if(!entries.length){
+    const empty=document.createElement("div");
+    empty.style.cssText="text-align:center;padding:28px;color:#71869b";
+    empty.textContent="Keine Termine an diesem Tag";
+    wrapper.appendChild(empty);
+  }else{
+    entries.forEach(entry=>{
+      const card=document.createElement("div");
+      card.style.cssText="border-left:5px solid "+getStatusColor(entry.status)+";background:#0b2235;border-radius:9px;padding:12px;margin-bottom:9px;cursor:pointer";
+
+      const customer=[entry.vorname,entry.nachname].filter(Boolean).join(" ");
+      card.innerHTML=
+        '<div style="display:flex;justify-content:space-between;gap:10px">'+
+          '<div>'+
+            '<div style="font-weight:800">'+escapeHtml(entry.titel)+'</div>'+
+            '<div style="font-size:13px;color:#7eb3e0;margin-top:5px">🕒 '+escapeHtml(entry.von||"--:--")+(entry.bis?" – "+escapeHtml(entry.bis):"")+'</div>'+
+            (customer?'<div style="font-size:13px;color:#c7dced;margin-top:4px">👤 '+escapeHtml(customer)+'</div>':"")+
+          '</div>'+
+          '<div style="font-size:12px;color:'+getStatusColor(entry.status)+';font-weight:800">'+escapeHtml(entry.status)+'</div>'+
+        '</div>';
+      card.onclick=()=>openKalenderEntryDetails(entry.id);
+      wrapper.appendChild(card);
+    });
+  }
+
+  openKalenderModal("📅 Tagesübersicht",wrapper);
 }
-
 function openKalenderEntryDetails(id){
   const e=AppData.kalender?.eintraege?.find(x=>String(x.id)===String(id));
   if(!e) return;
@@ -416,4 +444,45 @@ function openKalenderEntryDetails(id){
     '</div></div>';
 
   openKalenderModal("📋 Termindetails",html);
+}
+
+
+/* Kalender-Steuerung bewusst zusätzlich global binden:
+   Dadurch funktionieren die Buttons auch dann zuverlässig, wenn die Anwendung
+   über die Navigation ein- und ausgeblendet wird. */
+function initKalenderUI(){
+  const weekTab=document.getElementById("kal_tab_woche");
+  const listTab=document.getElementById("kal_tab_liste");
+  const weekRoot=document.getElementById("kalenderWoche");
+  const grid=document.getElementById("kalenderWocheGrid");
+
+  if(!weekRoot || !grid) return false;
+
+  showKalenderView("woche");
+  renderKalenderWeek();
+
+  // Falls ein vorheriger Fehler die Ansicht geleert hat, nach dem Rendern erneut versuchen.
+  if(!grid.children.length){
+    setTimeout(()=>renderKalenderWeek(),100);
+  }
+  return true;
+}
+
+window.changeKalenderWeek=changeKalenderWeek;
+window.goKalenderToday=goKalenderToday;
+window.showKalenderView=showKalenderView;
+window.openKalenderCreate=openKalenderCreate;
+window.openKalenderDay=openKalenderDay;
+window.openKalenderEntryDetails=openKalenderEntryDetails;
+window.openKalenderModal=openKalenderModal;
+window.closeKalenderModal=closeKalenderModal;
+window.saveKalenderEntry=saveKalenderEntry;
+window.deleteKalenderEntry=deleteKalenderEntry;
+window.renderKalender=renderKalender;
+window.renderKalenderWeek=renderKalenderWeek;
+
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",()=>setTimeout(initKalenderUI,0));
+}else{
+  setTimeout(initKalenderUI,0);
 }
