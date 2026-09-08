@@ -92,11 +92,16 @@ function genPDF(mod){
   const archTyp = mod==="to"?"TO":mod==="rb"?"RB":"AN";
   const archName = mod==="to"?v("to_vn")+" "+v("to_nn"):mod==="rb"?v("rb_vn")+" "+v("rb_nn"):v("an_vn")+" "+v("an_nn");
   const archDat = mod==="to"?v("to_dat"):mod==="rb"?v("rb_dat"):v("an_dat");
-  saveToArchiv(nr, archTyp, archName.trim(), archDat, pdfUri);
+  saveToArchiv(nr, archTyp, archName.trim(), archDat, pdfUri)
+    .catch(function(err){
+      console.error("Archivierung fehlgeschlagen:", err);
+      alert("Der Bericht wurde erstellt, konnte aber nicht dauerhaft archiviert werden: " + (err.message || err));
+    });
   document.getElementById("pdfNr").textContent=nr;
   document.getElementById("mailOk").classList.add("hidden");
   // Zeige PDF im eingebetteten Viewer
   // Store blob URL for native open (works on iOS Safari)
+  window._currentPdfBlobUrl = null;
   window._currentPdfUri = pdfUri;
   window._currentPdfNr = nr;
   document.getElementById("pdfPreviewName").textContent = nr;
