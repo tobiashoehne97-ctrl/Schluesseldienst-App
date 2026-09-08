@@ -133,6 +133,73 @@
 
     <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
 </button>
+  <button class="mbtn" style="--c:#123a58" onclick="go('kalender')">
+    <span style="font-size:36px">📅</span>
+    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Einsatzplanung</div><div style="font-size:13px;color:#7eb3e0">Termine · Geschäft · Außendienst · Verfügbarkeit</div></div>
+    <span style="margin-left:auto;font-size:22px;color:#3b82c4">›</span>
+  </button>
+</div>
+
+<!-- EINSATZPLANUNG -->
+<div id="kalender" class="hidden">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+    <button class="btnS" style="padding:8px 14px;font-size:13px" onclick="go(null)">← Übersicht</button>
+    <span style="font-size:20px;font-weight:800">📅 Einsatzplanung</span>
+  </div>
+
+  <div class="card">
+    <div class="sec">Neuen Eintrag planen</div>
+    <label class="lbl">Titel</label>
+    <input id="kal_titel" class="mb12" placeholder="z.B. Schlosswechsel Müller">
+
+    <div class="g2 mb12">
+      <div><label class="lbl">Datum</label><input id="kal_datum" type="date"></div>
+      <div><label class="lbl">Art</label>
+        <select id="kal_typ">
+          <option value="termin">Außendiensttermin</option>
+          <option value="geschaeft">Geschäft</option>
+          <option value="verfuegbarkeit">Verfügbarkeit</option>
+          <option value="notdienst">Notdienst</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="g2 mb12">
+      <div><label class="lbl">Von</label><input id="kal_von" type="time"></div>
+      <div><label class="lbl">Bis</label><input id="kal_bis" type="time"></div>
+    </div>
+
+    <label class="lbl">Status</label>
+    <select id="kal_status" class="mb12">
+      <option value="geplant">🔵 Geplant</option>
+      <option value="geschaeft">🏪 Geschäft geöffnet</option>
+      <option value="geschlossen">⚫ Geschäft geschlossen</option>
+      <option value="verfuegbar">🟢 Verfügbar</option>
+      <option value="notdienst">🟠 Notdienst</option>
+      <option value="offen">🔴 Nicht abgeschlossen</option>
+      <option value="rechnung">🟣 Rechnung erforderlich</option>
+      <option value="erledigt">🟢 Erledigt</option>
+    </select>
+
+    <label class="lbl">Adresse</label>
+    <input id="kal_adresse" class="mb12" placeholder="Straße, PLZ Ort">
+
+    <label class="lbl">Beschreibung</label>
+    <textarea id="kal_beschreibung" class="mb12" placeholder="Was ist zu erledigen?"></textarea>
+
+    <button class="btnP" style="width:100%;padding:13px" onclick="saveKalenderEntry()">💾 Eintrag speichern</button>
+  </div>
+
+  <div class="card">
+    <div class="sec">Geplante Einsätze</div>
+    <label class="lbl">Datum filtern</label>
+    <div style="display:flex;gap:8px">
+      <input id="kal_filter_datum" type="date" oninput="renderKalender()">
+      <button class="btnS" onclick="document.getElementById('kal_filter_datum').value='';renderKalender()">Alle</button>
+    </div>
+  </div>
+
+  <div id="kalenderListe"></div>
 </div>
 
 <!-- TUROEFFNUNG -->
@@ -689,6 +756,7 @@
 <script src="js/pdf.js"></script>
 <script src="js/app.js"></script>
 <script src="js/dashboard.js"></script>
+<script src="js/kalender.js"></script>
 <script src="js/appInit.js"></script>
 </body>
 </html>
