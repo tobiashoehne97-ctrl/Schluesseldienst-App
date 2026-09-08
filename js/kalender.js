@@ -440,7 +440,7 @@ function openKalenderEntryDetails(id){
     (e.beschreibung?'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #254b6a">📝 '+escapeHtml(e.beschreibung)+'</div>':"")+
     '<div style="display:flex;gap:8px;margin-top:18px">'+
     '<button class="btnS" style="flex:1" onclick="closeKalenderModal()">← Zurück</button>'+
-    '<button class="btnD" onclick="deleteKalenderEntry(\\''+e.id+'\\');closeKalenderModal()">🗑 Löschen</button>'+
+    '<button class="btnD" data-id="'+escapeHtml(e.id)+'" onclick="deleteKalenderEntry(this.dataset.id);closeKalenderModal()">🗑 Löschen</button>'+
     '</div></div>';
 
   openKalenderModal("📋 Termindetails",html);
