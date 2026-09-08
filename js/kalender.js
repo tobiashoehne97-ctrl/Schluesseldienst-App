@@ -166,8 +166,8 @@ async function initKalender(){
   if(d&&!d.value)d.value=today;
 
   renderKalender();
-  renderKalenderWeek();
   showKalenderView("woche");
+  renderKalenderWeek();
 
   const connected=await initSupabase();
   if(connected){
@@ -252,38 +252,83 @@ function getStatusColor(status){
 }
 
 function renderKalenderWeek(){
-  ensureKalenderData();
-  const grid=document.getElementById("kalenderWocheGrid");
-  const title=document.getElementById("kal_woche_titel");
-  if(!grid) return;
+  try{
+    ensureKalenderData();
 
-  const start=getWeekStart();
-  if(title) title.textContent=formatWeekTitle(start);
+    const grid=document.getElementById("kalenderWocheGrid");
+    const title=document.getElementById("kal_woche_titel");
+    if(!grid) return;
 
-  const today=isoDateLocal(new Date());
-  const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+    const startDate=getWeekStart();
+    if(title) title.textContent=formatWeekTitle(startDate);
 
-  grid.style.display="grid";
-  grid.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";
-  grid.style.gap="8px";
+    const today=isoDateLocal(new Date());
+    const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 
-  grid.innerHTML=days.map((name,index)=>{
-    const date=new Date(start);
-    date.setDate(start.getDate()+index);
-    const iso=isoDateLocal(date);
-    const entries=AppData.kalender.eintraege.filter(e=>e.datum===iso);
-    const isToday=iso===today;
+    grid.style.display="grid";
+    grid.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";
+    grid.style.gap="8px";
+    grid.innerHTML="";
 
-    return '<div onclick="openKalenderDay(\\''+iso+'\\')" style="cursor:pointer;padding:12px;border-radius:10px;background:#102a40;border:1px solid '+(isToday?"#3b82c4":"#254b6a")+';min-height:92px;position:relative">'+
-      '<button onclick="event.stopPropagation();openKalenderCreate(\\''+iso+'\\')" class="btnP" style="position:absolute;right:8px;top:8px;width:30px;height:30px;padding:0;border-radius:50%;font-size:18px">+</button>'+
-      '<div style="font-weight:800;font-size:14px;padding-right:36px">'+name+'</div>'+
-      '<div style="font-size:12px;color:#7eb3e0;margin-top:3px">'+date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})+'</div>'+
-      '<div style="margin-top:15px;font-size:13px;color:'+(entries.length?"#d9eafa":"#71869b")+'">'+
-      (entries.length ? '📌 '+entries.length+' '+(entries.length===1?"Termin":"Termine") : "Keine Termine")+
-      '</div>'+
-      (entries.length?'<div style="display:flex;gap:4px;margin-top:8px">'+entries.slice(0,5).map(e=>'<span style="width:8px;height:8px;border-radius:50%;background:'+getStatusColor(e.status)+'"></span>').join("")+'</div>':"")+
-      '</div>';
-  }).join("");
+    days.forEach((name,index)=>{
+      const date=new Date(startDate);
+      date.setDate(startDate.getDate()+index);
+      const iso=isoDateLocal(date);
+      const entries=(AppData.kalender.eintraege||[]).filter(e=>e.datum===iso);
+
+      const dayCard=document.createElement("div");
+      dayCard.style.cssText="cursor:pointer;padding:12px;border-radius:10px;background:#102a40;border:1px solid "+(iso===today?"#3b82c4":"#254b6a")+";min-height:92px;position:relative";
+
+      const plus=document.createElement("button");
+      plus.type="button";
+      plus.className="btnP";
+      plus.textContent="+";
+      plus.style.cssText="position:absolute;right:8px;top:8px;width:30px;height:30px;padding:0;border-radius:50%;font-size:18px";
+      plus.onclick=(ev)=>{
+        ev.stopPropagation();
+        openKalenderCreate(iso);
+      };
+
+      const heading=document.createElement("div");
+      heading.style.cssText="font-weight:800;font-size:14px;padding-right:36px";
+      heading.textContent=name;
+
+      const dateLine=document.createElement("div");
+      dateLine.style.cssText="font-size:12px;color:#7eb3e0;margin-top:3px";
+      dateLine.textContent=date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
+
+      const info=document.createElement("div");
+      info.style.cssText="margin-top:15px;font-size:13px;color:"+(entries.length?"#d9eafa":"#71869b");
+      info.textContent=entries.length
+        ? "📌 "+entries.length+" "+(entries.length===1?"Termin":"Termine")
+        : "Keine Termine";
+
+      dayCard.appendChild(plus);
+      dayCard.appendChild(heading);
+      dayCard.appendChild(dateLine);
+      dayCard.appendChild(info);
+
+      if(entries.length){
+        const dots=document.createElement("div");
+        dots.style.cssText="display:flex;gap:4px;margin-top:8px";
+        entries.slice(0,5).forEach(entry=>{
+          const dot=document.createElement("span");
+          dot.style.cssText="width:8px;height:8px;border-radius:50%;background:"+getStatusColor(entry.status);
+          dots.appendChild(dot);
+        });
+        dayCard.appendChild(dots);
+      }
+
+      dayCard.onclick=()=>openKalenderDay(iso);
+      grid.appendChild(dayCard);
+    });
+  }catch(err){
+    console.error("Wochenansicht konnte nicht dargestellt werden:",err);
+    const title=document.getElementById("kal_woche_titel");
+    const grid=document.getElementById("kalenderWocheGrid");
+    if(title) title.textContent="Wochenansicht";
+    if(grid) grid.innerHTML='<div style="grid-column:1/-1;padding:14px;color:#ffb4b4">Die Wochenansicht konnte nicht geladen werden. Bitte Seite neu laden.</div>';
+  }
 }
 
 function openKalenderModal(title,content){
