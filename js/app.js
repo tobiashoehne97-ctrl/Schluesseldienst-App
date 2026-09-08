@@ -229,10 +229,10 @@ function showPdfPreview(pdfUri){
     for(let i=0;i<bstr.length;i++)u8[i]=bstr.charCodeAt(i);
     if(window._pdfPreviewBlobUrl) URL.revokeObjectURL(window._pdfPreviewBlobUrl);
     window._pdfPreviewBlobUrl=URL.createObjectURL(new Blob([u8],{type:mime}));
-    frame.src=window._pdfPreviewBlobUrl;
+    frame.src=window._pdfPreviewBlobUrl+"#zoom=page-width";
     if(empty) empty.style.display="none";
   }catch(e){
-    frame.src=pdfUri;
+    frame.src=pdfUri+"#zoom=page-width";
     if(empty) empty.style.display="none";
   }
 }
