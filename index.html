@@ -266,6 +266,17 @@
   </div>
 </div>
 
+<!-- AUSSENDIENST / REGIEBERICHT POPUP -->
+<div id="serviceModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:10000;padding:12px;overflow:auto">
+  <div style="max-width:720px;margin:18px auto;background:#102a40;border-radius:16px;padding:18px;border:1px solid #254b6a">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div id="service_modal_titel" style="font-size:20px;font-weight:800">🔧 Außendienst</div>
+      <button type="button" class="btnD" onclick="closeServiceModal()">✕</button>
+    </div>
+    <div id="service_modal_content"></div>
+  </div>
+</div>
+
 <!-- KALENDER POPUP -->
 <div id="kalenderModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;padding:16px;overflow:auto">
   <div style="max-width:620px;margin:30px auto;background:#102a40;border-radius:14px;padding:18px;border:1px solid #254b6a">
