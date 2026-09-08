@@ -374,8 +374,15 @@ function showPdfPreview(pdfUri){
 }
 
 function openPdfNative(){
+  // Archivierte PDFs liegen bereits als Blob im Speicher.
+  if (window._currentPdfBlobUrl) {
+    window.open(window._currentPdfBlobUrl, "_blank");
+    return;
+  }
+
   if(!window._currentPdfUri) return;
-  // Convert data URI to Blob, then open blob URL - works on iOS Safari
+
+  // Data-URI in Blob umwandeln – funktioniert zuverlässiger auf iOS/Safari.
   try {
     const arr = window._currentPdfUri.split(',');
     const mime = arr[0].match(/:(.*?);/)[1];
@@ -387,7 +394,6 @@ function openPdfNative(){
     const url = URL.createObjectURL(blob);
     window.open(url,'_blank');
   } catch(e) {
-    // Fallback: direct data URI
     window.open(window._currentPdfUri,'_blank');
   }
 }
