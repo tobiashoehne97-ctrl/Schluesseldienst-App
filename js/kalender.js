@@ -22,7 +22,8 @@ function normalizeKalenderEntry(row){
     hausnummer: row.hausnummer || "",
     postleitzahl: row.postleitzahl || "",
     ort: row.ort || "",
-    beschreibung: row.beschreibung || ""
+    beschreibung: row.beschreibung || "",
+    mitarbeiter: row.mitarbeiter || ""
   };
 }
 
@@ -52,15 +53,31 @@ async function saveKalenderEntry(){
   const von=document.getElementById("kal_von").value;
   const bis=document.getElementById("kal_bis").value;
 
-  if(!titel||!datum||!von){
-    alert("Bitte Titel, Datum und Beginn eingeben.");
+  const typ=document.getElementById("kal_typ").value;
+  const mitarbeiter=document.getElementById("kal_mitarbeiter")?.value || "";
+
+  if(!datum||!von){
+    alert("Bitte Datum und Beginn eingeben.");
     return;
   }
 
+  if(typ==="verfuegbarkeit" && !mitarbeiter){
+    alert("Bitte auswählen, welcher Mitarbeiter verfügbar ist.");
+    return;
+  }
+
+  if(typ!=="verfuegbarkeit" && !titel){
+    alert("Bitte einen Titel eingeben.");
+    return;
+  }
+
+  const finalTitel=typ==="verfuegbarkeit" ? "Verfügbarkeit – "+mitarbeiter : titel;
+
   const entry={
-    titel, datum, von:von+":00", bis:bis?bis+":00":null,
-    typ:document.getElementById("kal_typ").value,
-    status:document.getElementById("kal_status").value,
+    titel:finalTitel, datum, von:von+":00", bis:bis?bis+":00":null,
+    typ,
+    status:typ==="verfuegbarkeit" ? "verfuegbar" : document.getElementById("kal_status").value,
+    mitarbeiter:typ==="verfuegbarkeit" ? mitarbeiter : null,
     nachname:document.getElementById("kal_nachname").value.trim()||null,
     vorname:document.getElementById("kal_vorname").value.trim()||null,
     telefonnummer:document.getElementById("kal_telefonnummer").value.trim()||null,
@@ -98,7 +115,7 @@ async function saveKalenderEntry(){
 }
 
 function clearKalenderForm(){
-  ["kal_titel","kal_nachname","kal_vorname","kal_telefonnummer","kal_strasse","kal_hausnummer","kal_postleitzahl","kal_ort","kal_beschreibung","kal_von","kal_bis"].forEach(id=>document.getElementById(id).value="");
+  ["kal_titel","kal_mitarbeiter","kal_nachname","kal_vorname","kal_telefonnummer","kal_strasse","kal_hausnummer","kal_postleitzahl","kal_ort","kal_beschreibung","kal_von","kal_bis"].forEach(id=>document.getElementById(id).value="");
 }
 
 async function deleteKalenderEntry(id){
@@ -274,16 +291,43 @@ function renderKalenderWeek(){
       const date=new Date(startDate);
       date.setDate(startDate.getDate()+index);
       const iso=isoDateLocal(date);
-      const entries=(AppData.kalender.eintraege||[]).filter(e=>e.datum===iso);
+      const allEntries=(AppData.kalender.eintraege||[]).filter(e=>e.datum===iso);
+      const availability=allEntries.filter(e=>e.typ==="verfuegbarkeit");
+      const workEntries=allEntries.filter(e=>e.typ!=="verfuegbarkeit");
 
       const dayCard=document.createElement("div");
-      dayCard.style.cssText="cursor:pointer;padding:12px;border-radius:10px;background:#102a40;border:1px solid "+(iso===today?"#3b82c4":"#254b6a")+";min-height:92px;position:relative";
+      dayCard.style.cssText="cursor:pointer;padding:12px;border-radius:10px;background:#102a40;border:1px solid "+(iso===today?"#3b82c4":"#254b6a")+";min-height:112px;position:relative;overflow:hidden";
+
+      // Zeitachse der Verfügbarkeit: 09:00–17:00 = komplette Tagesbreite.
+      if(availability.length){
+        const track=document.createElement("div");
+        track.style.cssText="position:absolute;left:12px;right:12px;bottom:10px;height:7px;background:#0a1c2b;border-radius:999px;overflow:hidden;border:1px solid #23405a";
+
+        availability.forEach((entry,i)=>{
+          const toMinutes=(value)=>{
+            const parts=String(value||"").slice(0,5).split(":");
+            return (Number(parts[0])||0)*60+(Number(parts[1])||0);
+          };
+          const dayStart=9*60, dayEnd=17*60, range=dayEnd-dayStart;
+          const from=Math.max(dayStart,Math.min(dayEnd,toMinutes(entry.von)));
+          const until=Math.max(from,Math.min(dayEnd,toMinutes(entry.bis||"17:00")));
+          const left=((from-dayStart)/range)*100;
+          const width=Math.max(2,((until-from)/range)*100);
+
+          const bar=document.createElement("div");
+          bar.title=(entry.mitarbeiter||"Mitarbeiter")+" · "+String(entry.von||"").slice(0,5)+"–"+String(entry.bis||"").slice(0,5);
+          bar.style.cssText="position:absolute;left:"+left+"%;width:"+width+"%;top:"+(i%2===0?0:3)+"px;height:4px;background:#22c55e;border-radius:999px;box-shadow:0 0 7px rgba(34,197,94,.45)";
+          track.appendChild(bar);
+        });
+
+        dayCard.appendChild(track);
+      }
 
       const plus=document.createElement("button");
       plus.type="button";
       plus.className="btnP";
       plus.textContent="+";
-      plus.style.cssText="position:absolute;right:8px;top:8px;width:30px;height:30px;padding:0;border-radius:50%;font-size:18px";
+      plus.style.cssText="position:absolute;right:8px;top:8px;width:30px;height:30px;padding:0;border-radius:50%;font-size:18px;z-index:2";
       plus.onclick=(ev)=>{
         ev.stopPropagation();
         openKalenderCreate(iso);
@@ -298,20 +342,20 @@ function renderKalenderWeek(){
       dateLine.textContent=date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
 
       const info=document.createElement("div");
-      info.style.cssText="margin-top:15px;font-size:13px;color:"+(entries.length?"#d9eafa":"#71869b");
-      info.textContent=entries.length
-        ? "📌 "+entries.length+" "+(entries.length===1?"Termin":"Termine")
-        : "Keine Termine";
+      info.style.cssText="margin-top:15px;font-size:13px;color:"+(workEntries.length?"#d9eafa":"#71869b");
+      info.textContent=workEntries.length
+        ? "📌 "+workEntries.length+" "+(workEntries.length===1?"Termin":"Termine")
+        : (availability.length ? "🟢 "+availability.map(e=>e.mitarbeiter||"Verfügbar").join(" · ") : "Keine Termine");
 
       dayCard.appendChild(plus);
       dayCard.appendChild(heading);
       dayCard.appendChild(dateLine);
       dayCard.appendChild(info);
 
-      if(entries.length){
+      if(workEntries.length){
         const dots=document.createElement("div");
         dots.style.cssText="display:flex;gap:4px;margin-top:8px";
-        entries.slice(0,5).forEach(entry=>{
+        workEntries.slice(0,5).forEach(entry=>{
           const dot=document.createElement("span");
           dot.style.cssText="width:8px;height:8px;border-radius:50%;background:"+getStatusColor(entry.status);
           dots.appendChild(dot);
@@ -330,7 +374,6 @@ function renderKalenderWeek(){
     if(grid) grid.innerHTML='<div style="grid-column:1/-1;padding:14px;color:#ffb4b4">Die Wochenansicht konnte nicht geladen werden. Bitte Seite neu laden.</div>';
   }
 }
-
 function openKalenderModal(title,content){
   const modal=document.getElementById("kalenderModal");
   const titleEl=document.getElementById("kal_modal_titel");
@@ -357,6 +400,23 @@ function closeKalenderModal(){
   document.body.style.overflow="";
 }
 
+function toggleKalenderFormByType(){
+  const typ=document.getElementById("kal_typ")?.value;
+  const standardFields=document.getElementById("kal_standard_fields");
+  const standardDetails=document.getElementById("kal_standard_details");
+  const availabilityFields=document.getElementById("kal_verfuegbarkeit_fields");
+
+  const isAvailability=typ==="verfuegbarkeit";
+  standardFields?.classList.toggle("hidden",isAvailability);
+  standardDetails?.classList.toggle("hidden",isAvailability);
+  availabilityFields?.classList.toggle("hidden",!isAvailability);
+
+  if(isAvailability){
+    const status=document.getElementById("kal_status");
+    if(status) status.value="verfuegbar";
+  }
+}
+
 function openKalenderCreate(date){
   const form=document.getElementById("kalenderFormCard");
   if(!form) return;
@@ -364,6 +424,7 @@ function openKalenderCreate(date){
 
   form.classList.remove("hidden");
   document.getElementById("kal_datum").value=date || isoDateLocal(new Date());
+  toggleKalenderFormByType();
 
   openKalenderModal("➕ Neuen Termin anlegen",form);
   setTimeout(()=>document.getElementById("kal_titel")?.focus(),50);
@@ -472,6 +533,7 @@ window.changeKalenderWeek=changeKalenderWeek;
 window.goKalenderToday=goKalenderToday;
 window.showKalenderView=showKalenderView;
 window.openKalenderCreate=openKalenderCreate;
+window.toggleKalenderFormByType=toggleKalenderFormByType;
 window.openKalenderDay=openKalenderDay;
 window.openKalenderEntryDetails=openKalenderEntryDetails;
 window.openKalenderModal=openKalenderModal;
