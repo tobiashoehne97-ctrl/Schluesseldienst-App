@@ -58,164 +58,300 @@ function savSig(cid,key,okId){sigs[key]=document.getElementById(cid).toDataURL()
 
 
 // ── Archiv ────────────────────────────────────────────────────────────────────
-const SB_URL = "https://cczwapyxysohxobndlbg.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjendhcHl4eXNvaHhvYm5kbGJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDMyMzksImV4cCI6MjA5NzgxOTIzOX0.aD5sNTJ8un-mDut4TyKKFt3CWNYJwZHbNwY7BkiVwig";
+// PDFs werden dauerhaft im Supabase Storage gespeichert. Die Datenbank enthält
+// nur die Metadaten und den Speicherpfad – dadurch bleibt das Archiv auch nach
+// einem Browser-/Gerätewechsel vollständig verfügbar.
+const ARCHIV_BUCKET = "berichte";
 const ARCHIV = [];
 
-// PDF-Daten separat in sessionStorage (zu groß für Supabase free tier)
+function archivClient() {
+  if (!window.supabaseClient) throw new Error("Supabase ist noch nicht verbunden.");
+  return window.supabaseClient;
+}
+
+function dataUriToBlob(dataUri) {
+  const parts = String(dataUri || "").split(",");
+  if (parts.length < 2) throw new Error("Ungültige PDF-Daten.");
+  const mime = (parts[0].match(/:(.*?);/) || [])[1] || "application/pdf";
+  const binary = atob(parts[1]);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
 function savePdfLocal(nr, pdfUri) {
   try { sessionStorage.setItem("pdf_"+nr, pdfUri); } catch(e) {}
 }
 function getPdfLocal(nr) {
-  return sessionStorage.getItem("pdf_"+nr) || null;
+  try { return sessionStorage.getItem("pdf_"+nr) || null; } catch(e) { return null; }
 }
 
-async function sbPost(data) {
-  try {
-    const res = await fetch(SB_URL+"/rest/v1/archiv", {
-      method:"POST",
-      headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY,"Content-Type":"application/json","Prefer":"resolution=merge-duplicates,return=minimal"},
-      body:JSON.stringify(data)
+async function saveToArchiv(nr, typ, name, dat, pdfUri) {
+  const client = archivClient();
+  const pdfPath = typ + "/" + nr + ".pdf";
+
+  // Sofort lokal merken, damit der gerade erzeugte Bericht ohne Wartezeit
+  // geöffnet werden kann.
+  savePdfLocal(nr, pdfUri);
+
+  const { error: uploadError } = await client.storage
+    .from(ARCHIV_BUCKET)
+    .upload(pdfPath, dataUriToBlob(pdfUri), {
+      contentType: "application/pdf",
+      upsert: true
     });
-    return res.ok;
-  } catch(e) { return false; }
+
+  if (uploadError) throw uploadError;
+
+  const { error: dbError } = await client
+    .from("archiv")
+    .upsert({
+      nr,
+      typ,
+      name: name || null,
+      dat: dat || null,
+      saved: new Date().toISOString(),
+      pdf_path: pdfPath
+    }, { onConflict: "nr" });
+
+  if (dbError) throw dbError;
+  return true;
 }
 
 async function sbGet() {
   try {
-    const res = await fetch(SB_URL+"/rest/v1/archiv?select=nr,typ,name,dat,saved&order=id.desc", {
-      headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY}
-    });
-    if(!res.ok) return null;
-    return await res.json();
-  } catch(e) { return null; }
+    const client = archivClient();
+    const { data, error } = await client
+      .from("archiv")
+      .select("id,nr,typ,name,dat,saved,pdf_path")
+      .order("saved", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  } catch(e) {
+    console.error("Archiv laden:", e);
+    return null;
+  }
 }
 
-async function sbDelete(nr) {
-  try {
-    await fetch(SB_URL+"/rest/v1/archiv?nr=eq."+encodeURIComponent(nr), {
-      method:"DELETE",
-      headers:{"apikey":SB_KEY,"Authorization":"Bearer "+SB_KEY}
-    });
-  } catch(e) {}
+async function sbDelete(entry) {
+  const client = archivClient();
+  const nr = typeof entry === "string" ? entry : entry.nr;
+  const pdfPath = typeof entry === "object" ? entry.pdf_path : null;
+
+  if (pdfPath) {
+    const { error } = await client.storage.from(ARCHIV_BUCKET).remove([pdfPath]);
+    if (error) console.warn("PDF konnte nicht gelöscht werden:", error);
+  }
+
+  const { error } = await client.from("archiv").delete().eq("nr", nr);
+  if (error) throw error;
 }
 
-async function saveToArchiv(nr, typ, name, dat, pdfUri) {
-  const saved = new Date().toLocaleString("de-DE");
-  ARCHIV.unshift({nr, typ, name, dat, pdfUri, saved});
-  savePdfLocal(nr, pdfUri);
-  await sbPost({nr, typ, name, dat, saved});
+function archivTypLabel(typ) {
+  if (typ === "TO") return "Türöffnung";
+  if (typ === "RB") return "Regiebericht";
+  if (typ === "AN") return "Angebot";
+  return typ || "Dokument";
 }
 
-function loadArchiv() {
-  var list = document.getElementById("archiv-list");
-  var empty = document.getElementById("archiv-empty");
-  var st = document.getElementById("archiv-status");
-  var inf = document.getElementById("archiv-info");
+function archivIcon(typ) {
+  if (typ === "TO") return "🔑";
+  if (typ === "RB") return "📋";
+  if (typ === "AN") return "🔍";
+  return "📄";
+}
 
-  // Always show the empty div with status first
-  if(empty) empty.style.display = "block";
-  if(list) list.innerHTML = "";
-  if(st) st.textContent = "Verbinde...";
-  if(inf) inf.textContent = "";
+function formatArchivDate(value) {
+  if (!value) return "–";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleString("de-DE", { dateStyle: "medium", timeStyle: "short" });
+}
 
-  sbGet().then(function(rows) {
-    if (!rows || rows.length === 0) {
-      if(st) st.textContent = rows === null ? "Supabase nicht erreichbar" : "Noch keine Dokumente";
-      if(inf) inf.textContent = rows === null ? "Verbindung testen tippen" : "PDF erstellen - erscheint automatisch hier.";
-      return;
-    }
-    if(empty) empty.style.display = "none";
+async function loadArchiv() {
+  const list = document.getElementById("archiv-list");
+  const empty = document.getElementById("archiv-empty");
+  const st = document.getElementById("archiv-status");
+  const inf = document.getElementById("archiv-info");
 
-    var searchDiv = document.createElement("div");
-    searchDiv.className = "card";
-    searchDiv.style.cssText = "padding:12px 16px;margin-bottom:14px";
-    searchDiv.innerHTML = '<input id="archiv-search" placeholder="Suchen..." oninput="filterArchiv()" style="font-size:14px">';
-    list.appendChild(searchDiv);
+  if (list) list.innerHTML = "";
+  if (empty) empty.style.display = "block";
+  if (st) st.textContent = "Archiv wird geladen...";
+  if (inf) inf.textContent = "";
 
-    var container = document.createElement("div");
-    container.id = "archiv-cards";
-    list.appendChild(container);
+  const rows = await sbGet();
 
-    rows.forEach(function(e) {
-      var icon = e.typ==="TO" ? "&#128273;" : e.typ==="RB" ? "&#128203;" : "&#128269;";
-      var typLabel = e.typ==="TO" ? "Türöffnung" : e.typ==="RB" ? "Regiebericht" : "Angebot";
+  if (rows === null) {
+    if (st) st.textContent = "Archiv nicht erreichbar";
+    if (inf) inf.textContent = "Bitte die Archiv-Datenbankeinrichtung prüfen.";
+    return;
+  }
 
-      var card = document.createElement("div");
-      card.className = "card archiv-card";
-      card.dataset.search = ((e.nr||"")+" "+(e.name||"")+" "+(e.typ||"")+" "+(e.dat||"")).toLowerCase();
-      card.style.cssText = "margin-bottom:12px;padding:16px 18px";
+  if (rows.length === 0) {
+    if (st) st.textContent = "Noch keine Dokumente im Archiv";
+    if (inf) inf.textContent = "Abgeschlossene Berichte erscheinen automatisch hier.";
+    return;
+  }
 
-      var delBtn = document.createElement("button");
-      delBtn.className = "btnD";
-      delBtn.style.cssText = "font-size:11px;padding:4px 10px;margin-top:6px";
-      delBtn.innerHTML = "&#128465; Löschen";
-      delBtn.onclick = (function(nr){ return function(){ delArchiv(nr); }; })(e.nr);
+  if (empty) empty.style.display = "none";
 
-      var pdfBtn = document.createElement("button");
-      pdfBtn.className = "btnP";
-      pdfBtn.style.cssText = "padding:7px 12px;font-size:12px";
-      pdfBtn.innerHTML = "&#8599; PDF";
-      pdfBtn.onclick = (function(nr){ return function(){ openArchivPdf(nr); }; })(e.nr);
+  const searchDiv = document.createElement("div");
+  searchDiv.className = "card";
+  searchDiv.style.cssText = "padding:12px 16px;margin-bottom:14px";
+  searchDiv.innerHTML =
+    '<input id="archiv-search" placeholder="Nach Nummer, Kunde oder Datum suchen..." oninput="filterArchiv()" style="font-size:14px">';
+  list.appendChild(searchDiv);
 
-      var btnWrap = document.createElement("div");
-      btnWrap.style.cssText = "display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0";
-      if(getPdfLocal(e.nr)) btnWrap.appendChild(pdfBtn);
-      btnWrap.appendChild(delBtn);
+  const container = document.createElement("div");
+  container.id = "archiv-cards";
+  list.appendChild(container);
 
-      var info = document.createElement("div");
-      info.style.cssText = "flex:1;min-width:0";
-      info.innerHTML = "<div style='font-weight:700;font-size:15px;color:#e8f0f8'>"+(e.nr||"")+"<\/div>"
-        + "<div style='font-size:13px;color:#7eb3e0;margin-top:2px'>"+typLabel+" &mdash; "+(e.name||"–")+"<\/div>"
-        + "<div style='font-size:12px;color:#4a7aaa;margin-top:2px'>"+(e.dat||"")+" · "+(e.saved||"")+"<\/div>";
+  rows.forEach(function(e) {
+    const card = document.createElement("div");
+    card.className = "card archiv-card";
+    card.dataset.search = [
+      e.nr, e.name, archivTypLabel(e.typ), e.dat,
+      e.saved
+    ].filter(Boolean).join(" ").toLowerCase();
+    card.style.cssText = "margin-bottom:12px;padding:16px 18px;cursor:pointer";
 
-      var row = document.createElement("div");
-      row.style.cssText = "display:flex;align-items:center;gap:12px";
-      var iconEl = document.createElement("span");
-      iconEl.style.cssText = "font-size:28px;flex-shrink:0";
-      iconEl.innerHTML = icon;
-      row.appendChild(iconEl);
-      row.appendChild(info);
-      row.appendChild(btnWrap);
-      card.appendChild(row);
-      container.appendChild(card);
-    });
-  }).catch(function(err) {
-    if(st) st.textContent = "Fehler: " + (err.message||"unbekannt");
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;gap:12px";
+
+    const icon = document.createElement("span");
+    icon.textContent = archivIcon(e.typ);
+    icon.style.cssText = "font-size:28px;flex-shrink:0";
+
+    const info = document.createElement("div");
+    info.style.cssText = "flex:1;min-width:0";
+    info.innerHTML =
+      "<div style='font-weight:700;font-size:15px;color:#e8f0f8'>" + (e.nr || "") + "</div>" +
+      "<div style='font-size:13px;color:#7eb3e0;margin-top:2px'>" +
+        archivTypLabel(e.typ) + " — " + (e.name || "Ohne Kundenname") +
+      "</div>" +
+      "<div style='font-size:12px;color:#4a7aaa;margin-top:3px'>" +
+        "Einsatz: " + (e.dat || "–") + " · Archiviert: " + formatArchivDate(e.saved) +
+      "</div>";
+
+    const actions = document.createElement("div");
+    actions.style.cssText = "display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0";
+
+    const openBtn = document.createElement("button");
+    openBtn.className = "btnP";
+    openBtn.style.cssText = "padding:7px 12px;font-size:12px";
+    openBtn.textContent = "↗ Öffnen";
+    openBtn.onclick = function(ev) {
+      ev.stopPropagation();
+      openArchivPdf(e);
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btnD";
+    delBtn.style.cssText = "font-size:11px;padding:4px 10px";
+    delBtn.textContent = "🗑 Löschen";
+    delBtn.onclick = function(ev) {
+      ev.stopPropagation();
+      delArchiv(e);
+    };
+
+    actions.appendChild(openBtn);
+    actions.appendChild(delBtn);
+
+    row.appendChild(icon);
+    row.appendChild(info);
+    row.appendChild(actions);
+    card.appendChild(row);
+    card.onclick = function() { openArchivPdf(e); };
+    container.appendChild(card);
   });
 }
 
+async function openArchivPdf(entry) {
+  const nr = typeof entry === "string" ? entry : entry.nr;
+  const localPdf = getPdfLocal(nr);
 
-function openArchivPdf(nr) {
-  const pdfUri = getPdfLocal(nr);
-  if(pdfUri){ window._currentPdfUri = pdfUri; openPdfNative(); }
-  else alert("PDF nur in der aktuellen Sitzung verfügbar. Bitte neu erstellen.");
+  if (localPdf) {
+    window._currentPdfUri = localPdf;
+    window._currentPdfNr = nr;
+    showPdfPreview(localPdf);
+    document.getElementById("pdfNr").textContent = nr;
+    document.getElementById("pdfPreviewName").textContent = nr;
+    const sideName = document.getElementById("pdfPreviewNameSide");
+    if (sideName) sideName.textContent = nr;
+    document.getElementById("pdfMod").classList.add("open");
+    return;
+  }
+
+  if (!entry || typeof entry !== "object" || !entry.pdf_path) {
+    alert("Zu diesem Archiv-Eintrag ist kein PDF hinterlegt.");
+    return;
+  }
+
+  try {
+    const client = archivClient();
+    const { data, error } = await client.storage
+      .from(ARCHIV_BUCKET)
+      .download(entry.pdf_path);
+    if (error) throw error;
+
+    const url = URL.createObjectURL(data);
+    if (window._pdfPreviewBlobUrl) URL.revokeObjectURL(window._pdfPreviewBlobUrl);
+    window._pdfPreviewBlobUrl = url;
+    window._currentPdfBlobUrl = url;
+    window._currentPdfUri = null;
+    window._currentPdfNr = entry.nr;
+
+    const frame = document.getElementById("pdfFrame");
+    const empty = document.getElementById("pdfPreviewEmpty");
+    if (frame) frame.src = url + "#zoom=page-width";
+    if (empty) empty.style.display = "none";
+
+    document.getElementById("pdfNr").textContent = entry.nr;
+    document.getElementById("pdfPreviewName").textContent = entry.nr;
+    const sideName = document.getElementById("pdfPreviewNameSide");
+    if (sideName) sideName.textContent = entry.nr;
+    document.getElementById("pdfMod").classList.add("open");
+  } catch(e) {
+    console.error(e);
+    alert("Der archivierte Bericht konnte nicht geöffnet werden: " + (e.message || e));
+  }
 }
 
 function filterArchiv() {
-  const q = (document.getElementById("archiv-search")?.value||"").toLowerCase();
-  document.querySelectorAll(".archiv-card").forEach(card => {
-    card.style.display = card.dataset.search.includes(q) ? "" : "none";
+  const q = (document.getElementById("archiv-search")?.value || "").toLowerCase().trim();
+  document.querySelectorAll(".archiv-card").forEach(function(card) {
+    card.style.display = !q || card.dataset.search.includes(q) ? "" : "none";
   });
 }
 
-function openArchivEntry(e) {
-  if (!e) return;
-  window._currentPdfUri = e.pdfUri || null;
-  window._currentPdfNr = e.nr;
-  curMail = {nr: e.nr, typ: e.typ||"", name: e.name||"", dat: e.dat||"", info:""};
-  document.getElementById("pdfPreviewName").textContent = e.nr + (e.name ? " – " + e.name : "");
-  document.getElementById("pdfNr").textContent = e.nr + (e.name ? " – " + e.name : "");
-  document.getElementById("mailOk").classList.add("hidden");
-  document.getElementById("pdfMod").classList.add("open");
+async function delArchiv(entry) {
+  if (!entry || !confirm("Dokument " + entry.nr + " wirklich aus dem Archiv löschen?")) return;
+  try {
+    await sbDelete(entry);
+    try { sessionStorage.removeItem("pdf_" + entry.nr); } catch(e) {}
+    await loadArchiv();
+  } catch(e) {
+    alert("Dokument konnte nicht gelöscht werden: " + (e.message || e));
+  }
 }
 
-async function delArchiv(nr) {
-  if(!confirm("Dokument "+nr+" wirklich löschen?")) return;
-  await sbDelete(nr);
-  loadArchiv();
-}
+async function testArchiv() {
+  const st = document.getElementById("archiv-status");
+  const inf = document.getElementById("archiv-info");
+  if (st) st.textContent = "Teste Archiv...";
+  if (inf) inf.textContent = "";
 
+  const rows = await sbGet();
+  if (rows === null) {
+    if (st) st.textContent = "Archiv nicht erreichbar";
+    if (inf) inf.textContent = "Bitte die Datei supabase/phase2_archiv.sql im Supabase SQL Editor ausführen.";
+    return;
+  }
+
+  if (st) st.textContent = "Archiv verbunden";
+  if (inf) inf.textContent = rows.length + " Dokument(e) gefunden.";
+  await loadArchiv();
+}
 
 function showPdfPreview(pdfUri){
   const frame=document.getElementById("pdfFrame");
