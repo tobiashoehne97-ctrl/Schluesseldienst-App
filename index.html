@@ -181,8 +181,21 @@
       <option value="erledigt">🟢 Erledigt</option>
     </select>
 
-    <label class="lbl">Adresse</label>
-    <input id="kal_adresse" class="mb12" placeholder="Straße, PLZ Ort">
+    <div class="sec" style="margin-top:8px">Kundendaten</div>
+    <div class="g2 mb12">
+      <div><label class="lbl">Nachname</label><input id="kal_nachname" placeholder="Nachname"></div>
+      <div><label class="lbl">Vorname</label><input id="kal_vorname" placeholder="Vorname"></div>
+    </div>
+
+    <div class="sec">Einsatzadresse</div>
+    <div class="g2 mb12">
+      <div><label class="lbl">Straße</label><input id="kal_strasse" placeholder="Straße"></div>
+      <div><label class="lbl">Hausnummer</label><input id="kal_hausnummer" placeholder="Nr."></div>
+    </div>
+    <div class="g2 mb12">
+      <div><label class="lbl">Postleitzahl</label><input id="kal_postleitzahl" inputmode="numeric" placeholder="PLZ"></div>
+      <div><label class="lbl">Ort</label><input id="kal_ort" placeholder="Ort"></div>
+    </div>
 
     <label class="lbl">Beschreibung</label>
     <textarea id="kal_beschreibung" class="mb12" placeholder="Was ist zu erledigen?"></textarea>
