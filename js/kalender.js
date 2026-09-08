@@ -23,7 +23,9 @@ function normalizeKalenderEntry(row){
     postleitzahl: row.postleitzahl || "",
     ort: row.ort || "",
     beschreibung: row.beschreibung || "",
-    mitarbeiter: row.mitarbeiter || ""
+    mitarbeiter: row.mitarbeiter || "",
+    // Regiebericht muss beim Laden aus Supabase erhalten bleiben.
+    regiebericht: row.regiebericht || null
   };
 }
 
