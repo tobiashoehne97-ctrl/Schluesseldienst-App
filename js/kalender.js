@@ -88,6 +88,7 @@ async function saveKalenderEntry(){
       alert("Offline gespeichert. Der Eintrag wird nur auf diesem Gerät angezeigt.");
     }
     clearKalenderForm();
+    closeKalenderModal();
   }catch(err){
     console.error(err);
     alert("Der Termin konnte nicht gespeichert werden: "+err.message);
@@ -181,10 +182,11 @@ async function initKalender(){
 
 
 /* =========================
-   WOCHENPLANUNG
+   KOMPAKTE WOCHENPLANUNG + POPUPS
 ========================= */
 let kalenderWeekOffset = 0;
 let kalenderCurrentView = "woche";
+let kalenderFormHome = null;
 
 function getWeekStart(offset = kalenderWeekOffset){
   const now=new Date();
@@ -205,8 +207,9 @@ function isoDateLocal(date){
 function formatWeekTitle(start){
   const end=new Date(start);
   end.setDate(start.getDate()+6);
-  const opts={day:"2-digit",month:"2-digit",year:"numeric"};
-  return start.toLocaleDateString("de-DE",opts)+" – "+end.toLocaleDateString("de-DE",opts);
+  return start.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})+
+    " – "+
+    end.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
 }
 
 function changeKalenderWeek(direction){
@@ -228,13 +231,8 @@ function showKalenderView(view){
 
   if(week) week.style.display=view==="woche"?"block":"none";
   if(list) list.style.display=view==="liste"?"block":"none";
-
-  if(weekBtn){
-    weekBtn.className=view==="woche"?"btnP":"btnS";
-  }
-  if(listBtn){
-    listBtn.className=view==="liste"?"btnP":"btnS";
-  }
+  if(weekBtn) weekBtn.className=view==="woche"?"btnP":"btnS";
+  if(listBtn) listBtn.className=view==="liste"?"btnP":"btnS";
 
   if(view==="woche") renderKalenderWeek();
   else renderKalender();
@@ -265,53 +263,112 @@ function renderKalenderWeek(){
   const today=isoDateLocal(new Date());
   const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
 
+  grid.style.display="grid";
+  grid.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";
+  grid.style.gap="8px";
+
   grid.innerHTML=days.map((name,index)=>{
     const date=new Date(start);
     date.setDate(start.getDate()+index);
     const iso=isoDateLocal(date);
-    const entries=AppData.kalender.eintraege
-      .filter(e=>e.datum===iso)
-      .sort((a,b)=>(a.von||"").localeCompare(b.von||""));
+    const entries=AppData.kalender.eintraege.filter(e=>e.datum===iso);
+    const isToday=iso===today;
 
-    return '<div class="card" style="padding:12px;margin-bottom:10px;'+(iso===today?"outline:2px solid #3b82c4;":"")+'">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
-      '<div style="font-size:16px;font-weight:800">'+name+'</div>'+
-      '<div style="font-size:13px;color:#7eb3e0">'+date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})+'</div>'+
+    return '<div onclick="openKalenderDay(\\''+iso+'\\')" style="cursor:pointer;padding:12px;border-radius:10px;background:#102a40;border:1px solid '+(isToday?"#3b82c4":"#254b6a")+';min-height:92px;position:relative">'+
+      '<button onclick="event.stopPropagation();openKalenderCreate(\\''+iso+'\\')" class="btnP" style="position:absolute;right:8px;top:8px;width:30px;height:30px;padding:0;border-radius:50%;font-size:18px">+</button>'+
+      '<div style="font-weight:800;font-size:14px;padding-right:36px">'+name+'</div>'+
+      '<div style="font-size:12px;color:#7eb3e0;margin-top:3px">'+date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})+'</div>'+
+      '<div style="margin-top:15px;font-size:13px;color:'+(entries.length?"#d9eafa":"#71869b")+'">'+
+      (entries.length ? '📌 '+entries.length+' '+(entries.length===1?"Termin":"Termine") : "Keine Termine")+
       '</div>'+
-      (entries.length ? entries.map(e=>renderWeekEntry(e)).join("") :
-        '<div style="font-size:13px;color:#71869b;padding:7px 0">Keine Einträge</div>')+
+      (entries.length?'<div style="display:flex;gap:4px;margin-top:8px">'+entries.slice(0,5).map(e=>'<span style="width:8px;height:8px;border-radius:50%;background:'+getStatusColor(e.status)+'"></span>').join("")+'</div>':"")+
       '</div>';
   }).join("");
 }
 
-function renderWeekEntry(e){
-  const color=getStatusColor(e.status);
-  const customer=[e.vorname,e.nachname].filter(Boolean).join(" ");
-  const address=e.strasse ? [e.strasse,e.hausnummer].filter(Boolean).join(" ")+(e.ort?" · "+[e.postleitzahl,e.ort].filter(Boolean).join(" "):"") : e.adresse;
-
-  return '<div style="border-left:4px solid '+color+';background:#0b2235;border-radius:7px;padding:9px 10px;margin:7px 0;cursor:pointer" onclick="showKalenderEntryDetails(\''+e.id+'\')">'+
-    '<div style="display:flex;gap:8px;align-items:flex-start">'+
-    '<div style="font-weight:800;color:#dbeafe;white-space:nowrap">'+(e.von||"--:--")+'</div>'+
-    '<div style="min-width:0">'+
-    '<div style="font-weight:800;font-size:14px">'+escapeHtml(e.titel)+'</div>'+
-    (customer?'<div style="font-size:12px;color:#b9d1e8;margin-top:2px">👤 '+escapeHtml(customer)+'</div>':"")+
-    (address?'<div style="font-size:12px;color:#8fb3d4;margin-top:2px">📍 '+escapeHtml(address)+'</div>':"")+
-    '</div></div></div>';
+function openKalenderModal(title,content){
+  const modal=document.getElementById("kalenderModal");
+  const titleEl=document.getElementById("kal_modal_titel");
+  const contentEl=document.getElementById("kal_modal_content");
+  if(!modal||!contentEl) return;
+  titleEl.textContent=title;
+  contentEl.innerHTML="";
+  if(typeof content==="string") contentEl.innerHTML=content;
+  else if(content) contentEl.appendChild(content);
+  modal.classList.remove("hidden");
+  document.body.style.overflow="hidden";
 }
 
-function showKalenderEntryDetails(id){
+function closeKalenderModal(){
+  const modal=document.getElementById("kalenderModal");
+  const content=document.getElementById("kal_modal_content");
+  const form=document.getElementById("kalenderFormCard");
+  if(form && kalenderFormHome && form.parentElement===content){
+    kalenderFormHome.insertBefore(form,kalenderFormHome.firstChild);
+    form.classList.add("hidden");
+  }
+  if(content) content.innerHTML="";
+  if(modal) modal.classList.add("hidden");
+  document.body.style.overflow="";
+}
+
+function openKalenderCreate(date){
+  const form=document.getElementById("kalenderFormCard");
+  if(!form) return;
+  if(!kalenderFormHome) kalenderFormHome=form.parentElement;
+
+  form.classList.remove("hidden");
+  document.getElementById("kal_datum").value=date || isoDateLocal(new Date());
+
+  openKalenderModal("➕ Neuen Termin anlegen",form);
+  setTimeout(()=>document.getElementById("kal_titel")?.focus(),50);
+}
+
+function openKalenderDay(date){
+  ensureKalenderData();
+  const entries=AppData.kalender.eintraege
+    .filter(e=>e.datum===date)
+    .sort((a,b)=>(a.von||"").localeCompare(b.von||""));
+
+  const dateText=new Date(date+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+
+  const html='<div style="font-size:14px;color:#8fb3d4;margin-bottom:14px">'+dateText+'</div>'+
+    '<button class="btnP" style="width:100%;padding:12px;margin-bottom:14px" onclick="openKalenderCreate(\\''+date+'\\')">➕ Neuen Termin hinzufügen</button>'+
+    (entries.length ? entries.map(e=>{
+      const customer=[e.vorname,e.nachname].filter(Boolean).join(" ");
+      return '<div onclick="openKalenderEntryDetails(\\''+e.id+'\\')" style="border-left:5px solid '+getStatusColor(e.status)+';background:#0b2235;border-radius:9px;padding:12px;margin-bottom:9px;cursor:pointer">'+
+        '<div style="display:flex;justify-content:space-between;gap:10px"><div>'+
+        '<div style="font-weight:800">'+escapeHtml(e.titel)+'</div>'+
+        '<div style="font-size:13px;color:#7eb3e0;margin-top:5px">🕒 '+(e.von||"--:--")+(e.bis?" – "+e.bis:"")+'</div>'+
+        (customer?'<div style="font-size:13px;color:#c7dced;margin-top:4px">👤 '+escapeHtml(customer)+'</div>':"")+
+        '</div><div style="font-size:12px;color:'+getStatusColor(e.status)+';font-weight:800">'+escapeHtml(e.status)+'</div></div></div>';
+    }).join("") : '<div style="text-align:center;padding:28px;color:#71869b">Keine Termine an diesem Tag</div>');
+
+  openKalenderModal("📅 Tagesübersicht",html);
+}
+
+function openKalenderEntryDetails(id){
   const e=AppData.kalender?.eintraege?.find(x=>String(x.id)===String(id));
   if(!e) return;
   const customer=[e.vorname,e.nachname].filter(Boolean).join(" ") || "Kein Kunde hinterlegt";
-  const address=e.strasse ? [e.strasse,e.hausnummer].filter(Boolean).join(" ")+"\n"+[e.postleitzahl,e.ort].filter(Boolean).join(" ") : (e.adresse||"Keine Adresse hinterlegt");
+  const address=e.strasse
+    ? [e.strasse,e.hausnummer].filter(Boolean).join(" ")+(e.postleitzahl||e.ort?"<br>"+[e.postleitzahl,e.ort].filter(Boolean).join(" "):"")
+    : (e.adresse||"Keine Adresse hinterlegt");
 
-  alert(
-    e.titel+"\n\n"+
-    "👤 "+customer+"\n"+
-    (e.telefonnummer?"📞 "+e.telefonnummer+"\n":"")+
-    "📍 "+address+"\n\n"+
-    "🕒 "+(e.von||"")+" "+(e.bis?"– "+e.bis:"")+"\n"+
-    "Status: "+e.status+
-    (e.beschreibung?"\n\n📝 "+e.beschreibung:"")
-  );
+  const html='<div class="card" style="margin:0;border-left:5px solid '+getStatusColor(e.status)+'">'+
+    '<div style="font-size:20px;font-weight:800;margin-bottom:12px">'+escapeHtml(e.titel)+'</div>'+
+    '<div style="line-height:1.8;color:#c8dced">'+
+    '👤 '+escapeHtml(customer)+'<br>'+
+    (e.telefonnummer?'📞 <a href="tel:'+escapeHtml(e.telefonnummer)+'" style="color:#8fc5ff">'+escapeHtml(e.telefonnummer)+'</a><br>':"")+
+    '📍 '+address+'<br>'+
+    '🕒 '+escapeHtml(e.von||"--:--")+(e.bis?" – "+escapeHtml(e.bis):"")+'<br>'+
+    '🏷️ Status: '+escapeHtml(e.status)+
+    '</div>'+
+    (e.beschreibung?'<div style="margin-top:14px;padding-top:14px;border-top:1px solid #254b6a">📝 '+escapeHtml(e.beschreibung)+'</div>':"")+
+    '<div style="display:flex;gap:8px;margin-top:18px">'+
+    '<button class="btnS" style="flex:1" onclick="closeKalenderModal()">← Zurück</button>'+
+    '<button class="btnD" onclick="deleteKalenderEntry(\\''+e.id+'\\');closeKalenderModal()">🗑 Löschen</button>'+
+    '</div></div>';
+
+  openKalenderModal("📋 Termindetails",html);
 }
