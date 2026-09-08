@@ -40,6 +40,7 @@ async function loadKalenderFromSupabase(){
   ensureKalenderData();
   AppData.kalender.eintraege=(data||[]).map(normalizeKalenderEntry);
   renderKalender();
+  renderKalenderWeek();
   return true;
 }
 
@@ -164,6 +165,8 @@ async function initKalender(){
   if(d&&!d.value)d.value=today;
 
   renderKalender();
+  renderKalenderWeek();
+  showKalenderView("woche");
 
   const connected=await initSupabase();
   if(connected){
@@ -174,4 +177,141 @@ async function initKalender(){
       .on("postgres_changes",{event:"*",schema:"public",table:"kalender_eintraege"},()=>loadKalenderFromSupabase())
       .subscribe();
   }
+}
+
+
+/* =========================
+   WOCHENPLANUNG
+========================= */
+let kalenderWeekOffset = 0;
+let kalenderCurrentView = "woche";
+
+function getWeekStart(offset = kalenderWeekOffset){
+  const now=new Date();
+  const day=now.getDay() || 7;
+  const monday=new Date(now);
+  monday.setHours(0,0,0,0);
+  monday.setDate(now.getDate()-day+1+(offset*7));
+  return monday;
+}
+
+function isoDateLocal(date){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,"0");
+  const d=String(date.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+d;
+}
+
+function formatWeekTitle(start){
+  const end=new Date(start);
+  end.setDate(start.getDate()+6);
+  const opts={day:"2-digit",month:"2-digit",year:"numeric"};
+  return start.toLocaleDateString("de-DE",opts)+" – "+end.toLocaleDateString("de-DE",opts);
+}
+
+function changeKalenderWeek(direction){
+  kalenderWeekOffset+=direction;
+  renderKalenderWeek();
+}
+
+function goKalenderToday(){
+  kalenderWeekOffset=0;
+  renderKalenderWeek();
+}
+
+function showKalenderView(view){
+  kalenderCurrentView=view;
+  const week=document.getElementById("kalenderWoche");
+  const list=document.getElementById("kalenderListeBereich");
+  const weekBtn=document.getElementById("kal_tab_woche");
+  const listBtn=document.getElementById("kal_tab_liste");
+
+  if(week) week.style.display=view==="woche"?"block":"none";
+  if(list) list.style.display=view==="liste"?"block":"none";
+
+  if(weekBtn){
+    weekBtn.className=view==="woche"?"btnP":"btnS";
+  }
+  if(listBtn){
+    listBtn.className=view==="liste"?"btnP":"btnS";
+  }
+
+  if(view==="woche") renderKalenderWeek();
+  else renderKalender();
+}
+
+function getStatusColor(status){
+  return {
+    geplant:"#3b82c4",
+    notdienst:"#f97316",
+    offen:"#ef4444",
+    rechnung:"#a855f7",
+    erledigt:"#22c55e",
+    geschaeft:"#14b8a6",
+    geschlossen:"#64748b",
+    verfuegbar:"#84cc16"
+  }[status] || "#3b82c4";
+}
+
+function renderKalenderWeek(){
+  ensureKalenderData();
+  const grid=document.getElementById("kalenderWocheGrid");
+  const title=document.getElementById("kal_woche_titel");
+  if(!grid) return;
+
+  const start=getWeekStart();
+  if(title) title.textContent=formatWeekTitle(start);
+
+  const today=isoDateLocal(new Date());
+  const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+
+  grid.innerHTML=days.map((name,index)=>{
+    const date=new Date(start);
+    date.setDate(start.getDate()+index);
+    const iso=isoDateLocal(date);
+    const entries=AppData.kalender.eintraege
+      .filter(e=>e.datum===iso)
+      .sort((a,b)=>(a.von||"").localeCompare(b.von||""));
+
+    return '<div class="card" style="padding:12px;margin-bottom:10px;'+(iso===today?"outline:2px solid #3b82c4;":"")+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+      '<div style="font-size:16px;font-weight:800">'+name+'</div>'+
+      '<div style="font-size:13px;color:#7eb3e0">'+date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})+'</div>'+
+      '</div>'+
+      (entries.length ? entries.map(e=>renderWeekEntry(e)).join("") :
+        '<div style="font-size:13px;color:#71869b;padding:7px 0">Keine Einträge</div>')+
+      '</div>';
+  }).join("");
+}
+
+function renderWeekEntry(e){
+  const color=getStatusColor(e.status);
+  const customer=[e.vorname,e.nachname].filter(Boolean).join(" ");
+  const address=e.strasse ? [e.strasse,e.hausnummer].filter(Boolean).join(" ")+(e.ort?" · "+[e.postleitzahl,e.ort].filter(Boolean).join(" "):"") : e.adresse;
+
+  return '<div style="border-left:4px solid '+color+';background:#0b2235;border-radius:7px;padding:9px 10px;margin:7px 0;cursor:pointer" onclick="showKalenderEntryDetails(\''+e.id+'\')">'+
+    '<div style="display:flex;gap:8px;align-items:flex-start">'+
+    '<div style="font-weight:800;color:#dbeafe;white-space:nowrap">'+(e.von||"--:--")+'</div>'+
+    '<div style="min-width:0">'+
+    '<div style="font-weight:800;font-size:14px">'+escapeHtml(e.titel)+'</div>'+
+    (customer?'<div style="font-size:12px;color:#b9d1e8;margin-top:2px">👤 '+escapeHtml(customer)+'</div>':"")+
+    (address?'<div style="font-size:12px;color:#8fb3d4;margin-top:2px">📍 '+escapeHtml(address)+'</div>':"")+
+    '</div></div></div>';
+}
+
+function showKalenderEntryDetails(id){
+  const e=AppData.kalender?.eintraege?.find(x=>String(x.id)===String(id));
+  if(!e) return;
+  const customer=[e.vorname,e.nachname].filter(Boolean).join(" ") || "Kein Kunde hinterlegt";
+  const address=e.strasse ? [e.strasse,e.hausnummer].filter(Boolean).join(" ")+"\n"+[e.postleitzahl,e.ort].filter(Boolean).join(" ") : (e.adresse||"Keine Adresse hinterlegt");
+
+  alert(
+    e.titel+"\n\n"+
+    "👤 "+customer+"\n"+
+    (e.telefonnummer?"📞 "+e.telefonnummer+"\n":"")+
+    "📍 "+address+"\n\n"+
+    "🕒 "+(e.von||"")+" "+(e.bis?"– "+e.bis:"")+"\n"+
+    "Status: "+e.status+
+    (e.beschreibung?"\n\n📝 "+e.beschreibung:"")
+  );
 }
