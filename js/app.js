@@ -166,6 +166,41 @@ async function saveRegieberichtReferenceToArchiv(entry) {
 
 window.saveRegieberichtReferenceToArchiv = saveRegieberichtReferenceToArchiv;
 
+async function syncExistingRegieberichteToArchiv() {
+  if (!window.supabaseReady || !window.supabaseClient) return;
+
+  try {
+    const client = archivClient();
+    const { data, error } = await client
+      .from("kalender_eintraege")
+      .select("id,titel,datum,vorname,nachname,regiebericht")
+      .not("regiebericht", "is", null);
+
+    if (error) throw error;
+
+    const rows = (data || [])
+      .filter(e => e.id && e.regiebericht)
+      .map(e => ({
+        nr: "RB-" + String(e.id),
+        typ: "RB",
+        name: [e.vorname, e.nachname].filter(Boolean).join(" ").trim() || e.titel || null,
+        dat: e.datum || null,
+        saved: e.regiebericht?.beendet || new Date().toISOString(),
+        pdf_path: "regiebericht:" + String(e.id)
+      }));
+
+    if (!rows.length) return;
+
+    const { error: upsertError } = await client
+      .from("archiv")
+      .upsert(rows, { onConflict: "nr" });
+
+    if (upsertError) throw upsertError;
+  } catch (e) {
+    console.warn("Vorhandene Regieberichte konnten nicht automatisch synchronisiert werden:", e);
+  }
+}
+
 async function sbGet() {
   try {
     const client = archivClient();
@@ -227,6 +262,10 @@ async function loadArchiv() {
   if (empty) empty.style.display = "block";
   if (st) st.textContent = "Archiv wird geladen...";
   if (inf) inf.textContent = "";
+
+  // Bereits vorhandene Regieberichte aus dem Kalender einmal mit dem Archiv abgleichen.
+  // Dadurch erscheinen auch Berichte, die vor der Archiv-Erweiterung erstellt wurden.
+  await syncExistingRegieberichteToArchiv();
 
   const rows = await sbGet();
 
