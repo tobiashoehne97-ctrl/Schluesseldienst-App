@@ -325,3 +325,105 @@
   .mobile-change-employee{margin-top:6px;padding:12px}
   .app-placeholder{min-height:auto}
 }
+
+
+/* =========================================================
+   NOTDIENST
+========================================================= */
+.notdienst-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+  margin-bottom:22px;
+}
+.notdienst-header h2{margin:2px 0 5px;font-size:30px;color:#f4f9ff}
+.notdienst-header p{margin:0;color:#86add0}
+.notdienst-new-btn{padding:13px 18px;font-weight:800}
+.notdienst-start{
+  min-height:420px;
+  display:grid;
+  place-items:center;
+}
+.notdienst-empty{
+  width:min(100%,620px);
+  text-align:center;
+  padding:46px 28px;
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(25,54,88,.9),rgba(11,29,52,.95));
+  border:1px solid rgba(75,143,203,.42);
+  box-shadow:0 18px 40px rgba(0,0,0,.18);
+}
+.notdienst-empty-icon{font-size:60px;margin-bottom:10px}
+.notdienst-empty h3{font-size:23px;margin:0 0 8px;color:#f4f9ff}
+.notdienst-empty p{max-width:440px;margin:0 auto 22px;color:#8fb3d4;line-height:1.5}
+.notdienst-form-card{max-width:860px;margin:0 auto;padding:24px}
+.notdienst-form-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:12px;
+}
+.notdienst-time-note{font-size:12px;color:#83acd0;margin-top:-3px}
+.notdienst-types{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+  margin-bottom:16px;
+}
+.notdienst-type{
+  min-height:94px;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:7px;
+  border-radius:14px;
+  border:1px solid rgba(59,110,165,.32);
+  background:rgba(255,255,255,.035);
+  color:#cfe3f5;
+  cursor:pointer;
+  font-size:25px;
+}
+.notdienst-type span{font-size:12px;font-weight:750}
+.notdienst-type:hover{border-color:#4b8fcb;background:rgba(59,130,196,.12)}
+.notdienst-type.active{
+  background:linear-gradient(135deg,rgba(225,94,45,.34),rgba(154,48,23,.34));
+  border-color:#f27a4a;
+  color:#fff;
+  box-shadow:0 8px 20px rgba(120,40,20,.22);
+}
+.notdienst-calendar-option{
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  padding:14px;
+  margin:4px 0 18px;
+  border-radius:13px;
+  border:1px solid rgba(75,143,203,.28);
+  background:rgba(59,130,196,.07);
+  cursor:pointer;
+}
+.notdienst-calendar-option input{margin-top:3px;width:17px;height:17px}
+.notdienst-calendar-option strong{display:block;color:#e7f3ff;font-size:14px}
+.notdienst-calendar-option small{display:block;color:#87afd0;font-size:12px;line-height:1.4;margin-top:3px}
+.notdienst-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  padding-top:6px;
+}
+@media(max-width:760px){
+  .notdienst-header{align-items:stretch;flex-direction:column}
+  .notdienst-header h2{font-size:24px}
+  .notdienst-new-btn{width:100%}
+  .notdienst-start{min-height:360px}
+  .notdienst-empty{padding:32px 18px}
+  .notdienst-form-card{padding:16px}
+  .notdienst-types{grid-template-columns:repeat(2,1fr)}
+  .notdienst-type{min-height:82px}
+  .notdienst-actions{flex-direction:column-reverse}
+  .notdienst-actions button{width:100%}
+}
