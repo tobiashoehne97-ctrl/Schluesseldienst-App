@@ -137,8 +137,39 @@ async function saveToArchiv(nr, typ, name, dat, pdfUri) {
 }
 
 
+function encodeRegieberichtSnapshot(entry) {
+  try {
+    const json = JSON.stringify(entry);
+    return btoa(unescape(encodeURIComponent(json)));
+  } catch (e) {
+    console.warn("Regiebericht-Snapshot konnte nicht kodiert werden:", e);
+    return "";
+  }
+}
+
+function decodeRegieberichtSnapshot(value) {
+  try {
+    const raw = String(value || "");
+    const prefix = "regiebericht-snapshot:";
+    if (!raw.startsWith(prefix)) return null;
+    const encoded = raw.slice(prefix.length);
+    if (!encoded) return null;
+    return JSON.parse(decodeURIComponent(escape(atob(encoded))));
+  } catch (e) {
+    console.warn("Regiebericht-Snapshot konnte nicht gelesen werden:", e);
+    return null;
+  }
+}
+
+function makeRegieberichtArchivPath(entry) {
+  const snapshot = encodeRegieberichtSnapshot(entry);
+  return snapshot
+    ? "regiebericht-snapshot:" + snapshot
+    : "regiebericht:" + String(entry.id);
+}
+
 async function saveRegieberichtReferenceToArchiv(entry) {
-  if (!entry || !entry.id) throw new Error("Ungültiger Regiebericht.");
+  if (!entry || !entry.id || !entry.regiebericht) throw new Error("Ungültiger oder unvollständiger Regiebericht.");
 
   if (!window.supabaseReady || !window.supabaseClient) {
     throw new Error("Supabase-Verbindung ist noch nicht bereit.");
@@ -154,8 +185,10 @@ async function saveRegieberichtReferenceToArchiv(entry) {
       typ: "RB",
       name,
       dat: entry.datum || null,
-      saved: new Date().toISOString(),
-      pdf_path: "regiebericht:" + String(entry.id)
+      saved: entry.regiebericht?.beendet || new Date().toISOString(),
+      // Der komplette Bericht wird als Snapshot gesichert. Damit kann das
+      // Archiv ihn auch öffnen, wenn der Kalender später nicht geladen wird.
+      pdf_path: makeRegieberichtArchivPath(entry)
     }, { onConflict: "nr" });
 
   if (error) throw new Error("Archiv-Datenbank: " + error.message);
@@ -204,7 +237,7 @@ async function syncExistingRegieberichteToArchiv() {
       name: [e.vorname, e.nachname].filter(Boolean).join(" ").trim() || e.titel || null,
       dat: e.datum || null,
       saved: e.regiebericht?.beendet || new Date().toISOString(),
-      pdf_path: "regiebericht:" + String(e.id)
+      pdf_path: makeRegieberichtArchivPath(e)
     }));
 
     const { error: upsertError } = await archivClient()
@@ -235,7 +268,7 @@ function getLocalRegieberichtArchivRows() {
       name: [e.vorname, e.nachname].filter(Boolean).join(" ").trim() || e.titel || null,
       dat: e.datum || null,
       saved: e.regiebericht?.beendet || null,
-      pdf_path: "regiebericht:" + String(e.id)
+      pdf_path: makeRegieberichtArchivPath(e)
     }));
 }
 
@@ -315,7 +348,7 @@ async function loadArchiv() {
     const existing = mergedRows.get(String(row.nr));
     if (!existing) {
       mergedRows.set(String(row.nr), row);
-    } else if (!existing.pdf_path || !String(existing.pdf_path).startsWith("regiebericht:")) {
+    } else if (String(existing.pdf_path || "").startsWith("regiebericht:") && !String(existing.pdf_path || "").startsWith("regiebericht-snapshot:")) {
       mergedRows.set(String(row.nr), row);
     }
   });
@@ -414,67 +447,94 @@ async function loadArchiv() {
 async function openArchivPdf(entry) {
   // Regieberichte aus der Einsatzplanung werden als Referenz auf den
   // Kalender-Eintrag archiviert. Dadurch ist kein separater PDF-Upload nötig.
-  if (entry && typeof entry === "object" && String(entry.pdf_path || "").startsWith("regiebericht:")) {
-    const serviceId = String(entry.pdf_path).slice("regiebericht:".length);
-    let serviceEntry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === serviceId);
+  if (entry && typeof entry === "object") {
+    const path = String(entry.pdf_path || "");
 
-    if (!serviceEntry && typeof loadKalenderFromSupabase === "function") {
-      try {
-        await loadKalenderFromSupabase();
-        serviceEntry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === serviceId);
-      } catch (e) {
-        console.error("Kalender-Eintrag für Archivbericht laden:", e);
-      }
-    }
+    // Neue Archivform: vollständiger Snapshot. Dadurch ist der Bericht
+    // unabhängig vom aktuellen Kalenderzustand dauerhaft öffnungsfähig.
+    if (path.startsWith("regiebericht-snapshot:")) {
+      const snapshot = decodeRegieberichtSnapshot(path);
+      if (snapshot && snapshot.id && snapshot.regiebericht) {
+        window.AppData = window.AppData || {};
+        window.AppData.kalender = window.AppData.kalender || { eintraege: [] };
+        const list = window.AppData.kalender.eintraege;
+        const idx = list.findIndex(e => String(e.id) === String(snapshot.id));
+        if (idx >= 0) list[idx] = snapshot; else list.push(snapshot);
 
-    // Zusätzlicher Direkt-Fallback: Der Archivbericht darf nicht davon abhängen,
-    // dass die komplette Kalenderansicht vorher erfolgreich geladen wurde.
-    if (!serviceEntry && window.supabaseReady && window.supabaseClient) {
-      try {
-        const { data, error } = await window.supabaseClient
-          .from("kalender_eintraege")
-          .select("*")
-          .eq("id", serviceId)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        if (data) {
-          serviceEntry = typeof normalizeKalenderEntry === "function"
-            ? normalizeKalenderEntry(data)
-            : data;
-
-          window.AppData = window.AppData || {};
-          window.AppData.kalender = window.AppData.kalender || { eintraege: [] };
-
-          const existingIndex = window.AppData.kalender.eintraege
-            .findIndex(e => String(e.id) === String(serviceEntry.id));
-
-          if (existingIndex >= 0) {
-            window.AppData.kalender.eintraege[existingIndex] = serviceEntry;
-          } else {
-            window.AppData.kalender.eintraege.push(serviceEntry);
-          }
+        if (typeof openRegiebericht === "function") {
+          openRegiebericht(snapshot.id);
+          return;
         }
-      } catch (e) {
-        console.error("Direktes Laden des Regieberichts aus Supabase fehlgeschlagen:", e);
       }
-    }
 
-    if (!serviceEntry || !serviceEntry.regiebericht) {
-      alert("Der zugehörige Regiebericht konnte nicht mehr gefunden werden.");
+      alert("Der archivierte Regiebericht konnte nicht gelesen werden.");
       return;
     }
 
-    if (typeof openRegiebericht === "function") {
-      // Die tatsächlich gefundene ID verwenden, damit auch String/Number-IDs
-      // aus Supabase zuverlässig geöffnet werden.
-      openRegiebericht(serviceEntry.id);
+    // Alte Archivform: nur Referenz auf den Kalender-Eintrag.
+    if (path.startsWith("regiebericht:")) {
+      const serviceId = path.slice("regiebericht:".length);
+      let serviceEntry = (window.AppData?.kalender?.eintraege || [])
+        .find(e => String(e.id) === serviceId);
+
+      if ((!serviceEntry || !serviceEntry.regiebericht) && typeof loadKalenderFromSupabase === "function") {
+        try {
+          await loadKalenderFromSupabase();
+          serviceEntry = (window.AppData?.kalender?.eintraege || [])
+            .find(e => String(e.id) === serviceId);
+        } catch (e) {
+          console.error("Kalender-Eintrag für Archivbericht laden:", e);
+        }
+      }
+
+      if ((!serviceEntry || !serviceEntry.regiebericht) && window.supabaseReady && window.supabaseClient) {
+        try {
+          const { data, error } = await window.supabaseClient
+            .from("kalender_eintraege")
+            .select("*")
+            .eq("id", serviceId)
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (data) {
+            serviceEntry = typeof normalizeKalenderEntry === "function"
+              ? normalizeKalenderEntry(data)
+              : data;
+
+            // Falls Supabase JSON als String zurückliefert, ebenfalls parsen.
+            if (typeof serviceEntry.regiebericht === "string") {
+              try { serviceEntry.regiebericht = JSON.parse(serviceEntry.regiebericht); } catch (_) {}
+            }
+
+            if (serviceEntry && serviceEntry.id && serviceEntry.regiebericht) {
+              window.AppData = window.AppData || {};
+              window.AppData.kalender = window.AppData.kalender || { eintraege: [] };
+              const list = window.AppData.kalender.eintraege;
+              const idx = list.findIndex(e => String(e.id) === String(serviceEntry.id));
+              if (idx >= 0) list[idx] = serviceEntry; else list.push(serviceEntry);
+            }
+          }
+        } catch (e) {
+          console.error("Direktes Laden des Regieberichts aus Supabase fehlgeschlagen:", e);
+        }
+      }
+
+      if (!serviceEntry || !serviceEntry.regiebericht) {
+        // Keine offene Vorschau/kein Overlay im Fehlerfall zurücklassen.
+        document.getElementById("pdfMod")?.classList.remove("open");
+        alert("Der zugehörige Regiebericht konnte nicht mehr gefunden werden.");
+        return;
+      }
+
+      if (typeof openRegiebericht === "function") {
+        openRegiebericht(serviceEntry.id);
+        return;
+      }
+
+      alert("Der Regiebericht kann momentan nicht geöffnet werden.");
       return;
     }
-
-    alert("Der Regiebericht kann momentan nicht geöffnet werden.");
-    return;
   }
 
   const nr = typeof entry === "string" ? entry : entry.nr;
