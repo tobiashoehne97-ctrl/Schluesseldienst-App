@@ -137,6 +137,35 @@ async function saveToArchiv(nr, typ, name, dat, pdfUri) {
 }
 
 
+async function saveRegieberichtReferenceToArchiv(entry) {
+  if (!entry || !entry.id) throw new Error("Ungültiger Regiebericht.");
+
+  if (!window.supabaseReady || !window.supabaseClient) {
+    throw new Error("Supabase-Verbindung ist noch nicht bereit.");
+  }
+
+  const name = [entry.vorname, entry.nachname].filter(Boolean).join(" ").trim() || entry.titel || null;
+  const nr = "RB-" + String(entry.id);
+
+  const { error } = await archivClient()
+    .from("archiv")
+    .upsert({
+      nr,
+      typ: "RB",
+      name,
+      dat: entry.datum || null,
+      saved: new Date().toISOString(),
+      pdf_path: "regiebericht:" + String(entry.id)
+    }, { onConflict: "nr" });
+
+  if (error) throw new Error("Archiv-Datenbank: " + error.message);
+
+  console.log("Regiebericht archiviert:", nr);
+  return nr;
+}
+
+window.saveRegieberichtReferenceToArchiv = saveRegieberichtReferenceToArchiv;
+
 async function sbGet() {
   try {
     const client = archivClient();
@@ -158,7 +187,7 @@ async function sbDelete(entry) {
   const nr = typeof entry === "string" ? entry : entry.nr;
   const pdfPath = typeof entry === "object" ? entry.pdf_path : null;
 
-  if (pdfPath) {
+  if (pdfPath && !String(pdfPath).startsWith("regiebericht:")) {
     const { error } = await client.storage.from(ARCHIV_BUCKET).remove([pdfPath]);
     if (error) console.warn("PDF konnte nicht gelöscht werden:", error);
   }
@@ -287,6 +316,35 @@ async function loadArchiv() {
 }
 
 async function openArchivPdf(entry) {
+  // Regieberichte aus der Einsatzplanung werden als Referenz auf den
+  // Kalender-Eintrag archiviert. Dadurch ist kein separater PDF-Upload nötig.
+  if (entry && typeof entry === "object" && String(entry.pdf_path || "").startsWith("regiebericht:")) {
+    const serviceId = String(entry.pdf_path).slice("regiebericht:".length);
+    let serviceEntry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === serviceId);
+
+    if (!serviceEntry && typeof loadKalenderFromSupabase === "function") {
+      try {
+        await loadKalenderFromSupabase();
+        serviceEntry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === serviceId);
+      } catch (e) {
+        console.error("Kalender-Eintrag für Archivbericht laden:", e);
+      }
+    }
+
+    if (!serviceEntry || !serviceEntry.regiebericht) {
+      alert("Der zugehörige Regiebericht konnte nicht mehr gefunden werden.");
+      return;
+    }
+
+    if (typeof openRegiebericht === "function") {
+      openRegiebericht(serviceId);
+      return;
+    }
+
+    alert("Der Regiebericht kann momentan nicht geöffnet werden.");
+    return;
+  }
+
   const nr = typeof entry === "string" ? entry : entry.nr;
   const localPdf = getPdfLocal(nr);
 
