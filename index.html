@@ -219,7 +219,8 @@
 
       <div class="notdienst-actions">
         <button class="btnS" type="button" onclick="closeNotdienstForm()">Abbrechen</button>
-        <button class="btnP" type="button" onclick="saveNotdienst()">🚨 Notfalleinsatz anlegen</button>
+        <button class="btnS notdienst-save-btn" type="button" onclick="saveNotdienst(false)">💾 Speichern</button>
+        <button class="btnP notdienst-navi-btn" type="button" onclick="saveNotdienst(true)">🚨 Speichern & Navi starten</button>
       </div>
     </div>
   </div>
@@ -968,7 +969,7 @@
 <script src="js/app.js"></script>
 <script src="js/dashboard.js?v=20260909-2"></script>
 <script src="js/kalender.js?v=20260909-3"></script>
-<script src="js/notdienst.js?v=20260909-3"></script>
+<script src="js/notdienst.js?v=20260909-4"></script>
 <script src="js/appInit.js"></script>
 </body>
 </html>
