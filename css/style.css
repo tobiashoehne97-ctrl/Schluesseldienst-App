@@ -42,3 +42,25 @@ canvas{border:2px solid #3b6ea5;border-radius:10px;background:#f0f4f8;width:100%
 .massInp{text-align:center;font-size:20px;font-weight:700}
 .massD{margin-top:10px;padding:8px 14px;background:rgba(59,130,196,0.2);border-radius:8px;font-size:15px;font-weight:700;color:#4fc3f7;text-align:center}
 .hint{padding:10px 14px;background:rgba(59,110,165,0.15);border-radius:8px;font-size:13px;color:#7eb3e0}
+
+/* FORCE-APP-THEME-RECOVERY
+   Der Regiebericht darf die globale App-Farbgebung nicht beeinflussen.
+   Diese Regeln erzwingen die normale dunkle Anwendung auch dann, wenn
+   Safari nach einer Vorschau einen Inline-Hintergrund beibehält. */
+html{
+  background:#0b1d38 !important;
+}
+body{
+  background:linear-gradient(160deg,#0b1d38 0%,#112f58 55%,#0d2245 100%) !important;
+  color:#d0e4f5 !important;
+  opacity:1 !important;
+  filter:none !important;
+}
+#main{
+  background:transparent !important;
+  opacity:1 !important;
+  filter:none !important;
+}
+.hidden{
+  display:none !important;
+}
