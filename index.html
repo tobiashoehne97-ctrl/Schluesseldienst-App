@@ -80,117 +80,102 @@
   </label>
 </div>
 
+<!-- Desktop-Navigation bleibt dauerhaft sichtbar -->
+<aside id="desktopSidebar" class="desktop-sidebar" aria-label="Hauptnavigation">
+  <div class="desktop-sidebar-title">MENÜ</div>
+  <button class="desktop-nav-tile active" data-nav="kalender" onclick="go('kalender')"><span>📅</span><strong>Einsatzplanung</strong><small>Wochenplanung & Termine</small></button>
+  <button class="desktop-nav-tile" data-nav="notdienst" onclick="go('notdienst')"><span>🔑</span><strong>Notdienst</strong><small>Notfalleinsätze</small></button>
+  <button class="desktop-nav-tile" data-nav="produkte" onclick="go('produkte')"><span>📦</span><strong>Produktverwaltung</strong><small>Material & Preise</small></button>
+  <button class="desktop-nav-tile" data-nav="mitarbeiter" onclick="go('mitarbeiter')"><span>👥</span><strong>Mitarbeiter</strong><small>Profile & Rechte</small></button>
+  <button class="desktop-nav-tile" data-nav="zeit" onclick="go('zeit')"><span>⏱️</span><strong>Arbeitszeitenübersicht</strong><small>Stunden & Lohn</small></button>
+  <button class="desktop-nav-tile" data-nav="archiv" onclick="go('archiv')"><span>📚</span><strong>Archiv</strong><small>Dokumente & Berichte</small></button>
+</aside>
+
 <div id="main">
 
 <!-- HAUPTMENU -->
-<div id="menu">
-  <div id="dashboard" class="dashboard-shell">
-    <div class="dashboard-header">
+<div id="menu" class="dashboard-shell">
+  <section class="desktop-dashboard">
+    <div class="desktop-dashboard-top">
       <div>
-        <div class="dashboard-eyebrow">Dashboard</div>
-        <h2 class="dashboard-title">Willkommen zur&uuml;ck</h2>
-        <p class="dashboard-subtitle">Schl&uuml;sseldienst Christian H&ouml;hne</p>
+        <div class="dashboard-eyebrow">Einsatzplanung</div>
+        <h2 class="desktop-dashboard-title">Wochenübersicht</h2>
+        <p class="dashboard-subtitle">Alle Termine und Einsätze auf einen Blick</p>
       </div>
-      <div class="dashboard-date-card">
-        <span class="dashboard-label">Heute</span>
-        <strong id="dashboard-date">--</strong>
+      <div class="week-actions">
+        <button class="btnS" onclick="changeKalenderWeek(-1)">← Vorherige Woche</button>
+        <strong id="dashboard_week_title">Woche</strong>
+        <button class="btnS" onclick="changeKalenderWeek(1)">Nächste Woche →</button>
+        <button class="btnP" onclick="goKalenderToday()">Heute</button>
+      </div>
+    </div>
+    <div id="dashboardWeekGrid" class="desktop-week-grid"></div>
+  </section>
+
+  <section class="mobile-dashboard">
+    <div class="mobile-employee-topbar">
+      <div>
+        <div class="dashboard-eyebrow">Mitarbeiterzugang</div>
+        <strong id="mobileEmployeeName">Mitarbeiter auswählen</strong>
+      </div>
+      <div class="mobile-worktime">
+        <span>HEUTE</span>
+        <strong id="mobileEmployeeWorktime">0 h 00 min</strong>
       </div>
     </div>
 
-    <div class="dashboard-stats">
-      <div class="dashboard-card">
-        <div class="dashboard-card-label">Arbeitszeit heute</div>
-        <div class="dashboard-value" id="stat-arbeitszeit">--</div>
-      </div>
-      <div class="dashboard-card">
-        <div class="dashboard-card-label">Offene Auftr&auml;ge</div>
-        <div class="dashboard-value" id="stat-offene-auftraege">--</div>
-      </div>
-      <div class="dashboard-card">
-        <div class="dashboard-card-label">Dokumente heute</div>
-        <div class="dashboard-value" id="stat-dokumente">--</div>
-      </div>
-      <div class="dashboard-card">
-        <div class="dashboard-card-label">Umsatz heute</div>
-        <div class="dashboard-value" id="stat-umsatz">--</div>
-      </div>
+    <div id="mobileEmployeeSelectCard" class="mobile-employee-select">
+      <h2>Wer arbeitet heute?</h2>
+      <p>Bitte zuerst dein Mitarbeiterprofil auswählen.</p>
+      <div id="mobileEmployeeChoices" class="mobile-employee-choices"></div>
     </div>
 
-    <div class="dashboard-quick">
-      <div class="dashboard-section-title">Schnellzugriff</div>
-      <div class="dashboard-actions">
-        <button class="dashboard-action" onclick="go('to')">
-          <span class="dashboard-action-icon">&#128273;</span>
-          <span class="dashboard-action-text">T&uuml;r&ouml;ffnung</span>
-        </button>
-        <button class="dashboard-action" onclick="go('rb')">
-          <span class="dashboard-action-icon">&#128203;</span>
-          <span class="dashboard-action-text">Regiebericht</span>
-        </button>
-        <button class="dashboard-action" onclick="go('an')">
-          <span class="dashboard-action-icon">&#128269;</span>
-          <span class="dashboard-action-text">Erstbesichtigung</span>
-        </button>
-        <button class="dashboard-action" onclick="go('archiv')">
-          <span class="dashboard-action-icon">&#128218;</span>
-          <span class="dashboard-action-text">Archiv</span>
-        </button>
-      </div>
+    <div id="mobileEmployeeApps" class="mobile-employee-apps hidden">
+      <button class="mobile-app-tile" onclick="go('zeit')"><span>⏱️</span><div><strong>Arbeitszeiterfassung</strong><small>Ein- und Ausstempeln</small></div><b>›</b></button>
+      <button class="mobile-app-tile" onclick="go('kalender')"><span>📅</span><div><strong>Einsatzplanung</strong><small>Termine und Einsätze</small></div><b>›</b></button>
+      <button class="mobile-app-tile" onclick="go('notdienst')"><span>🔑</span><div><strong>Notdienst</strong><small>Notfalleinsatz starten</small></div><b>›</b></button>
+      <button class="mobile-app-tile" onclick="go('stunden')"><span>📊</span><div><strong>Stunden-/Lohnübersicht</strong><small>Arbeitsstunden und Abrechnung</small></div><b>›</b></button>
+      <button class="btnS mobile-change-employee" onclick="clearMobileEmployee()">⇄ Mitarbeiter wechseln</button>
     </div>
+  </section>
+</div>
+
+<!-- NOTDIENST -->
+<div id="notdienst" class="hidden app-placeholder">
+  <div class="placeholder-card">
+    <div class="placeholder-icon">🔑</div>
+    <h2>Notdienst</h2>
+    <p>Der eigene Notdienstbereich wird im nächsten Schritt mit Preisen, Zuschlägen und Einsatzablauf aufgebaut.</p>
+    <button class="btnP" onclick="go('to')">Zur bisherigen Türöffnung</button>
   </div>
+</div>
 
-  <div style="text-align:center;padding:10px 0 24px;font-size:13px;color:#5a8ab8;letter-spacing:.1em;text-transform:uppercase">Was m&ouml;chten Sie erfassen?</div>
-  <button class="mbtn" style="--c:#1a3a6a" onclick="go('to')">
-    <span style="font-size:36px">&#128273;</span>
-    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">T&uuml;r&ouml;ffnung</div><div style="font-size:13px;color:#7eb3e0">Notfalleinsatz &middot; Einsatzprotokoll &amp; Abrechnung</div></div>
-    <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
-  </button>
-  <button class="mbtn" style="--c:#1a4a3a" onclick="go('rb')">
-    <span style="font-size:36px">&#128203;</span>
-    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Regiebericht</div><div style="font-size:13px;color:#7eb3e0">Termingesch&auml;ft &middot; Arbeitsrapport &amp; Material</div></div>
-    <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
-  </button>
-  <button class="mbtn" style="--c:#3a1a6a" onclick="go('an')">
-    <span style="font-size:36px">&#128269;</span>
-    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Erstbesichtigung &amp; Angebot</div><div style="font-size:13px;color:#7eb3e0">Aufma&szlig; &middot; Zylinderma&szlig;e &middot; Angebotserstellung</div></div>
-    <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
-  </button>
-  <button class="mbtn" style="--c:#0a3a3a" onclick="go('auftraege')">
-    <span style="font-size:36px">&#128203;</span>
-    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Auftr&auml;ge heute</div><div style="font-size:13px;color:#7eb3e0">Vorab anlegen &middot; nacheinander abarbeiten</div></div>
-    <span id="auftrag-badge" style="margin-left:auto;font-size:13px;color:#4fc3f7;font-weight:700"></span>
-    <span style="margin-left:8px;font-size:22px;color:#3b82c4">&rsaquo;</span>
-  </button>
-  <button class="mbtn" style="--c:#3a2a0a" onclick="go('zeit')">
-    <span style="font-size:36px">&#9201;</span>
-    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Arbeitszeit</div><div style="font-size:13px;color:#7eb3e0">Ein- &amp; Ausstempeln</div></div>
-    <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
-  </button>
-  <button class="mbtn" style="--c:#2a1a0a" onclick="go('archiv')">
-    <span style="font-size:36px">&#128218;</span>
-    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Archiv</div><div style="font-size:13px;color:#7eb3e0">Alle gespeicherten Dokumente</div></div>
-    <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
-  </button>
-  <button class="mbtn" style="--c:#0a2f4f" onclick="go('kunden')">
-    <span style="font-size:36px">👥</span>
+<!-- PRODUKTVERWALTUNG -->
+<div id="produkte" class="hidden app-placeholder">
+  <div class="placeholder-card">
+    <div class="placeholder-icon">📦</div>
+    <h2>Produktverwaltung</h2>
+    <p>Hier entsteht anschließend die Produktdatenbank für Material, Preise und die Verwendung im Regiebericht.</p>
+  </div>
+</div>
 
-    <div>
-        <div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">
-            Kundenverwaltung
-        </div>
+<!-- MITARBEITER -->
+<div id="mitarbeiter" class="hidden app-placeholder">
+  <div class="placeholder-card">
+    <div class="placeholder-icon">👥</div>
+    <h2>Mitarbeiter</h2>
+    <p>Hier verwalten wir als nächsten Ausbau Mitarbeiterprofile und die jeweiligen Berechtigungen.</p>
+  </div>
+</div>
 
-        <div style="font-size:13px;color:#7eb3e0">
-            Kunden anlegen · suchen · bearbeiten
-        </div>
-    </div>
-
-    <span style="margin-left:auto;font-size:22px;color:#3b82c4">&rsaquo;</span>
-</button>
-  <button class="mbtn" style="--c:#123a58" onclick="go('kalender')">
-    <span style="font-size:36px">📅</span>
-    <div><div style="font-size:17px;font-weight:800;color:#e8f0f8;margin-bottom:4px">Einsatzplanung</div><div style="font-size:13px;color:#7eb3e0">Termine · Geschäft · Außendienst · Verfügbarkeit</div></div>
-    <span style="margin-left:auto;font-size:22px;color:#3b82c4">›</span>
-  </button>
+<!-- STUNDEN / LOHN -->
+<div id="stunden" class="hidden app-placeholder">
+  <div class="placeholder-card">
+    <div class="placeholder-icon">📊</div>
+    <h2>Stunden- & Lohnübersicht</h2>
+    <p>Die Lohn- und Stundenübersicht wird auf Basis der Arbeitszeiterfassung aufgebaut.</p>
+    <button class="btnP" onclick="go('zeit')">Zur Arbeitszeiterfassung</button>
+  </div>
 </div>
 
 <!-- EINSATZPLANUNG -->
