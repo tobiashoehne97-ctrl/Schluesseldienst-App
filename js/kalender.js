@@ -212,6 +212,7 @@ async function initKalender(){
   const connected=await initSupabase();
   if(connected){
     await loadKalenderFromSupabase();
+    if (typeof renderDashboardWeek === "function") renderDashboardWeek();
 
     // Änderungen von Christian/Tobias sofort auf anderen Geräten anzeigen.
     window.supabaseClient.channel("kalender-live")
@@ -255,11 +256,13 @@ function formatWeekTitle(start){
 function changeKalenderWeek(direction){
   kalenderWeekOffset+=direction;
   renderKalenderWeek();
+  if (typeof renderDashboardWeek === "function") renderDashboardWeek();
 }
 
 function goKalenderToday(){
   kalenderWeekOffset=0;
   renderKalenderWeek();
+  if (typeof renderDashboardWeek === "function") renderDashboardWeek();
 }
 
 function showKalenderView(view){
