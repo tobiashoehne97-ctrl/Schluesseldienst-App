@@ -141,12 +141,87 @@
 </div>
 
 <!-- NOTDIENST -->
-<div id="notdienst" class="hidden app-placeholder">
-  <div class="placeholder-card">
-    <div class="placeholder-icon">🔑</div>
-    <h2>Notdienst</h2>
-    <p>Der eigene Notdienstbereich wird im nächsten Schritt mit Preisen, Zuschlägen und Einsatzablauf aufgebaut.</p>
-    <button class="btnP" onclick="go('to')">Zur bisherigen Türöffnung</button>
+<div id="notdienst" class="hidden">
+  <div class="notdienst-header">
+    <div>
+      <div class="dashboard-eyebrow">NOTDIENST</div>
+      <h2>🚨 Notfalleinsätze</h2>
+      <p>Schnelle Erfassung und Bearbeitung von akuten Kundeneinsätzen.</p>
+    </div>
+    <button class="btnP notdienst-new-btn" onclick="openNotdienstForm()">＋ Neuer Notfalleinsatz</button>
+  </div>
+
+  <div id="notdienstStart" class="notdienst-start">
+    <div class="notdienst-empty">
+      <div class="notdienst-empty-icon">🚨</div>
+      <h3>Bereit für einen neuen Notfalleinsatz</h3>
+      <p>Beim Start werden Datum und Uhrzeit automatisch auf den aktuellen Zeitpunkt gesetzt.</p>
+      <button class="btnP" onclick="openNotdienstForm()">Neuen Notfalleinsatz starten</button>
+    </div>
+  </div>
+
+  <div id="notdienstForm" class="hidden">
+    <div class="card notdienst-form-card">
+      <div class="notdienst-form-top">
+        <div>
+          <div class="sec">🚨 Neuer Notfalleinsatz</div>
+          <div class="notdienst-time-note">Datum und Uhrzeit werden automatisch gesetzt.</div>
+        </div>
+        <button class="btnS" type="button" onclick="closeNotdienstForm()">Abbrechen</button>
+      </div>
+
+      <div class="g2 mb12">
+        <div><label class="lbl">Datum</label><input id="nd_datum" type="date"></div>
+        <div><label class="lbl">Uhrzeit</label><input id="nd_uhrzeit" type="time"></div>
+      </div>
+
+      <div class="sec">Kundendaten</div>
+      <div class="g2 mb12">
+        <div><label class="lbl">Vorname</label><input id="nd_vorname" placeholder="Max"></div>
+        <div><label class="lbl">Nachname</label><input id="nd_nachname" placeholder="Mustermann"></div>
+      </div>
+      <label class="lbl">Telefonnummer</label>
+      <input id="nd_telefon" class="mb12" type="tel" inputmode="tel" placeholder="z. B. 09621 / 123456">
+
+      <label class="lbl">Straße & Hausnummer</label>
+      <input id="nd_strasse" class="mb12" placeholder="Musterstraße 1">
+      <div class="g2 mb12">
+        <div><label class="lbl">PLZ</label><input id="nd_plz" placeholder="92224"></div>
+        <div><label class="lbl">Ort</label><input id="nd_ort" placeholder="Amberg"></div>
+      </div>
+
+      <div class="sec">Art des Notfalls</div>
+      <div class="notdienst-types">
+        <button type="button" class="notdienst-type active" data-type="Türöffnung" onclick="selectNotdienstType('Türöffnung',this)">🔑<span>Türöffnung</span></button>
+        <button type="button" class="notdienst-type" data-type="Schloss defekt" onclick="selectNotdienstType('Schloss defekt',this)">🔒<span>Schloss defekt</span></button>
+        <button type="button" class="notdienst-type" data-type="Schlüssel verloren" onclick="selectNotdienstType('Schlüssel verloren',this)">🗝️<span>Schlüssel verloren</span></button>
+        <button type="button" class="notdienst-type" data-type="Zylinderwechsel" onclick="selectNotdienstType('Zylinderwechsel',this)">⚙️<span>Zylinderwechsel</span></button>
+        <button type="button" class="notdienst-type" data-type="Einbruchschaden" onclick="selectNotdienstType('Einbruchschaden',this)">🚪<span>Einbruchschaden</span></button>
+        <button type="button" class="notdienst-type" data-type="Sonstiger Notfall" onclick="selectNotdienstType('Sonstiger Notfall',this)">❓<span>Sonstiges</span></button>
+      </div>
+
+      <label class="lbl">Kurze Beschreibung</label>
+      <textarea id="nd_beschreibung" class="mb12" rows="4" placeholder="Was ist passiert? Wichtige Informationen aus dem Telefongespräch ..."></textarea>
+
+      <div class="sec">Zuständiger Mitarbeiter</div>
+      <select id="nd_mitarbeiter" class="mb12">
+        <option value="Christian Höhne">Christian Höhne</option>
+        <option value="Tobias Höhne">Tobias Höhne</option>
+      </select>
+
+      <label class="notdienst-calendar-option">
+        <input id="nd_normaler_termin" type="checkbox">
+        <span>
+          <strong>Als normalen Termin anlegen</strong>
+          <small>Aktivieren, wenn sich während des Telefongesprächs herausstellt, dass kein akuter Notfall vorliegt.</small>
+        </span>
+      </label>
+
+      <div class="notdienst-actions">
+        <button class="btnS" type="button" onclick="closeNotdienstForm()">Abbrechen</button>
+        <button class="btnP" type="button" onclick="saveNotdienst()">🚨 Notfalleinsatz anlegen</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -892,7 +967,8 @@
 <script src="js/pdf.js"></script>
 <script src="js/app.js"></script>
 <script src="js/dashboard.js?v=20260909-2"></script>
-<script src="js/kalender.js?v=20260909-2"></script>
+<script src="js/kalender.js?v=20260909-2"
+<script src="js/notdienst.js?v=20260909-1"></script>></script>
 <script src="js/appInit.js"></script>
 </body>
 </html>
