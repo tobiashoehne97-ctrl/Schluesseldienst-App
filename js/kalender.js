@@ -6,6 +6,10 @@ function ensureKalenderData(){
 }
 
 function normalizeKalenderEntry(row){
+  let report = row.regiebericht || null;
+  if (typeof report === "string") {
+    try { report = JSON.parse(report); } catch (e) { console.warn("Regiebericht konnte nicht geparst werden:", e); }
+  }
   return {
     id: row.id,
     titel: row.titel,
@@ -25,7 +29,7 @@ function normalizeKalenderEntry(row){
     beschreibung: row.beschreibung || "",
     mitarbeiter: row.mitarbeiter || "",
     // Regiebericht muss beim Laden aus Supabase erhalten bleiben.
-    regiebericht: row.regiebericht || null
+    regiebericht: report
   };
 }
 
@@ -1015,13 +1019,29 @@ async function updateServiceEntry(changes){
       status:updated.status,
       regiebericht:updated.regiebericht || null
     };
-    const {error}=await window.supabaseClient.from("kalender_eintraege").update(payload).eq("id",updated.id);
+    const {data,error}=await window.supabaseClient
+      .from("kalender_eintraege")
+      .update(payload)
+      .eq("id",updated.id)
+      .select("*")
+      .maybeSingle();
+
     if(error){
       console.error(error);
       alert("Status wurde lokal gespeichert. Supabase konnte den Regiebericht noch nicht speichern: "+error.message);
       saveAppData();
+    }else if(data){
+      const confirmed = typeof normalizeKalenderEntry === "function" ? normalizeKalenderEntry(data) : data;
+      // Nur übernehmen, wenn der gespeicherte Bericht tatsächlich zurückkommt.
+      // Andernfalls bleibt die lokale vollständige Version erhalten.
+      if (confirmed && confirmed.regiebericht) {
+        AppData.kalender.eintraege[index] = confirmed;
+      } else {
+        console.warn("Supabase bestätigte den Termin, lieferte den Regiebericht aber nicht zurück. Lokale Berichtsdaten bleiben erhalten.");
+        saveAppData();
+      }
     }else{
-      await loadKalenderFromSupabase();
+      saveAppData();
     }
   }else{
     saveAppData();
