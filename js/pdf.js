@@ -20,9 +20,11 @@ function pSec(doc,y,t,rows){
   doc.text(t,M+5,y+6);
   let cy=y+14;
   wrappedRows.forEach(({k,lines})=>{
-    doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(40,60,100);
+    const bodyTextColor = doc._blackBodyText ? [0,0,0] : [40,60,100];
+    const bodyValueColor = doc._blackBodyText ? [0,0,0] : [60,80,120];
+    doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(...bodyTextColor);
     doc.text(String(k),M+5,cy);
-    doc.setFont("helvetica","normal");doc.setTextColor(60,80,120);
+    doc.setFont("helvetica","normal");doc.setTextColor(...bodyValueColor);
     lines.forEach((line,li)=>{
       doc.text(line,valX,cy+li*lineH);
     });
@@ -63,6 +65,8 @@ function genPDF(mod){
     y=pFoto(doc,y,getFotos("to_fw"));pSig(doc,y,sigs["to_sd"],v("to_vn")+" "+v("to_nn"),dat);
     curMail={typ:"Turoeffnung",name:v("to_vn")+" "+v("to_nn"),dat,info:"Adresse: "+v("to_adr")+", "+v("to_plz")+" "+v("to_ort")+"\nGesamt: "+ges+" EUR",nr};
   }else if(mod==="rb"){
+    // Im Regiebericht bewusst schwarze Schrift für maximale Lesbarkeit.
+    doc._blackBodyText = true;
     nr="RB-"+Date.now().toString().slice(-6);const dat=v("rb_dat");
     pH(doc,"Regiebericht","Arbeitsrapport",nr,dat);y=60;
     y=pSec(doc,y,"KUNDE / BAUSTELLE",[["Name:",v("rb_vn")+" "+v("rb_nn")],["Firma:",v("rb_fi")],["Baustelle:",v("rb_bau")],["Adresse:",v("rb_adr")+", "+v("rb_plz")+" "+v("rb_ort")],["Telefon:",v("rb_tel")]]);
