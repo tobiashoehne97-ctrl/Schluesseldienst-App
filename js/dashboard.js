@@ -135,10 +135,47 @@ function renderDashboardWeek() {
     }
 
     if (availability.length) {
-      const avail = document.createElement("span");
-      avail.className = "week-availability";
-      avail.textContent = "🟢 "+availability.map(e => e.mitarbeiter || "Verfügbar").join(", ");
-      footer.appendChild(avail);
+      const availabilityBox = document.createElement("div");
+      availabilityBox.className = "week-availability-box";
+
+      const availabilityLabel = document.createElement("div");
+      availabilityLabel.className = "week-availability-label";
+      availabilityLabel.textContent = "Mitarbeiter verfügbar";
+      availabilityBox.appendChild(availabilityLabel);
+
+      const track = document.createElement("div");
+      track.className = "week-availability-track";
+
+      availability.forEach((entry, index) => {
+        const from = dashboardTimeToMinutes(entry.von || "09:00");
+        const until = dashboardTimeToMinutes(entry.bis || "17:00");
+        const dayStart = 9 * 60;
+        const dayEnd = 17 * 60;
+        const range = dayEnd - dayStart;
+        const safeFrom = Math.max(dayStart, Math.min(dayEnd, from));
+        const safeUntil = Math.max(safeFrom, Math.min(dayEnd, until));
+        const left = ((safeFrom - dayStart) / range) * 100;
+        const width = Math.max(2, ((safeUntil - safeFrom) / range) * 100);
+
+        const bar = document.createElement("div");
+        bar.className = "week-availability-bar";
+        bar.style.left = left + "%";
+        bar.style.width = width + "%";
+        bar.style.top = (index % 2 === 0 ? 1 : 6) + "px";
+        bar.title = (entry.mitarbeiter || "Mitarbeiter") + " · " +
+          String(entry.von || "09:00").slice(0,5) + "–" +
+          String(entry.bis || "17:00").slice(0,5);
+        track.appendChild(bar);
+      });
+
+      availabilityBox.appendChild(track);
+
+      const names = document.createElement("div");
+      names.className = "week-availability-names";
+      names.textContent = availability.map(e => e.mitarbeiter || "Verfügbar").join(" · ");
+      availabilityBox.appendChild(names);
+
+      footer.appendChild(availabilityBox);
     }
 
     const add = document.createElement("span");
@@ -157,6 +194,12 @@ function renderDashboardWeek() {
 
     grid.appendChild(card);
   });
+}
+
+
+function dashboardTimeToMinutes(value) {
+  const parts = String(value || "00:00").slice(0,5).split(":");
+  return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
 }
 
 function escapeDashboardHtml(value) {
