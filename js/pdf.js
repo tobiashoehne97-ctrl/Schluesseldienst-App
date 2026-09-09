@@ -92,11 +92,13 @@ function genPDF(mod){
   const archTyp = mod==="to"?"TO":mod==="rb"?"RB":"AN";
   const archName = mod==="to"?v("to_vn")+" "+v("to_nn"):mod==="rb"?v("rb_vn")+" "+v("rb_nn"):v("an_vn")+" "+v("an_nn");
   const archDat = mod==="to"?v("to_dat"):mod==="rb"?v("rb_dat"):v("an_dat");
-  saveToArchiv(nr, archTyp, archName.trim(), archDat, pdfUri)
-    .catch(function(err){
-      console.error("Archivierung fehlgeschlagen:", err);
-      alert("Der Bericht wurde erstellt, konnte aber nicht dauerhaft archiviert werden: " + (err.message || err));
-    });
+  // Erst archivieren, dann den fertigen Bericht anzeigen.
+  try {
+    await saveToArchiv(nr, archTyp, archName.trim(), archDat, pdfUri);
+  } catch(err) {
+    console.error("Archivierung fehlgeschlagen:", err);
+    alert("Der Bericht wurde erstellt, konnte aber nicht dauerhaft archiviert werden: " + (err.message || err));
+  }
   document.getElementById("pdfNr").textContent=nr;
   document.getElementById("mailOk").classList.add("hidden");
   // Zeige PDF im eingebetteten Viewer
