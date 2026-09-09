@@ -72,12 +72,12 @@ async function saveNotdienst(){
   }
 
   const title=[selectedNotdienstType,vorname,nachname].filter(Boolean).join(" – ");
-  // Die Notdienstmaske speichert zunächst bewusst in der bestehenden
-  // kalender_eintraege-Tabelle. Deshalb verwenden wir ausschließlich
-  // Spalten, die bereits vom normalen Terminformular verwendet werden.
+
+  // EXAKT dieselbe Datenstruktur wie saveKalenderEntry().
+  // Dadurch kann der Notdienst keine unbekannten DB-Spalten mehr verursachen.
   const entry={
     titel:title || "Notfalleinsatz",
-    datum,
+    datum:datum,
     von:uhrzeit ? uhrzeit+":00" : null,
     bis:null,
     typ:normalerTermin ? "termin" : "notdienst",
@@ -90,45 +90,44 @@ async function saveNotdienst(){
     hausnummer:null,
     postleitzahl:plz || null,
     ort:ort || null,
-    beschreibung:[
-      "NOTFALLART: "+selectedNotdienstType,
-      beschreibung ? "BESCHREIBUNG: "+beschreibung : ""
-    ].filter(Boolean).join("\n")
+    beschreibung:("[NOTFALL] "+selectedNotdienstType+(beschreibung ? "\n"+beschreibung : ""))
   };
 
   try{
     if(window.supabaseReady && window.supabaseClient){
-      const {data,error}=await window.supabaseClient
+      const {error}=await window.supabaseClient
         .from("kalender_eintraege")
-        .insert(entry)
-        .select();
-      if(error) throw error;
-      if(data && data[0]) entry.id=data[0].id;
+        .insert(entry);
+
+      if(error){
+        console.error("Supabase Notdienst Fehler:",error);
+        throw new Error(error.message || JSON.stringify(error));
+      }
+
+      await loadKalenderFromSupabase();
     }else{
+      // Gleicher Offline-Fallback wie im normalen Kalender
+      entry.id="LOCAL-"+Date.now();
+      entry.von=uhrzeit;
+      entry.bis="";
+      if(!window.AppData) window.AppData={};
       if(!AppData.kalender) AppData.kalender={eintraege:[]};
       if(!Array.isArray(AppData.kalender.eintraege)) AppData.kalender.eintraege=[];
       AppData.kalender.eintraege.push(entry);
-      if(typeof save==="function") save();
+      if(typeof saveAppData==="function") saveAppData();
+      if(typeof renderKalender==="function") renderKalender();
+      alert("Offline gespeichert. Der Einsatz wird nur auf diesem Gerät angezeigt.");
     }
 
-    if(window.AppData){
-      if(!AppData.kalender) AppData.kalender={eintraege:[]};
-      if(!Array.isArray(AppData.kalender.eintraege)) AppData.kalender.eintraege=[];
-      const exists=AppData.kalender.eintraege.some(e=>String(e.id)===String(entry.id));
-      if(!exists) AppData.kalender.eintraege.push(entry);
-    }
-
-    if(typeof loadKalenderFromSupabase==="function") await loadKalenderFromSupabase();
     if(typeof renderDashboardWeek==="function") renderDashboardWeek();
-
     closeNotdienstForm();
 
-    const message=normalerTermin
-      ? "Der Vorgang wurde als normaler Termin in der Einsatzplanung angelegt."
-      : "Der Notfalleinsatz wurde erfolgreich angelegt.";
-    alert(message);
+    alert(normalerTermin
+      ? "Der Vorgang wurde als normaler Termin angelegt."
+      : "Der Notfalleinsatz wurde erfolgreich angelegt.");
   }catch(err){
     console.error("Notdienst konnte nicht gespeichert werden:",err);
     alert("Der Einsatz konnte nicht gespeichert werden: "+(err?.message || "Unbekannter Fehler"));
   }
 }
+
