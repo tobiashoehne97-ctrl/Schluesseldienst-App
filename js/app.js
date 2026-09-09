@@ -87,12 +87,22 @@ function getPdfLocal(nr) {
 }
 
 async function saveToArchiv(nr, typ, name, dat, pdfUri) {
+  // Sofort lokal merken und eine Wiederholungs-Warteschlange anlegen.
+  savePdfLocal(nr, pdfUri);
+  try {
+    const pending = JSON.parse(localStorage.getItem("archiv_pending") || "[]");
+    const idx = pending.findIndex(x => x.nr === nr);
+    const item = { nr, typ, name: name || null, dat: dat || null, created_at: new Date().toISOString() };
+    if (idx >= 0) pending[idx] = item; else pending.push(item);
+    localStorage.setItem("archiv_pending", JSON.stringify(pending));
+  } catch(e) {}
+
+  if (!window.supabaseReady || !window.supabaseClient) {
+    throw new Error("Supabase-Verbindung ist noch nicht bereit.");
+  }
+
   const client = archivClient();
   const pdfPath = typ + "/" + nr + ".pdf";
-
-  // Sofort lokal merken, damit der gerade erzeugte Bericht ohne Wartezeit
-  // geöffnet werden kann.
-  savePdfLocal(nr, pdfUri);
 
   const { error: uploadError } = await client.storage
     .from(ARCHIV_BUCKET)
@@ -101,7 +111,7 @@ async function saveToArchiv(nr, typ, name, dat, pdfUri) {
       upsert: true
     });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) throw new Error("PDF-Upload: " + uploadError.message);
 
   const { error: dbError } = await client
     .from("archiv")
@@ -114,9 +124,18 @@ async function saveToArchiv(nr, typ, name, dat, pdfUri) {
       pdf_path: pdfPath
     }, { onConflict: "nr" });
 
-  if (dbError) throw dbError;
+  if (dbError) throw new Error("Archiv-Datenbank: " + dbError.message);
+
+  try {
+    const pending = JSON.parse(localStorage.getItem("archiv_pending") || "[]")
+      .filter(x => x.nr !== nr);
+    localStorage.setItem("archiv_pending", JSON.stringify(pending));
+  } catch(e) {}
+
+  console.log("Archiviert:", nr);
   return true;
 }
+
 
 async function sbGet() {
   try {
@@ -129,6 +148,7 @@ async function sbGet() {
     return data || [];
   } catch(e) {
     console.error("Archiv laden:", e);
+    window._archivLastError = e && e.message ? e.message : String(e);
     return null;
   }
 }
@@ -183,7 +203,7 @@ async function loadArchiv() {
 
   if (rows === null) {
     if (st) st.textContent = "Archiv nicht erreichbar";
-    if (inf) inf.textContent = "Bitte die Archiv-Datenbankeinrichtung prüfen.";
+    if (inf) inf.textContent = "Fehler: " + (window._archivLastError || "Bitte Datenbankeinrichtung prüfen.");
     return;
   }
 
