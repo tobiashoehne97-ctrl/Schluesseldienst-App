@@ -216,7 +216,7 @@ async function initKalender(){
 
     // Änderungen von Christian/Tobias sofort auf anderen Geräten anzeigen.
     window.supabaseClient.channel("kalender-live")
-      .on("postgres_changes",{event:"*",schema:"public",table:"kalender_eintraege"},()=>loadKalenderFromSupabase())
+      .on("postgres_changes",{event:"*",schema:"public",table:"kalender_eintraege"},async()=>{ await loadKalenderFromSupabase(); if (typeof renderDashboardWeek === "function") renderDashboardWeek(); })
       .subscribe();
   }
 }
