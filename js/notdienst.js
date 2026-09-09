@@ -53,7 +53,7 @@ function selectNotdienstType(type,button){
   if(button) button.classList.add("active");
 }
 
-async function saveNotdienst(){
+async function saveNotdienst(startNavigation=false){
   const datum=document.getElementById("nd_datum").value;
   const uhrzeit=document.getElementById("nd_uhrzeit").value;
   const vorname=document.getElementById("nd_vorname").value.trim();
@@ -120,6 +120,24 @@ async function saveNotdienst(){
     }
 
     if(typeof renderDashboardWeek==="function") renderDashboardWeek();
+
+    // Bei „Speichern & Navi starten“ erst sicher speichern, dann Navigation öffnen.
+    if(startNavigation && strasse && (ort || plz)){
+      const adresse=[strasse, [plz,ort].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+      const encoded=encodeURIComponent(adresse);
+
+      closeNotdienstForm();
+
+      // Auf Desktop Google Maps. Auf Smartphones versucht das Betriebssystem
+      // die bevorzugte Karten-/Navigations-App zu verwenden.
+      if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){
+        window.location.href="https://www.google.com/maps/dir/?api=1&destination="+encoded;
+      }else{
+        window.open("https://www.google.com/maps/dir/?api=1&destination="+encoded,"_blank");
+      }
+      return;
+    }
+
     closeNotdienstForm();
 
     alert(normalerTermin
