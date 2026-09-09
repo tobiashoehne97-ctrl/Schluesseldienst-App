@@ -911,6 +911,22 @@ async function finishService(paymentType){
   };
 
   await updateServiceEntry({status:paymentType==="rechnung"?"rechnung":"erledigt",regiebericht:report});
+
+  // Den fertigen Regiebericht zusätzlich im zentralen Archiv ablegen.
+  // Das Archiv speichert eine dauerhafte Referenz auf den Kalender-Eintrag,
+  // damit der Bericht auch nach einem Gerätewechsel wieder geöffnet werden kann.
+  try {
+    const archivedEntry = getServiceEntry();
+    if (archivedEntry && typeof window.saveRegieberichtReferenceToArchiv === "function") {
+      await window.saveRegieberichtReferenceToArchiv(archivedEntry);
+    } else {
+      throw new Error("Archivfunktion ist nicht verfügbar.");
+    }
+  } catch (err) {
+    console.error("Regiebericht archivieren fehlgeschlagen:", err);
+    alert("Der Regiebericht wurde gespeichert, konnte aber nicht im Archiv abgelegt werden: " + (err.message || err));
+  }
+
   openServiceEmailStep(paymentType);
 }
 
