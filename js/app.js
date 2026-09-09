@@ -427,13 +427,49 @@ async function openArchivPdf(entry) {
       }
     }
 
+    // Zusätzlicher Direkt-Fallback: Der Archivbericht darf nicht davon abhängen,
+    // dass die komplette Kalenderansicht vorher erfolgreich geladen wurde.
+    if (!serviceEntry && window.supabaseReady && window.supabaseClient) {
+      try {
+        const { data, error } = await window.supabaseClient
+          .from("kalender_eintraege")
+          .select("*")
+          .eq("id", serviceId)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          serviceEntry = typeof normalizeKalenderEntry === "function"
+            ? normalizeKalenderEntry(data)
+            : data;
+
+          window.AppData = window.AppData || {};
+          window.AppData.kalender = window.AppData.kalender || { eintraege: [] };
+
+          const existingIndex = window.AppData.kalender.eintraege
+            .findIndex(e => String(e.id) === String(serviceEntry.id));
+
+          if (existingIndex >= 0) {
+            window.AppData.kalender.eintraege[existingIndex] = serviceEntry;
+          } else {
+            window.AppData.kalender.eintraege.push(serviceEntry);
+          }
+        }
+      } catch (e) {
+        console.error("Direktes Laden des Regieberichts aus Supabase fehlgeschlagen:", e);
+      }
+    }
+
     if (!serviceEntry || !serviceEntry.regiebericht) {
       alert("Der zugehörige Regiebericht konnte nicht mehr gefunden werden.");
       return;
     }
 
     if (typeof openRegiebericht === "function") {
-      openRegiebericht(serviceId);
+      // Die tatsächlich gefundene ID verwenden, damit auch String/Number-IDs
+      // aus Supabase zuverlässig geöffnet werden.
+      openRegiebericht(serviceEntry.id);
       return;
     }
 
