@@ -26,25 +26,41 @@ function restoreAppTheme() {
 
 function go(id) {
   restoreAppTheme();
-  ["menu","to","rb","an","archiv","auftraege","zeit","kunden","kalender"].forEach(x => {
+
+  ["menu","to","rb","an","archiv","auftraege","zeit","kunden","kalender","notdienst","produkte","mitarbeiter","stunden"].forEach(x => {
     const el = document.getElementById(x);
-    if(el) { el.classList.add("hidden"); el.style.display="none"; }
+    if (el) {
+      el.classList.add("hidden");
+      el.style.display = "none";
+    }
   });
-  const target = document.getElementById(id || "menu");
-  if(target) { target.classList.remove("hidden"); target.style.display="block"; }
-  if(id==="to") iTO();
-  if(id==="rb") iRB();
-  if(id==="an") iAN();
-  if(id==="archiv") loadArchiv();
-  if(id==="auftraege") renderAuftraege();
-  if(id==="kalender") initKalender();
-  if (id === "zeit") {
 
+  const targetId = id || "menu";
+  const target = document.getElementById(targetId);
+  if (target) {
+    target.classList.remove("hidden");
+    target.style.display = "block";
+  }
+
+  document.querySelectorAll(".desktop-nav-tile").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.nav === (targetId === "menu" ? "kalender" : targetId));
+  });
+
+  if (targetId === "menu") {
+    if (typeof initDashboardWeek === "function") initDashboardWeek();
+    if (typeof renderDashboardWeek === "function") renderDashboardWeek();
+  }
+
+  if (targetId === "to") iTO();
+  if (targetId === "rb") iRB();
+  if (targetId === "an") iAN();
+  if (targetId === "archiv") loadArchiv();
+  if (targetId === "auftraege") renderAuftraege();
+  if (targetId === "kalender") initKalender();
+
+  if (targetId === "zeit") {
     iZeit();
-
     loadEmployeeData();
-
     renderWorkJournal();
-
-}
+  }
 }
