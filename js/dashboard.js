@@ -135,45 +135,74 @@ function renderDashboardWeek() {
     }
 
     if (availability.length) {
+      // Verfügbarkeiten als echte Zeitbalken direkt im Wochentag.
+      // Inline-Styles sorgen dafür, dass die Darstellung unabhängig vom CSS-Cache
+      // von GitHub Pages zuverlässig sichtbar bleibt.
       const availabilityBox = document.createElement("div");
-      availabilityBox.className = "week-availability-box";
+      availabilityBox.style.cssText =
+        "margin-top:8px;padding:8px;border-radius:9px;background:rgba(8,24,38,.72);border:1px solid #23405a";
 
-      const availabilityLabel = document.createElement("div");
-      availabilityLabel.className = "week-availability-label";
-      availabilityLabel.textContent = "Mitarbeiter verfügbar";
-      availabilityBox.appendChild(availabilityLabel);
+      const label = document.createElement("div");
+      label.textContent = "MITARBEITER VERFÜGBAR";
+      label.style.cssText =
+        "font-size:9px;font-weight:800;letter-spacing:.08em;color:#7eb3e0;margin-bottom:7px";
+      availabilityBox.appendChild(label);
 
-      const track = document.createElement("div");
-      track.className = "week-availability-track";
+      const axis = document.createElement("div");
+      axis.style.cssText =
+        "display:flex;justify-content:space-between;font-size:8px;color:#6685a2;margin:0 2px 3px";
+      axis.innerHTML = "<span>09:00</span><span>13:00</span><span>17:00</span>";
+      availabilityBox.appendChild(axis);
 
-      availability.forEach((entry, index) => {
+      const dayStart = 9 * 60;
+      const dayEnd = 17 * 60;
+      const range = dayEnd - dayStart;
+
+      availability.forEach((entry) => {
+        const row = document.createElement("div");
+        row.style.cssText = "margin-top:5px";
+
+        const rowHead = document.createElement("div");
+        rowHead.style.cssText =
+          "display:flex;justify-content:space-between;gap:6px;font-size:9px;margin-bottom:3px;color:#b8d8ef";
+
+        const employee = document.createElement("strong");
+        employee.textContent = entry.mitarbeiter || "Mitarbeiter";
+        employee.style.cssText = "font-size:9px;color:#dcecf7";
+
+        const time = document.createElement("span");
+        time.textContent =
+          String(entry.von || "09:00").slice(0,5) + " – " +
+          String(entry.bis || "17:00").slice(0,5);
+        time.style.cssText = "font-size:8px;color:#79b8a0";
+
+        rowHead.append(employee, time);
+
+        const track = document.createElement("div");
+        track.style.cssText =
+          "position:relative;height:10px;border-radius:999px;background:#081825;border:1px solid #23405a;overflow:hidden";
+
         const from = dashboardTimeToMinutes(entry.von || "09:00");
         const until = dashboardTimeToMinutes(entry.bis || "17:00");
-        const dayStart = 9 * 60;
-        const dayEnd = 17 * 60;
-        const range = dayEnd - dayStart;
         const safeFrom = Math.max(dayStart, Math.min(dayEnd, from));
         const safeUntil = Math.max(safeFrom, Math.min(dayEnd, until));
         const left = ((safeFrom - dayStart) / range) * 100;
         const width = Math.max(2, ((safeUntil - safeFrom) / range) * 100);
 
         const bar = document.createElement("div");
-        bar.className = "week-availability-bar";
-        bar.style.left = left + "%";
-        bar.style.width = width + "%";
-        bar.style.top = (index % 2 === 0 ? 1 : 6) + "px";
-        bar.title = (entry.mitarbeiter || "Mitarbeiter") + " · " +
+        bar.style.cssText =
+          "position:absolute;top:1px;bottom:1px;left:" + left +
+          "%;width:" + width +
+          "%;border-radius:999px;background:linear-gradient(90deg,#16a34a,#4ade80);box-shadow:0 0 8px rgba(74,222,128,.45)";
+        bar.title =
+          (entry.mitarbeiter || "Mitarbeiter") + " · " +
           String(entry.von || "09:00").slice(0,5) + "–" +
           String(entry.bis || "17:00").slice(0,5);
+
         track.appendChild(bar);
+        row.append(rowHead, track);
+        availabilityBox.appendChild(row);
       });
-
-      availabilityBox.appendChild(track);
-
-      const names = document.createElement("div");
-      names.className = "week-availability-names";
-      names.textContent = availability.map(e => e.mitarbeiter || "Verfügbar").join(" · ");
-      availabilityBox.appendChild(names);
 
       footer.appendChild(availabilityBox);
     }
