@@ -167,38 +167,76 @@ async function saveRegieberichtReferenceToArchiv(entry) {
 window.saveRegieberichtReferenceToArchiv = saveRegieberichtReferenceToArchiv;
 
 async function syncExistingRegieberichteToArchiv() {
-  if (!window.supabaseReady || !window.supabaseClient) return;
+  // Zuerst die aktuell in der App vorhandenen Kalenderberichte verwenden.
+  // Das ist wichtig für ältere Berichte, die noch im lokalen AppData liegen,
+  // aber bereits über den Kalender geöffnet werden können.
+  const localEntries = Array.isArray(window.AppData?.kalender?.eintraege)
+    ? window.AppData.kalender.eintraege
+    : [];
+
+  const localReports = localEntries.filter(e => e && e.id && e.regiebericht);
+
+  if (!window.supabaseReady || !window.supabaseClient) {
+    return localReports;
+  }
 
   try {
-    const client = archivClient();
-    const { data, error } = await client
+    // Zusätzlich die Datenbank abgleichen, damit auch Berichte von anderen
+    // Geräten dauerhaft im Archiv erscheinen.
+    const { data, error } = await archivClient()
       .from("kalender_eintraege")
       .select("id,titel,datum,vorname,nachname,regiebericht")
       .not("regiebericht", "is", null);
 
     if (error) throw error;
 
-    const rows = (data || [])
-      .filter(e => e.id && e.regiebericht)
-      .map(e => ({
-        nr: "RB-" + String(e.id),
-        typ: "RB",
-        name: [e.vorname, e.nachname].filter(Boolean).join(" ").trim() || e.titel || null,
-        dat: e.datum || null,
-        saved: e.regiebericht?.beendet || new Date().toISOString(),
-        pdf_path: "regiebericht:" + String(e.id)
-      }));
+    const merged = new Map();
+    [...localReports, ...(data || [])].forEach(e => {
+      if (e && e.id && e.regiebericht) merged.set(String(e.id), e);
+    });
 
-    if (!rows.length) return;
+    const reports = [...merged.values()];
+    if (!reports.length) return reports;
 
-    const { error: upsertError } = await client
+    const rows = reports.map(e => ({
+      nr: "RB-" + String(e.id),
+      typ: "RB",
+      name: [e.vorname, e.nachname].filter(Boolean).join(" ").trim() || e.titel || null,
+      dat: e.datum || null,
+      saved: e.regiebericht?.beendet || new Date().toISOString(),
+      pdf_path: "regiebericht:" + String(e.id)
+    }));
+
+    const { error: upsertError } = await archivClient()
       .from("archiv")
       .upsert(rows, { onConflict: "nr" });
 
     if (upsertError) throw upsertError;
+
+    return reports;
   } catch (e) {
-    console.warn("Vorhandene Regieberichte konnten nicht automatisch synchronisiert werden:", e);
+    // Nicht komplett abbrechen: lokale Regieberichte sollen trotzdem sichtbar sein.
+    console.warn("Regiebericht-Archiv konnte nicht vollständig synchronisiert werden:", e);
+    return localReports;
   }
+}
+
+function getLocalRegieberichtArchivRows() {
+  const entries = Array.isArray(window.AppData?.kalender?.eintraege)
+    ? window.AppData.kalender.eintraege
+    : [];
+
+  return entries
+    .filter(e => e && e.id && e.regiebericht)
+    .map(e => ({
+      id: "local-rb-" + String(e.id),
+      nr: "RB-" + String(e.id),
+      typ: "RB",
+      name: [e.vorname, e.nachname].filter(Boolean).join(" ").trim() || e.titel || null,
+      dat: e.datum || null,
+      saved: e.regiebericht?.beendet || null,
+      pdf_path: "regiebericht:" + String(e.id)
+    }));
 }
 
 async function sbGet() {
@@ -263,13 +301,32 @@ async function loadArchiv() {
   if (st) st.textContent = "Archiv wird geladen...";
   if (inf) inf.textContent = "";
 
-  // Bereits vorhandene Regieberichte aus dem Kalender einmal mit dem Archiv abgleichen.
-  // Dadurch erscheinen auch Berichte, die vor der Archiv-Erweiterung erstellt wurden.
+  // Bereits vorhandene Regieberichte aus dem Kalender mit dem Archiv abgleichen.
+  // Falls die Datenbank-Synchronisierung fehlschlägt, werden vorhandene lokale
+  // Berichte trotzdem direkt angezeigt.
   await syncExistingRegieberichteToArchiv();
 
-  const rows = await sbGet();
+  const dbRows = await sbGet();
+  const localRows = getLocalRegieberichtArchivRows();
 
-  if (rows === null) {
+  const mergedRows = new Map();
+  (dbRows || []).forEach(row => mergedRows.set(String(row.nr), row));
+  localRows.forEach(row => {
+    const existing = mergedRows.get(String(row.nr));
+    if (!existing) {
+      mergedRows.set(String(row.nr), row);
+    } else if (!existing.pdf_path || !String(existing.pdf_path).startsWith("regiebericht:")) {
+      mergedRows.set(String(row.nr), row);
+    }
+  });
+
+  const rows = [...mergedRows.values()].sort((a,b) => {
+    const da = new Date(a.saved || a.dat || 0).getTime();
+    const db = new Date(b.saved || b.dat || 0).getTime();
+    return db - da;
+  });
+
+  if (dbRows === null && rows.length === 0) {
     if (st) st.textContent = "Archiv nicht erreichbar";
     if (inf) inf.textContent = "Fehler: " + (window._archivLastError || "Bitte Datenbankeinrichtung prüfen.");
     return;
