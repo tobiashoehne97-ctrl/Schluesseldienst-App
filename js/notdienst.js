@@ -72,30 +72,36 @@ async function saveNotdienst(){
   }
 
   const title=[selectedNotdienstType,vorname,nachname].filter(Boolean).join(" – ");
+  // Die Notdienstmaske speichert zunächst bewusst in der bestehenden
+  // kalender_eintraege-Tabelle. Deshalb verwenden wir ausschließlich
+  // Spalten, die bereits vom normalen Terminformular verwendet werden.
   const entry={
-    id:(crypto.randomUUID ? crypto.randomUUID() : "nd_"+Date.now()),
     titel:title || "Notfalleinsatz",
     datum,
-    von:uhrzeit,
-    bis:"",
+    von:uhrzeit ? uhrzeit+":00" : null,
+    bis:null,
     typ:normalerTermin ? "termin" : "notdienst",
     status:normalerTermin ? "geplant" : "notdienst",
-    vorname,
-    nachname,
-    telefonnummer:telefon,
-    strasse,
-    plz,
-    ort,
-    mitarbeiter,
-    notfallart:selectedNotdienstType,
-    beschreibung,
-    created_at:new Date().toISOString(),
-    notdienst:!normalerTermin
+    mitarbeiter:mitarbeiter || null,
+    nachname:nachname || null,
+    vorname:vorname || null,
+    telefonnummer:telefon || null,
+    strasse:strasse || null,
+    hausnummer:null,
+    postleitzahl:plz || null,
+    ort:ort || null,
+    beschreibung:[
+      "NOTFALLART: "+selectedNotdienstType,
+      beschreibung ? "BESCHREIBUNG: "+beschreibung : ""
+    ].filter(Boolean).join("\n")
   };
 
   try{
-    if(window.supabaseClient && typeof supabaseClient.from==="function"){
-      const {data,error}=await supabaseClient.from("kalender_eintraege").insert([entry]).select();
+    if(window.supabaseReady && window.supabaseClient){
+      const {data,error}=await window.supabaseClient
+        .from("kalender_eintraege")
+        .insert(entry)
+        .select();
       if(error) throw error;
       if(data && data[0]) entry.id=data[0].id;
     }else{
@@ -123,6 +129,6 @@ async function saveNotdienst(){
     alert(message);
   }catch(err){
     console.error("Notdienst konnte nicht gespeichert werden:",err);
-    alert("Der Einsatz konnte nicht gespeichert werden. Bitte erneut versuchen.");
+    alert("Der Einsatz konnte nicht gespeichert werden: "+(err?.message || "Unbekannter Fehler"));
   }
 }
