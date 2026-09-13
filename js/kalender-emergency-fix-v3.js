@@ -1,9 +1,8 @@
 /* Kalender Emergency Fix v3
-   Safari-sichere Einsatzplanung:
-   - ersetzt die verschachtelten <button>-Tageskarten durch normale <div>-Karten
-   - setzt echte IDs/Daten an Termine
-   - ergänzt alle Termine der Woche, nicht nur die ersten vier
-   - bindet Tages- und Termin-Klicks direkt
+   Safari-sichere Einsatzplanung.
+   Wichtig: Der Kalender benoetigt ein echtes kalenderModal. Falls dieses im
+   HTML fehlt, wird es hier erzeugt, damit Tages- und Termin-Klicks nicht ins
+   Leere laufen.
 */
 (function(){
   if(window.__kalenderEmergencyFixV3)return;
@@ -11,7 +10,20 @@
 
   function esc(v){return String(v||'').replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c];});}
 
+  function ensureModal(){
+    if(document.getElementById('kalenderModal'))return;
+    const modal=document.createElement('div');
+    modal.id='kalenderModal';
+    modal.className='modal hidden';
+    modal.setAttribute('role','dialog');
+    modal.setAttribute('aria-modal','true');
+    modal.innerHTML='<div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;margin:auto;padding:22px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px"><strong id="kal_modal_titel" style="font-size:20px">Kalender</strong><button class="btnS" type="button" id="kal_modal_close">✕</button></div><div id="kal_modal_content"></div></div>';
+    document.body.appendChild(modal);
+    document.getElementById('kal_modal_close').onclick=()=>window.closeKalenderModal?.();
+  }
+
   function install(){
+    ensureModal();
     const grid=document.getElementById('dashboardWeekGrid');
     if(!grid)return;
     const entries=window.AppData?.kalender?.eintraege||[];
@@ -23,7 +35,6 @@
       const iso=isoLocal(date);
       card.dataset.calendarDate=iso;
 
-      // Safari: keine interaktiven Elemente ineinander verschachteln.
       if(card.tagName==='BUTTON'){
         const replacement=document.createElement('div');
         for(const attr of [...card.attributes]) replacement.setAttribute(attr.name,attr.value);
@@ -87,9 +98,8 @@
     });
   }
 
-  install();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,200));
-  else setTimeout(install,200);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(install,100));
+  else setTimeout(install,100);
   setInterval(install,500);
   console.log('Kalender Emergency Fix v3 geladen');
 })();
