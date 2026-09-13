@@ -26,7 +26,14 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       console.log("Notdienst-Preislogik v2 geladen");
       const c=document.createElement("script");
       c.src="js/notdienst-katalog-v2.js?v=20260913-2";
-      c.onload=()=>console.log("Notdienst-Katalog v2 geladen");
+      c.onload=()=>{
+        console.log("Notdienst-Katalog v2 geladen");
+        const r=document.createElement("script");
+        r.src="js/notdienst-report-fix-v2.js?v=20260913-1";
+        r.onload=()=>console.log("Notdienst-Regiebericht-Fix geladen");
+        r.onerror=()=>console.warn("Notdienst-Regiebericht-Fix konnte nicht geladen werden.");
+        document.head.appendChild(r);
+      };
       c.onerror=()=>console.warn("Notdienst-Katalog konnte nicht geladen werden.");
       document.head.appendChild(c);
     };
