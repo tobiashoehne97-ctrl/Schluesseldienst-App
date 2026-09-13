@@ -68,10 +68,19 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       c.onerror=()=>console.warn("Notdienst-Katalog konnte nicht geladen werden.");
       document.head.appendChild(c);
     };
-    p.onerror=()=>console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
+    p.onerror=()=>console.warn("Notdienst-Preislogik v2 konnte nicht geladen werden.");
     document.head.appendChild(p);
   };
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
-console.log("Application started v13");
+
+(function loadCalendarInteractionFix(){
+  const s=document.createElement("script");
+  s.src="js/kalender-interaction-fix-v1.js?v=20260913-1";
+  s.onload=()=>console.log("Kalender Interaction Fix geladen");
+  s.onerror=()=>console.warn("Kalender Interaction Fix konnte nicht geladen werden.");
+  document.head.appendChild(s);
+})();
+
+console.log("Application started v14");
