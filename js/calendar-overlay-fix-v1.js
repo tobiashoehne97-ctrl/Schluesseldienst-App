@@ -1,27 +1,30 @@
-/* Calendar Overlay Fix v3
-   Sicherheitsnetz gegen beim Seitenstart haengen gebliebene Fullscreen-Modals.
-   Nach dem Start werden Modals nicht mehr laufend ueberwacht, damit normale
-   Modal-Oeffnungen durch die Anwendung nicht blockiert werden.
+/* Calendar Overlay Fix v4
+   Verhindert, dass ein unsichtbares/geschlossenes Modal die gesamte App blockiert.
+   Geschlossene Modals bekommen garantiert pointer-events:none.
+   Geoeffnete Modals bleiben voll bedienbar.
 */
 (function(){
-  if(window.__calendarOverlayFixV3)return;
-  window.__calendarOverlayFixV3=true;
+  if(window.__calendarOverlayFixV4)return;
+  window.__calendarOverlayFixV4=true;
 
-  function hide(el){
-    if(!el)return;
-    el.classList.remove('open');
-    el.classList.add('hidden');
-    el.style.display='none';
-    el.style.pointerEvents='none';
+  function sync(){
+    document.querySelectorAll('.modal').forEach(function(el){
+      var open=el.classList.contains('open') && !el.classList.contains('hidden');
+      if(open){
+        el.style.pointerEvents='auto';
+      }else{
+        el.style.pointerEvents='none';
+        if(el.id==='pdfMod' || el.classList.contains('hidden')) el.style.display='none';
+      }
+    });
   }
 
   function init(){
-    document.querySelectorAll('.modal').forEach(hide);
-    hide(document.getElementById('pdfMod'));
-    document.body.style.overflow='';
-    console.log('Calendar Overlay Fix v3 geladen');
+    sync();
+    new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','style']});
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
   else init();
+  console.log('Calendar Overlay Fix v4 geladen');
 })();
