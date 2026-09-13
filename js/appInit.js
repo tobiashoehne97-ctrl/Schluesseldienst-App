@@ -15,11 +15,11 @@ async function initApplication() {
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initApplication); else initApplication();
 if (typeof renderCustomerList === "function") renderCustomerList();
-(function loadZeitprotokoll(){
+(function loadNotdienstWorkflow(){
   const s=document.createElement("script");
-  s.src="js/zeitprotokoll.js?v=20260913-2";
-  s.onload=()=>{ if(typeof renderNotdienst==="function") renderNotdienst(); };
-  s.onerror=()=>console.warn("Zeitprotokollierung konnte nicht geladen werden.");
+  s.src="js/notdienst-workflow.js?v=20260913-1";
+  s.onload=()=>console.log("Notdienst-Workflow geladen");
+  s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
 console.log("Application started");
