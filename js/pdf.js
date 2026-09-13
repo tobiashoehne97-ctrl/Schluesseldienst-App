@@ -25,9 +25,7 @@ function pSec(doc,y,t,rows){
     doc.setFont("helvetica","bold");doc.setFontSize(8.5);doc.setTextColor(...bodyTextColor);
     doc.text(String(k),M+5,cy);
     doc.setFont("helvetica","normal");doc.setTextColor(...bodyValueColor);
-    lines.forEach((line,li)=>{
-      doc.text(line,valX,cy+li*lineH);
-    });
+    lines.forEach((line,li)=>{doc.text(line,valX,cy+li*lineH);});
     cy+=lines.length*lineH;
   });
   return y+h+5;
@@ -35,7 +33,7 @@ function pSec(doc,y,t,rows){
 function pSig(doc,y,sig,name,dat){const W=210,M=16;if(y+44>270){doc.addPage();y=20;}doc.setFillColor(242,247,254);doc.roundedRect(M,y,W-2*M,42,3,3,"F");doc.setDrawColor(37,99,168);doc.setLineWidth(0.3);doc.roundedRect(M,y,W-2*M,42,3,3,"S");doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(37,99,168);doc.text("KUNDENUNTERSCHRIFT",M+4,y+7);doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(100,120,150);doc.text("Mit meiner Unterschrift bestatige ich die Richtigkeit der Angaben.",M+4,y+13);if(sig){try{doc.addImage(sig,"PNG",M+4,y+15,78,20,undefined,"FAST");}catch(e){}}else{doc.setDrawColor(160,180,210);doc.line(M+4,y+35,M+90,y+35);}doc.setFontSize(7);doc.setTextColor(120,140,165);doc.text(String(name),M+4,y+40);doc.text("Datum: "+dat,W-M-32,y+40);return y+48;}
 function pFoto(doc,y,fotos){if(!fotos.length)return y;const W=210,M=16;if(y+46>270){doc.addPage();y=20;}doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(30,80,160);doc.text("FOTOS",M,y+5);y+=9;let ix=M;for(const b of fotos.slice(0,6)){if(y+42>270){doc.addPage();y=20;ix=M;}try{doc.addImage(b,"JPEG",ix,y,44,34,undefined,"FAST");}catch(e){}ix+=48;if(ix>W-40){ix=M;y+=38;}}return y+40;}
 
-async async async async async function genPDF(mod){
+async function genPDF(mod){
   window._currentModul = mod;
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:"mm",format:"a4"});
@@ -116,83 +114,21 @@ async async async async async function genPDF(mod){
   document.getElementById("pdfMod").classList.add("open");
 }
 function generateWorkJournalPDF() {
-
     const { jsPDF } = window.jspdf;
-
-    const doc = new jsPDF({
-        unit: "mm",
-        format: "a4"
-    });
-
+    const doc = new jsPDF({unit: "mm",format: "a4"});
     const month = Number(document.getElementById("azMonat").value);
     const year = Number(document.getElementById("azJahr").value);
-
-    const mitarbeiter =
-        document.getElementById("azMitarbeiter").value || "-";
-
-    const personalnummer =
-        document.getElementById("azPersonalnummer").value || "-";
-
-    const monate = [
-        "Januar","Februar","März","April","Mai","Juni",
-        "Juli","August","September","Oktober","November","Dezember"
-    ];
-
-    pH(
-        doc,
-        "Arbeitszeitnachweis",
-        monate[month - 1] + " " + year,
-        "",
-        new Date().toLocaleDateString("de-DE")
-    );
-
-    let y = 60;
-
-    y = pSec(doc, y, "MITARBEITER", [
-        ["Name:", mitarbeiter],
-        ["Personalnummer:", personalnummer]
-    ]);
-        const entries = getWorkEntries()
-        .filter(entry => {
-
-            const date = new Date(entry.datum);
-
-            return (
-                date.getFullYear() === year &&
-                date.getMonth() + 1 === month
-            );
-
-        })
-        .sort((a, b) => new Date(a.datum) - new Date(b.datum));
-
-    let totalMinutes = 0;
-
-    const rows = entries.map(entry => {
-
-        const minutes = calculateWorkDuration(
-            entry.start,
-            entry.ende
-        );
-
-        totalMinutes += minutes;
-
-        return [
-            entry.datum,
-            `${entry.start.substring(11,16)} - ${entry.ende.substring(11,16)} (${formatMinutes(minutes)})`
-        ];
-
-    });
-
-    y = pSec(doc, y, "ARBEITSZEITEN", rows);
-
-    y = pSec(doc, y, "GESAMT", [
-        ["Gesamtstunden:", formatMinutes(totalMinutes)]
-    ]);
-
+    const mitarbeiter = document.getElementById("azMitarbeiter").value || "-";
+    const personalnummer = document.getElementById("azPersonalnummer").value || "-";
+    const monate = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+    pH(doc,"Arbeitszeitnachweis",monate[month-1]+" "+year,"",new Date().toLocaleDateString("de-DE"));
+    let y=60;
+    y=pSec(doc,y,"MITARBEITER",[["Name:",mitarbeiter],["Personalnummer:",personalnummer]]);
+    const entries=getWorkEntries().filter(entry=>{const date=new Date(entry.datum);return date.getFullYear()===year&&date.getMonth()+1===month;}).sort((a,b)=>new Date(a.datum)-new Date(b.datum));
+    let totalMinutes=0;
+    const rows=entries.map(entry=>{const minutes=calculateWorkDuration(entry.start,entry.ende);totalMinutes+=minutes;return[entry.datum,`${entry.start.substring(11,16)} - ${entry.ende.substring(11,16)} (${formatMinutes(minutes)})`];});
+    y=pSec(doc,y,"ARBEITSZEITEN",rows);
+    y=pSec(doc,y,"GESAMT",[["Gesamtstunden:",formatMinutes(totalMinutes)]]);
     pF(doc);
-
-    doc.save(
-        `Arbeitszeit_${monate[month-1]}_${year}.pdf`
-    );
-
+    doc.save(`Arbeitszeit_${monate[month-1]}_${year}.pdf`);
 }
