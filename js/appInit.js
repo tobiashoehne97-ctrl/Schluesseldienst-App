@@ -60,11 +60,16 @@ if (typeof renderCustomerList === "function") {
 }
 
 // Zentrale Zeitprotokollierung nach den bestehenden Modulen laden.
-// Cache-Busting sorgt dafür, dass GitHub Pages die neue Version übernimmt.
 (function loadZeitprotokoll(){
   const s=document.createElement("script");
   s.src="js/zeitprotokoll.js?v=20260913-1";
-  s.onload=()=>{ if(typeof renderNotdienst==="function") renderNotdienst(); };
+  s.onload=()=>{
+    const f=document.createElement("script");
+    f.src="js/zeitprotokoll-fix.js?v=20260913-1";
+    f.onload=()=>{ if(typeof renderNotdienst==="function") renderNotdienst(); };
+    f.onerror=()=>console.warn("Zeitprotokoll-Finalisierung konnte nicht geladen werden.");
+    document.head.appendChild(f);
+  };
   s.onerror=()=>console.warn("Zeitprotokollierung konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
