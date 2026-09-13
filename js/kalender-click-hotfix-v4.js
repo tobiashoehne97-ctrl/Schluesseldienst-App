@@ -1,100 +1,105 @@
-/* Kalender Click Hotfix v4
-   Zentrale Klickbehandlung fuer Dashboard-Kalender und Termine.
-   Arbeitet im Capture-Phase, damit auch ueberlagernde Elemente Safari/Browser
-   nicht daran hindern, einen Kalendertermin zu oeffnen.
+/* Kalender Click Hotfix v5
+   Kalender-Klicks werden unabhaengig von ueberlagernden Elementen behandelt.
+   Wichtig: kein stopImmediatePropagation mehr, damit der bestehende Kalender
+   seine eigenen Handler weiterhin ausfuehren kann.
 */
 (function(){
-  if(window.__kalenderClickHotfixV4)return;
-  window.__kalenderClickHotfixV4=true;
+  if(window.__kalenderClickHotfixV5)return;
+  window.__kalenderClickHotfixV5=true;
 
-  function openDay(date){
-    if(date && typeof window.openKalenderDay==='function'){
-      window.openKalenderDay(date);
-      return true;
-    }
-    return false;
-  }
-
-  function openEntry(id){
-    if(id!=null && typeof window.openKalenderEntryDetails==='function'){
+  function callEntry(id){
+    if(id==null)return false;
+    if(typeof window.openKalenderEntryDetails==='function'){
       window.openKalenderEntryDetails(String(id));
       return true;
     }
     return false;
   }
 
-  function findCalendarTarget(ev){
-    const direct=ev.target && ev.target.closest ? ev.target.closest('.week-entry,.desktop-week-day,.week-more,.week-add') : null;
+  function callDay(date){
+    if(!date)return false;
+    if(typeof window.openKalenderDay==='function'){
+      window.openKalenderDay(String(date));
+      return true;
+    }
+    return false;
+  }
+
+  function targetUnderPoint(ev){
+    if(!document.elementsFromPoint || ev.clientX==null || ev.clientY==null)return null;
+    var els=document.elementsFromPoint(ev.clientX,ev.clientY);
+    return els.find(function(el){
+      return el && el.closest && el.closest('.week-entry,.desktop-week-day,.week-more,.week-add');
+    }) || null;
+  }
+
+  function calendarTarget(ev){
+    var t=ev.target;
+    var direct=t && t.closest ? t.closest('.week-entry,.desktop-week-day,.week-more,.week-add') : null;
     if(direct)return direct;
-    if(typeof document.elementsFromPoint!=='function' || ev.clientX==null || ev.clientY==null)return null;
-    const stack=document.elementsFromPoint(ev.clientX,ev.clientY);
-    return stack.find(el=>el.matches && el.matches('.week-entry,.desktop-week-day,.week-more,.week-add')) || null;
+
+    var under=targetUnderPoint(ev);
+    if(under)return under;
+
+    /* Falls ein veraltetes Fullscreen-Overlay ueber dem Kalender liegt,
+       fuer genau diesen Hit-Test temporaer aus dem Pointer-Stack nehmen. */
+    var blockers=[];
+    document.querySelectorAll('body *').forEach(function(el){
+      if(!el.getBoundingClientRect)return;
+      var r=el.getBoundingClientRect();
+      if(r.width<window.innerWidth*0.85 || r.height<window.innerHeight*0.85)return;
+      var cs=getComputedStyle(el);
+      if(cs.position==='fixed' || cs.position==='absolute'){
+        blockers.push([el,el.style.pointerEvents]);
+        el.style.pointerEvents='none';
+      }
+    });
+    under=targetUnderPoint(ev);
+    blockers.forEach(function(x){x[0].style.pointerEvents=x[1];});
+    return under;
   }
 
   function handle(ev){
-    if(ev.__kalenderHandledV4)return;
-    const el=findCalendarTarget(ev);
+    var el=calendarTarget(ev);
     if(!el)return;
 
-    const entry=el.closest ? el.closest('.week-entry') : null;
+    var entry=el.closest ? el.closest('.week-entry') : null;
     if(entry){
-      const id=entry.dataset.calendarId || entry.dataset.kalenderId;
-      if(id!=null){
-        ev.__kalenderHandledV4=true;
-        ev.preventDefault();
-        ev.stopImmediatePropagation();
-        openEntry(id);
-      }
-      return;
+      var id=entry.dataset.calendarId || entry.dataset.kalenderId || entry.dataset.id;
+      if(id!=null && callEntry(id))return;
     }
 
     if(el.closest && el.closest('.week-add'))return;
-    if(el.closest && el.closest('.week-more')){
-      const card=el.closest('.desktop-week-day');
-      const date=card && (card.dataset.calendarDate || card.dataset.date);
-      if(date){
-        ev.__kalenderHandledV4=true;
-        ev.preventDefault();
-        ev.stopImmediatePropagation();
-        openDay(date);
-      }
-      return;
-    }
 
-    const card=el.closest ? el.closest('.desktop-week-day') : null;
-    const date=card && (card.dataset.calendarDate || card.dataset.date);
-    if(date){
-      ev.__kalenderHandledV4=true;
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      openDay(date);
+    var card=el.closest ? el.closest('.desktop-week-day') : null;
+    var more=el.closest ? el.closest('.week-more') : null;
+    var date=card && (card.dataset.calendarDate || card.dataset.date);
+    if(!date && more){
+      card=more.closest('.desktop-week-day');
+      date=card && (card.dataset.calendarDate || card.dataset.date);
     }
+    if(date)callDay(date);
   }
 
   document.addEventListener('click',handle,true);
   document.addEventListener('pointerup',handle,true);
 
   function repair(){
-    document.querySelectorAll('.desktop-week-day').forEach((card,index)=>{
+    document.querySelectorAll('.desktop-week-day').forEach(function(card,index){
       card.style.pointerEvents='auto';
-      card.style.position='relative';
-      card.style.zIndex='1';
       if(!card.dataset.calendarDate && typeof window.dashboardWeekStart==='function'){
-        const d=new Date(window.dashboardWeekStart());
+        var d=new Date(window.dashboardWeekStart());
         d.setDate(d.getDate()+index);
-        const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
-        card.dataset.calendarDate=y+'-'+m+'-'+day;
+        card.dataset.calendarDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
       }
-      card.querySelectorAll('.week-entry').forEach(item=>{
+      card.querySelectorAll('.week-entry').forEach(function(item){
         item.style.pointerEvents='auto';
-        item.style.position='relative';
-        item.style.zIndex='2';
       });
     });
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',repair);
   else repair();
-  setInterval(repair,1000);
-  console.log('Kalender Click Hotfix v4 geladen');
+  setInterval(repair,1500);
+  console.log('Kalender Click Hotfix v5 geladen');
 })();
