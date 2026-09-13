@@ -1,0 +1,31 @@
+name: Fix index cache
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix-index:
+    if: ${{ !contains(github.event.head_commit.message, '[index-cache-fixed]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bust appInit cache
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          s2 = s.replace('js/appInit.js</script>', 'js/appInit.js?v=20260913-10</script>')
+          if s2 != s:
+              p.write_text(s2, encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'Bust appInit cache [index-cache-fixed]'
+          git push
