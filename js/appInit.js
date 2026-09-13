@@ -20,4 +20,11 @@ if (typeof renderCustomerList === "function") renderCustomerList();
   s.src="js/notdienst-workflow.js?v=20260913-10";
   s.onload=()=>{const p=document.createElement("script");p.src="js/notdienst-preise-v2.js?v=20260913-3";p.onload=()=>{const c=document.createElement("script");c.src="js/notdienst-katalog-v2.js?v=20260913-3";c.onload=()=>{const r=document.createElement("script");r.src="js/notdienst-report-fix-v2.js?v=20260913-2";r.onload=()=>{const w=document.createElement("script");w.src="js/notdienst-workflow-fix-v2.js?v=20260913-2";w.onload=()=>{const st=document.createElement("script");st.src="js/notdienst-start-fix-v1.js?v=20260913-1";st.onload=()=>{const a=document.createElement("script");a.src="js/notdienst-workflow-access-fix-v1.js?v=20260913-1";a.onload=()=>{const z=document.createElement("script");z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";z.onload=()=>{const sf=document.createElement("script");sf.src="js/notdienst-save-fix-v3.js?v=20260913-3";document.head.appendChild(sf)};document.head.appendChild(z)};document.head.appendChild(a)};document.head.appendChild(st)};document.head.appendChild(w)};document.head.appendChild(r)};document.head.appendChild(c)};document.head.appendChild(p)};document.head.appendChild(s);
 })();
-console.log("Application started v20");
+(function loadCalendarModalFix(){
+  const s=document.createElement("script");
+  s.src="js/kalender-modal-open-fix-v1.js?v=20260914-1";
+  s.onload=()=>console.log("Kalender Modal Open Fix geladen");
+  s.onerror=()=>console.warn("Kalender Modal Open Fix konnte nicht geladen werden.");
+  document.head.appendChild(s);
+})();
+console.log("Application started v21");
