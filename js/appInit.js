@@ -77,10 +77,10 @@ if (typeof renderCustomerList === "function") renderCustomerList();
 
 (function loadCalendarInteractionFix(){
   const s=document.createElement("script");
-  s.src="js/kalender-interaction-fix-v1.js?v=20260913-1";
-  s.onload=()=>console.log("Kalender Interaction Fix geladen");
+  s.src="js/kalender-interaction-fix-v1.js?v=20260914-2";
+  s.onload=()=>console.log("Kalender Interaction Fix v2 geladen");
   s.onerror=()=>console.warn("Kalender Interaction Fix konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
 
-console.log("Application started v14");
+console.log("Application started v15");
