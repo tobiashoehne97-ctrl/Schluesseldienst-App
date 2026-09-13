@@ -2,7 +2,7 @@
    Zeit ist Dokumentation und beeinflusst niemals automatisch den Preis.
 */
 (function(){
-  const KEY='schluesseldienst-notdienst-zeiten-v3';
+  const KEY='schluesseldienst-notdienst-zeiten-v4';
   const pad=n=>String(n).padStart(2,'0');
   const now=()=>new Date().toISOString();
   const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(e){return d}};
@@ -43,6 +43,7 @@
     setTime(id,'angekommen');setTime(id,'vor_ort');setTime(id,'arbeitStart');setTime(id,'arbeit');
     const e=entry(id);if(e)e.status='vor_ort';
     try{if(window.supabaseReady&&window.supabaseClient&&!String(id).startsWith('LOCAL-')){const r=await window.supabaseClient.from('kalender_eintraege').update({status:'vor_ort'}).eq('id',id);if(r.error)throw r.error}else if(typeof window.saveAppData==='function')window.saveAppData()}catch(err){console.warn('Status Vor Ort konnte nicht gespeichert werden',err)}
+    if(typeof window.renderNotdienst==='function')window.renderNotdienst();
     renderWork(id);
   };
 
@@ -60,44 +61,63 @@
   window.startNotdienstWorkflow=async function(id,useNavigation){
     const e=entry(id);if(!e){console.warn('Notdienst-Eintrag für Workflow nicht gefunden',id);return false}
     activeId=id;setTime(id,'fahrtStart');setTime(id,'unterwegs');e.status='unterwegs';
+    if(typeof window.renderNotdienst==='function')window.renderNotdienst();
     modal();document.getElementById('ndWorkflowModal').classList.add('open');renderTravel(id);
     try{if(typeof window.updateNotdienstStatus==='function')await window.updateNotdienstStatus(id,'unterwegs')}catch(err){console.warn('Status Unterwegs konnte nicht gespeichert werden',err)}
     if(useNavigation&&typeof window.openNotdienstNavigation==='function')setTimeout(()=>window.openNotdienstNavigation(id),120);
     return true;
   };
 
-  async function waitForNewNotdienst(before,formSnapshot,tries=24){
-    for(let i=0;i<tries;i++){
+  async function findSavedNotdienst(before,snap){
+    const local=()=>{
       const list=(window.AppData?.kalender?.eintraege||[]).filter(e=>e?.typ==='notdienst');
       let found=list.find(x=>!before.has(String(x.id)));
-      if(!found&&formSnapshot){
-        found=list.filter(x=>x.datum===formSnapshot.datum&&String(x.von||'').startsWith(String(formSnapshot.uhrzeit||''))&&String(x.vorname||'').trim()===String(formSnapshot.vorname||'').trim()&&String(x.nachname||'').trim()===String(formSnapshot.nachname||'').trim()).sort((a,b)=>String(b.id).localeCompare(String(a.id)))[0];
-      }
-      if(found)return found;
+      if(!found&&snap)found=list.filter(x=>x.datum===snap.datum&&String(x.von||'').startsWith(String(snap.uhrzeit||''))&&String(x.vorname||'').trim()===String(snap.vorname||'').trim()&&String(x.nachname||'').trim()===String(snap.nachname||'').trim()).sort((a,b)=>String(b.id).localeCompare(String(a.id)))[0];
+      return found||null;
+    };
+    let found=local();if(found)return found;
+    if(window.supabaseReady&&window.supabaseClient&&snap){
+      try{
+        let q=window.supabaseClient.from('kalender_eintraege').select('*').eq('typ','notdienst').eq('datum',snap.datum).limit(20);
+        const r=await q;
+        if(!r.error&&Array.isArray(r.data)){
+          found=r.data.filter(x=>String(x.von||'').startsWith(String(snap.uhrzeit||''))&&String(x.vorname||'').trim()===String(snap.vorname||'').trim()&&String(x.nachname||'').trim()===String(snap.nachname||'').trim()).sort((a,b)=>String(b.id).localeCompare(String(a.id)))[0]||null;
+          if(found){
+            window.AppData=window.AppData||{};window.AppData.kalender=window.AppData.kalender||{};window.AppData.kalender.eintraege=window.AppData.kalender.eintraege||[];
+            const i=window.AppData.kalender.eintraege.findIndex(x=>String(x.id)===String(found.id));
+            if(i>=0)window.AppData.kalender.eintraege[i]=found;else window.AppData.kalender.eintraege.push(found);
+            return found;
+          }
+        }
+      }catch(err){console.warn('Supabase-Suche nach neuem Notdiensteinsatz fehlgeschlagen',err)}
+    }
+    return null;
+  }
+
+  async function waitForNewNotdienst(before,snap,tries=32){
+    for(let i=0;i<tries;i++){
+      const found=await findSavedNotdienst(before,snap);if(found)return found;
       if(typeof window.loadKalenderFromSupabase==='function'){try{await window.loadKalenderFromSupabase()}catch(e){}}
       await new Promise(r=>setTimeout(r,250));
     }
     return null;
   }
 
-  const originalSave=window.saveNotdienst;
-  window.saveNotdienst=async function(useNavigation){
-    const snap={
-      datum:document.getElementById('nd_datum')?.value||'',
-      uhrzeit:document.getElementById('nd_uhrzeit')?.value||'',
-      vorname:document.getElementById('nd_vorname')?.value||'',
-      nachname:document.getElementById('nd_nachname')?.value||''
+  let originalSave=null,wrappedSave=null;
+  function installSaveHook(){
+    const base=window.saveNotdienst;
+    if(typeof base!=='function'||base===wrappedSave)return;
+    originalSave=base;
+    wrappedSave=async function(useNavigation){
+      const snap={datum:document.getElementById('nd_datum')?.value||'',uhrzeit:document.getElementById('nd_uhrzeit')?.value||'',vorname:document.getElementById('nd_vorname')?.value||'',nachname:document.getElementById('nd_nachname')?.value||''};
+      const before=new Set((window.AppData?.kalender?.eintraege||[]).filter(e=>e?.typ==='notdienst').map(e=>String(e.id)));
+      try{await originalSave(false)}catch(err){console.error('Notdiensteinsatz konnte nicht gespeichert werden',err);alert('Der Notfalleinsatz konnte nicht gespeichert werden: '+(err?.message||err));return}
+      const e=await waitForNewNotdienst(before,snap);
+      if(e){await window.startNotdienstWorkflow(e.id,!!useNavigation)}
+      else alert('Der Notfalleinsatz wurde gespeichert, aber der Einsatz konnte nicht automatisch gestartet werden. Bitte die Seite einmal neu laden.');
     };
-    const before=new Set((window.AppData?.kalender?.eintraege||[]).filter(e=>e?.typ==='notdienst').map(e=>String(e.id)));
-    if(typeof originalSave!=='function'){alert('Die Notdienst-Funktion konnte nicht geladen werden.');return}
-    await originalSave(false);
-    const e=await waitForNewNotdienst(before,snap);
-    if(e){
-      await window.startNotdienstWorkflow(e.id,!!useNavigation);
-    }else{
-      alert('Der Notfalleinsatz wurde gespeichert, konnte aber nicht automatisch geöffnet werden. Bitte die Notdienst-Übersicht öffnen.');
-    }
-  };
+    window.saveNotdienst=wrappedSave;
+  }
 
   function convertButtons(){
     const form=document.getElementById('notdienstForm');if(!form)return;
@@ -111,6 +131,6 @@
     return result;
   };
 
-  function init(){modal();convertButtons();setInterval(convertButtons,1000)}
+  function init(){modal();installSaveHook();convertButtons();setInterval(()=>{installSaveHook();convertButtons()},500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
