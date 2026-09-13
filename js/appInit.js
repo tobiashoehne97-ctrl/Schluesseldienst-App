@@ -77,18 +77,18 @@ if (typeof renderCustomerList === "function") renderCustomerList();
 
 (function loadCalendarInteractionFix(){
   const s=document.createElement("script");
-  s.src="js/kalender-interaction-fix-v1.js?v=20260914-2";
-  s.onload=()=>console.log("Kalender Interaction Fix v2 geladen");
+  s.src="js/kalender-interaction-fix-v1.js?v=20260914-3";
+  s.onload=()=>console.log("Kalender Interaction Fix v3 geladen");
   s.onerror=()=>console.warn("Kalender Interaction Fix konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
 
 (function loadCalendarEmergencyFix(){
   const s=document.createElement("script");
-  s.src="js/kalender-emergency-fix-v3.js?v=20260914-1";
-  s.onload=()=>console.log("Kalender Emergency Fix v3 geladen");
-  s.onerror=()=>console.warn("Kalender Emergency Fix v3 konnte nicht geladen werden.");
+  s.src="js/kalender-emergency-fix-v3.js?v=20260914-2";
+  s.onload=()=>console.log("Kalender Emergency Fix v4 geladen");
+  s.onerror=()=>console.warn("Kalender Emergency Fix konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
 
-console.log("Application started v16");
+console.log("Application started v17");
