@@ -13,23 +13,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bust appInit cache
+      - name: Fix index scripts
         run: |
           python - <<'PY'
           from pathlib import Path
           import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          pattern = r"js/appInit\.js(?:\?v=[^\"']+)?</script>"
-          s2, n = re.subn(pattern, 'js/appInit.js?v=20260914-23</script>', s, count=1)
+          # This old script can create a fullscreen invisible click blocker.
+          s = re.sub(r'<script\s+src=["\']js/calendar-overlay-fix-v1\.js[^>]*></script>', '', s, flags=re.I)
+          # Replace any existing appInit cache query without depending on </script> matching.
+          s, n = re.subn(r'js/appInit\.js(?:\?[^"\']*)?', 'js/appInit.js?v=20260914-24', s, count=1)
           if n == 0:
-              raise SystemExit('appInit script tag not found in index.html')
-          if s2 != s:
-              p.write_text(s2, encoding='utf-8')
+              raise SystemExit('appInit.js reference not found in index.html')
+          p.write_text(s, encoding='utf-8')
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Bust appInit cache [index-cache-fixed]'
+          git commit -m 'Remove blocking overlay and bust appInit cache [index-cache-fixed]'
           git push
