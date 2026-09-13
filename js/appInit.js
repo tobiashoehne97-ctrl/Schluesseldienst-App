@@ -17,7 +17,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 if (typeof renderCustomerList === "function") renderCustomerList();
 (function loadNotdienstWorkflow(){
   const s=document.createElement("script");
-  s.src="js/notdienst-workflow.js?v=20260913-1";
+  s.src="js/notdienst-workflow.js?v=20260913-2";
   s.onload=()=>console.log("Notdienst-Workflow geladen");
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
