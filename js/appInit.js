@@ -91,4 +91,12 @@ if (typeof renderCustomerList === "function") renderCustomerList();
   document.head.appendChild(s);
 })();
 
-console.log("Application started v17");
+(function loadCalendarClickHotfix(){
+  const s=document.createElement("script");
+  s.src="js/kalender-click-hotfix-v4.js?v=20260914-1";
+  s.onload=()=>console.log("Kalender Click Hotfix v4 geladen");
+  s.onerror=()=>console.warn("Kalender Click Hotfix v4 konnte nicht geladen werden.");
+  document.head.appendChild(s);
+})();
+
+console.log("Application started v18");
