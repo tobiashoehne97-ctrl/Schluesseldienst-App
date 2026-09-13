@@ -1,11 +1,11 @@
-/* Calendar Overlay Fix v4
+/* Calendar Overlay Fix v5
    Verhindert, dass ein unsichtbares/geschlossenes Modal die gesamte App blockiert.
-   Geschlossene Modals bekommen garantiert pointer-events:none.
+   Geschlossene Modals bekommen pointer-events:none.
    Geoeffnete Modals bleiben voll bedienbar.
 */
 (function(){
-  if(window.__calendarOverlayFixV4)return;
-  window.__calendarOverlayFixV4=true;
+  if(window.__calendarOverlayFixV5)return;
+  window.__calendarOverlayFixV5=true;
 
   function sync(){
     document.querySelectorAll('.modal').forEach(function(el){
@@ -14,17 +14,17 @@
         el.style.pointerEvents='auto';
       }else{
         el.style.pointerEvents='none';
-        if(el.id==='pdfMod' || el.classList.contains('hidden')) el.style.display='none';
+        el.style.display='none';
       }
     });
   }
 
   function init(){
     sync();
-    new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','style']});
+    new MutationObserver(sync).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class']});
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
   else init();
-  console.log('Calendar Overlay Fix v4 geladen');
+  console.log('Calendar Overlay Fix v5 geladen');
 })();
