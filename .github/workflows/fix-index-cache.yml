@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Bust appInit cache
+      - name: Bust appInit cache and load calendar overlay fix
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -22,10 +22,12 @@ jobs:
           s = p.read_text(encoding='utf-8')
           s2 = re.sub(
               r'js/appInit\.js(?:\?v=[^"\']+)?</script>',
-              'js/appInit.js?v=20260914-19</script>',
+              'js/appInit.js?v=20260914-20</script>',
               s,
               count=1
           )
+          if 'js/calendar-overlay-fix-v1.js' not in s2:
+              s2 = s2.replace('</head>', '<script src="js/calendar-overlay-fix-v1.js?v=20260914-1"></script>\\n</head>', 1)
           if s2 != s:
               p.write_text(s2, encoding='utf-8')
           PY
@@ -33,5 +35,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'Bust appInit cache [index-cache-fixed]'
+          git commit -m 'Load calendar overlay fix [index-cache-fixed]'
           git push
