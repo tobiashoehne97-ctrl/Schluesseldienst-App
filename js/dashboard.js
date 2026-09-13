@@ -92,9 +92,12 @@ function renderDashboardWeek() {
     const availability = dayEntries.filter(e => e.typ === "verfuegbarkeit");
     const business = dayEntries.find(e => e.typ === "geschaeft");
 
-    const card = document.createElement("button");
-    card.type = "button";
+    // Kein Button als Elterncontainer: Termine sind eigene interaktive Elemente.
+    // Verschachtelte Buttons/Interaktionen verursachen insbesondere in Safari
+    // unzuverlaessiges Klickverhalten.
+    const card = document.createElement("div");
     card.className = "desktop-week-day" + (iso === today ? " today" : "");
+    card.dataset.date = iso;
     card.innerHTML =
       '<div class="desktop-week-day-head"><span>'+name+'</span><strong>'+date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"})+'</strong></div>' +
       '<div class="desktop-week-day-body"></div>' +
@@ -107,6 +110,7 @@ function renderDashboardWeek() {
       workEntries.slice(0,4).forEach(entry => {
         const item = document.createElement("div");
         item.className = "week-entry";
+        item.dataset.kalenderId = String(entry.id);
         item.setAttribute("role","button");
         item.tabIndex = 0;
         item.innerHTML = '<span class="week-entry-dot" style="background:'+
@@ -115,8 +119,6 @@ function renderDashboardWeek() {
           escapeDashboardHtml((entry.von || "") + ((entry.bis) ? " – "+entry.bis : ""))+
           '</small></div>';
 
-        // Ein Termin wird direkt geöffnet. Der Klick darf nicht zusätzlich
-        // die Tagesübersicht des umgebenden Buttons öffnen.
         const openEntry = function(ev){
           ev.preventDefault();
           ev.stopPropagation();
@@ -158,71 +160,45 @@ function renderDashboardWeek() {
 
     if (availability.length) {
       const availabilityBox = document.createElement("div");
-      availabilityBox.style.cssText =
-        "margin-top:8px;padding:8px;border-radius:9px;background:rgba(8,24,38,.72);border:1px solid #23405a";
-
+      availabilityBox.style.cssText = "margin-top:8px;padding:8px;border-radius:9px;background:rgba(8,24,38,.72);border:1px solid #23405a";
       const label = document.createElement("div");
       label.textContent = "MITARBEITER VERFÜGBAR";
-      label.style.cssText =
-        "font-size:9px;font-weight:800;letter-spacing:.08em;color:#7eb3e0;margin-bottom:7px";
+      label.style.cssText = "font-size:9px;font-weight:800;letter-spacing:.08em;color:#7eb3e0;margin-bottom:7px";
       availabilityBox.appendChild(label);
-
       const axis = document.createElement("div");
-      axis.style.cssText =
-        "display:flex;justify-content:space-between;font-size:8px;color:#6685a2;margin:0 2px 3px";
+      axis.style.cssText = "display:flex;justify-content:space-between;font-size:8px;color:#6685a2;margin:0 2px 3px";
       axis.innerHTML = "<span>09:00</span><span>13:00</span><span>17:00</span>";
       availabilityBox.appendChild(axis);
-
       const dayStart = 9 * 60;
       const dayEnd = 17 * 60;
       const range = dayEnd - dayStart;
-
       availability.forEach((entry) => {
         const row = document.createElement("div");
         row.style.cssText = "margin-top:5px";
-
         const rowHead = document.createElement("div");
-        rowHead.style.cssText =
-          "display:flex;justify-content:space-between;gap:6px;font-size:9px;margin-bottom:3px;color:#b8d8ef";
-
+        rowHead.style.cssText = "display:flex;justify-content:space-between;gap:6px;font-size:9px;margin-bottom:3px;color:#b8d8ef";
         const employee = document.createElement("strong");
         employee.textContent = entry.mitarbeiter || "Mitarbeiter";
         employee.style.cssText = "font-size:9px;color:#dcecf7";
-
         const time = document.createElement("span");
-        time.textContent =
-          String(entry.von || "09:00").slice(0,5) + " – " +
-          String(entry.bis || "17:00").slice(0,5);
+        time.textContent = String(entry.von || "09:00").slice(0,5) + " – " + String(entry.bis || "17:00").slice(0,5);
         time.style.cssText = "font-size:8px;color:#79b8a0";
-
         rowHead.append(employee, time);
-
         const track = document.createElement("div");
-        track.style.cssText =
-          "position:relative;height:10px;border-radius:999px;background:#081825;border:1px solid #23405a;overflow:hidden";
-
+        track.style.cssText = "position:relative;height:10px;border-radius:999px;background:#081825;border:1px solid #23405a;overflow:hidden";
         const from = dashboardTimeToMinutes(entry.von || "09:00");
         const until = dashboardTimeToMinutes(entry.bis || "17:00");
         const safeFrom = Math.max(dayStart, Math.min(dayEnd, from));
         const safeUntil = Math.max(safeFrom, Math.min(dayEnd, until));
         const left = ((safeFrom - dayStart) / range) * 100;
         const width = Math.max(2, ((safeUntil - safeFrom) / range) * 100);
-
         const bar = document.createElement("div");
-        bar.style.cssText =
-          "position:absolute;top:1px;bottom:1px;left:" + left +
-          "%;width:" + width +
-          "%;border-radius:999px;background:linear-gradient(90deg,#16a34a,#4ade80);box-shadow:0 0 8px rgba(74,222,128,.45)";
-        bar.title =
-          (entry.mitarbeiter || "Mitarbeiter") + " · " +
-          String(entry.von || "09:00").slice(0,5) + "–" +
-          String(entry.bis || "17:00").slice(0,5);
-
+        bar.style.cssText = "position:absolute;top:1px;bottom:1px;left:" + left + "%;width:" + width + "%;border-radius:999px;background:linear-gradient(90deg,#16a34a,#4ade80);box-shadow:0 0 8px rgba(74,222,128,.45)";
+        bar.title = (entry.mitarbeiter || "Mitarbeiter") + " · " + String(entry.von || "09:00").slice(0,5) + "–" + String(entry.bis || "17:00").slice(0,5);
         track.appendChild(bar);
         row.append(rowHead, track);
         availabilityBox.appendChild(row);
       });
-
       footer.appendChild(availabilityBox);
     }
 
@@ -231,12 +207,16 @@ function renderDashboardWeek() {
     add.textContent = "+";
     add.title = "Einsatz hinzufügen";
     add.addEventListener("click", function(ev) {
+      ev.preventDefault();
       ev.stopPropagation();
       if (typeof openKalenderCreate === "function") openKalenderCreate(iso);
     });
     card.appendChild(add);
 
-    card.addEventListener("click", function() {
+    card.addEventListener("click", function(ev) {
+      // Nur die Tageskarte selbst bzw. leere Bereiche öffnen den Tag.
+      // Termin- und +-Klicks werden vorher gestoppt.
+      if (ev.target.closest && ev.target.closest(".week-entry, .week-more, .week-add")) return;
       if (typeof openKalenderDay === "function") openKalenderDay(iso);
     });
 
@@ -258,7 +238,6 @@ function escapeDashboardHtml(value) {
 function initMobileEmployeeDashboard() {
   const choices = document.getElementById("mobileEmployeeChoices");
   if (!choices) return;
-
   choices.innerHTML = "";
   mobileEmployeeProfiles.forEach(profile => {
     const button = document.createElement("button");
@@ -268,11 +247,8 @@ function initMobileEmployeeDashboard() {
     button.onclick = () => selectMobileEmployee(profile.name);
     choices.appendChild(button);
   });
-
   const saved = localStorage.getItem(MOBILE_EMPLOYEE_KEY);
-  if (saved && mobileEmployeeProfiles.some(p => p.name === saved)) {
-    applyMobileEmployee(saved);
-  }
+  if (saved && mobileEmployeeProfiles.some(p => p.name === saved)) applyMobileEmployee(saved);
 }
 
 function selectMobileEmployee(name) {
@@ -283,21 +259,17 @@ function selectMobileEmployee(name) {
 function applyMobileEmployee(name) {
   const profile = mobileEmployeeProfiles.find(p => p.name === name);
   if (!profile) return;
-
   const nameEl = document.getElementById("mobileEmployeeName");
   const selectCard = document.getElementById("mobileEmployeeSelectCard");
   const apps = document.getElementById("mobileEmployeeApps");
-
   if (nameEl) nameEl.textContent = profile.name;
   if (selectCard) selectCard.classList.add("hidden");
   if (apps) apps.classList.remove("hidden");
-
   document.querySelectorAll("#mobileEmployeeApps .mobile-app-tile").forEach(btn => {
     const route = btn.getAttribute("onclick") || "";
     const key = route.match(/go\('([^']+)'\)/)?.[1];
     btn.style.display = profile.permissions.includes(key) ? "" : "none";
   });
-
   updateArbeitszeitStatistik();
 }
 
@@ -306,7 +278,6 @@ function clearMobileEmployee() {
   const nameEl = document.getElementById("mobileEmployeeName");
   const selectCard = document.getElementById("mobileEmployeeSelectCard");
   const apps = document.getElementById("mobileEmployeeApps");
-
   if (nameEl) nameEl.textContent = "Mitarbeiter auswählen";
   if (selectCard) selectCard.classList.remove("hidden");
   if (apps) apps.classList.add("hidden");
@@ -314,22 +285,15 @@ function clearMobileEmployee() {
 
 function initDashboard() {
   if (window.EventBus && typeof EventBus.subscribe === "function" && !dashboardEventsInitialized) {
-    ["auftrag:created","auftrag:updated","auftrag:deleted","arbeitszeit:start","arbeitszeit:stop","arbeitszeit:update"].forEach(event => {
-      EventBus.subscribe(event, updateDashboard);
-    });
+    ["auftrag:created","auftrag:updated","auftrag:deleted","arbeitszeit:start","arbeitszeit:stop","arbeitszeit:update"].forEach(event => EventBus.subscribe(event, updateDashboard));
     dashboardEventsInitialized = true;
   }
-
   if (dashboardArbeitszeitTimer) clearInterval(dashboardArbeitszeitTimer);
   dashboardArbeitszeitTimer = setInterval(updateArbeitszeitStatistik, 60000);
-
   updateDashboard();
   initMobileEmployeeDashboard();
   setTimeout(renderDashboardWeek, 0);
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initDashboard);
-} else {
-  initDashboard();
-}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initDashboard);
+else initDashboard();
