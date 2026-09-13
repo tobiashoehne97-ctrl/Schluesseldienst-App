@@ -17,9 +17,9 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 if (typeof renderCustomerList === "function") renderCustomerList();
 (function loadNotdienstModules(){
   const s=document.createElement("script");
-  s.src="js/notdienst-workflow.js?v=20260913-7";
+  s.src="js/notdienst-workflow.js?v=20260913-8";
   s.onload=()=>{
-    console.log("Notdienst-Workflow geladen v7");
+    console.log("Notdienst-Workflow geladen v8");
     const p=document.createElement("script");
     p.src="js/notdienst-preise-v2.js?v=20260913-3";
     p.onload=()=>{
@@ -33,8 +33,15 @@ if (typeof renderCustomerList === "function") renderCustomerList();
         r.onload=()=>{
           console.log("Notdienst-Regiebericht-Fix geladen");
           const w=document.createElement("script");
-          w.src="js/notdienst-workflow-fix-v2.js?v=20260913-1";
-          w.onload=()=>console.log("Notdienst Workflow Material-Fix geladen");
+          w.src="js/notdienst-workflow-fix-v2.js?v=20260913-2";
+          w.onload=()=>{
+            console.log("Notdienst Workflow Material-Fix geladen");
+            const st=document.createElement("script");
+            st.src="js/notdienst-start-fix-v1.js?v=20260913-1";
+            st.onload=()=>console.log("Notdienst Start Fix geladen");
+            st.onerror=()=>console.warn("Notdienst Start Fix konnte nicht geladen werden.");
+            document.head.appendChild(st);
+          };
           w.onerror=()=>console.warn("Notdienst Workflow Material-Fix konnte nicht geladen werden.");
           document.head.appendChild(w);
         };
@@ -50,7 +57,12 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       c.src="js/notdienst-katalog-v2.js?v=20260913-3";
       c.onload=()=>{
         const w=document.createElement("script");
-        w.src="js/notdienst-workflow-fix-v2.js?v=20260913-1";
+        w.src="js/notdienst-workflow-fix-v2.js?v=20260913-2";
+        w.onload=()=>{
+          const st=document.createElement("script");
+          st.src="js/notdienst-start-fix-v1.js?v=20260913-1";
+          document.head.appendChild(st);
+        };
         document.head.appendChild(w);
       };
       document.head.appendChild(c);
@@ -60,4 +72,4 @@ if (typeof renderCustomerList === "function") renderCustomerList();
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
-console.log("Application started v7");
+console.log("Application started v8");
