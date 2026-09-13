@@ -25,15 +25,15 @@ if (typeof renderCustomerList === "function") renderCustomerList();
     p.onload=()=>{
       console.log("Notdienst-Preislogik v2 geladen");
       const c=document.createElement("script");
-      c.src="js/notdienst-katalog.js?v=20260913-1";
-      c.onload=()=>console.log("Notdienst-Katalog geladen v1");
+      c.src="js/notdienst-katalog-v2.js?v=20260913-2";
+      c.onload=()=>console.log("Notdienst-Katalog v2 geladen");
       c.onerror=()=>console.warn("Notdienst-Katalog konnte nicht geladen werden.");
       document.head.appendChild(c);
     };
     p.onerror=()=>{
       console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
       const c=document.createElement("script");
-      c.src="js/notdienst-katalog.js?v=20260913-1";
+      c.src="js/notdienst-katalog-v2.js?v=20260913-2";
       document.head.appendChild(c);
     };
     document.head.appendChild(p);
