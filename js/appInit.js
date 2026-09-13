@@ -17,62 +17,44 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 if (typeof renderCustomerList === "function") renderCustomerList();
 (function loadNotdienstModules(){
   const s=document.createElement("script");
-  s.src="js/notdienst-workflow.js?v=20260913-9";
+  s.src="js/notdienst-workflow.js?v=20260913-10";
   s.onload=()=>{
-    console.log("Notdienst-Workflow geladen v9");
+    console.log("Notdienst-Workflow geladen v10");
     const p=document.createElement("script");
     p.src="js/notdienst-preise-v2.js?v=20260913-3";
     p.onload=()=>{
-      console.log("Notdienst-Preislogik v2 geladen");
       const c=document.createElement("script");
       c.src="js/notdienst-katalog-v2.js?v=20260913-3";
       c.onload=()=>{
-        console.log("Notdienst-Katalog v2 geladen");
         const r=document.createElement("script");
         r.src="js/notdienst-report-fix-v2.js?v=20260913-2";
         r.onload=()=>{
-          console.log("Notdienst-Regiebericht-Fix geladen");
           const w=document.createElement("script");
           w.src="js/notdienst-workflow-fix-v2.js?v=20260913-2";
           w.onload=()=>{
-            console.log("Notdienst Workflow Material-Fix geladen");
             const st=document.createElement("script");
             st.src="js/notdienst-start-fix-v1.js?v=20260913-1";
             st.onload=()=>{
-              console.log("Notdienst Start Fix geladen");
               const a=document.createElement("script");
               a.src="js/notdienst-workflow-access-fix-v1.js?v=20260913-1";
               a.onload=()=>{
-                console.log("Notdienst Workflow Access Fix geladen");
                 const z=document.createElement("script");
                 z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";
                 z.onload=()=>{
-                  console.log("Notdienst Stability Fix geladen");
                   const sf=document.createElement("script");
-                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-1";
-                  sf.onload=()=>console.log("Notdienst Save Fix v3 geladen");
-                  sf.onerror=()=>console.warn("Notdienst Save Fix v3 konnte nicht geladen werden.");
+                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-2";
+                  sf.onload=()=>console.log("Notdienst Save Fix v4 geladen");
+                  sf.onerror=()=>console.warn("Notdienst Save Fix v4 konnte nicht geladen werden.");
                   document.head.appendChild(sf);
                 };
                 z.onerror=()=>{
-                  console.warn("Notdienst Stability Fix konnte nicht geladen werden.");
                   const sf=document.createElement("script");
-                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-1";
+                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-2";
                   document.head.appendChild(sf);
                 };
                 document.head.appendChild(z);
               };
-              a.onerror=()=>{
-                console.warn("Notdienst Workflow Access Fix konnte nicht geladen werden.");
-                const z=document.createElement("script");
-                z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";
-                z.onload=()=>{
-                  const sf=document.createElement("script");
-                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-1";
-                  document.head.appendChild(sf);
-                };
-                document.head.appendChild(z);
-              };
+              a.onerror=()=>console.warn("Notdienst Workflow Access Fix konnte nicht geladen werden.");
               document.head.appendChild(a);
             };
             st.onerror=()=>console.warn("Notdienst Start Fix konnte nicht geladen werden.");
@@ -87,40 +69,10 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       c.onerror=()=>console.warn("Notdienst-Katalog konnte nicht geladen werden.");
       document.head.appendChild(c);
     };
-    p.onerror=()=>{
-      console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
-      const c=document.createElement("script");
-      c.src="js/notdienst-katalog-v2.js?v=20260913-3";
-      c.onload=()=>{
-        const w=document.createElement("script");
-        w.src="js/notdienst-workflow-fix-v2.js?v=20260913-2";
-        w.onload=()=>{
-          const st=document.createElement("script");
-          st.src="js/notdienst-start-fix-v1.js?v=20260913-1";
-          st.onload=()=>{
-            const a=document.createElement("script");
-            a.src="js/notdienst-workflow-access-fix-v1.js?v=20260913-1";
-            a.onload=()=>{
-              const z=document.createElement("script");
-              z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";
-              z.onload=()=>{
-                const sf=document.createElement("script");
-                sf.src="js/notdienst-save-fix-v3.js?v=20260913-1";
-                document.head.appendChild(sf);
-              };
-              document.head.appendChild(z);
-            };
-            document.head.appendChild(a);
-          };
-          document.head.appendChild(st);
-        };
-        document.head.appendChild(w);
-      };
-      document.head.appendChild(c);
-    };
+    p.onerror=()=>console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
     document.head.appendChild(p);
   };
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
-console.log("Application started v11");
+console.log("Application started v12");
