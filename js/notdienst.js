@@ -1,171 +1,40 @@
+/* Notdienst – Preisverwaltung v1
+   Die bestehende Notdienst-Funktion bleibt erhalten. Diese Version ergänzt
+   eine zentrale Preisverwaltung und eine vorläufige Einsatzkalkulation. */
+
 let selectedNotdienstType = "Türöffnung";
-
 const NOTDIENST_STATUS = [
-  {key:"notdienst", label:"🚨 Neu", next:"unterwegs"},
-  {key:"unterwegs", label:"🚗 Unterwegs", next:"vor_ort"},
-  {key:"vor_ort", label:"📍 Vor Ort", next:"arbeit"},
-  {key:"arbeit", label:"🔧 Arbeit läuft", next:"erledigt"},
-  {key:"erledigt", label:"✅ Abgeschlossen", next:null}
+  {key:"notdienst",label:"🚨 Neu",next:"unterwegs"},
+  {key:"unterwegs",label:"🚗 Unterwegs",next:"vor_ort"},
+  {key:"vor_ort",label:"📍 Vor Ort",next:"arbeit"},
+  {key:"arbeit",label:"🔧 Arbeit läuft",next:"erledigt"},
+  {key:"erledigt",label:"✅ Abgeschlossen",next:null}
 ];
-
-function pad2(value){ return String(value).padStart(2,"0"); }
-function notdienstToday(){ const d=new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
-function notdienstNow(){ const d=new Date(); return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
-function escapeNd(v){ return String(v||"").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-function isNotdienstEntry(e){ return e && e.typ === "notdienst"; }
-function notdienstStatusInfo(status){ return NOTDIENST_STATUS.find(s=>s.key===status) || NOTDIENST_STATUS[0]; }
-
-function ensureNotdienstView(){
-  const host=document.getElementById("notdienst"); if(!host) return null;
-  let box=document.getElementById("notdienstAktiv");
-  if(!box){ box=document.createElement("div"); box.id="notdienstAktiv"; box.className="notdienst-active-list"; const form=document.getElementById("notdienstForm"); host.insertBefore(box,form||null); }
-  return box;
-}
-
-function renderNotdienst(){
-  const box=ensureNotdienstView(); if(!box) return;
-  const entries=(window.AppData?.kalender?.eintraege||[]).filter(isNotdienstEntry).sort((a,b)=>((b.datum||"")+(b.von||"")).localeCompare((a.datum||"")+(a.von||"")));
-  const active=entries.filter(e=>e.status!=="erledigt");
-  const finished=entries.filter(e=>e.status==="erledigt").slice(0,5);
-  if(!entries.length){ box.innerHTML=`<div class="notdienst-section-title">AKTIVE EINSÄTZE</div><div class="notdienst-empty-card">🚨 Aktuell ist kein Notfalleinsatz aktiv.</div>`; return; }
-
-  const card=e=>{
-    const info=notdienstStatusInfo(e.status), customer=[e.vorname,e.nachname].filter(Boolean).join(" ")||"Kunde";
-    const address=[e.strasse,e.hausnummer].filter(Boolean).join(" "), city=[e.postleitzahl,e.ort].filter(Boolean).join(" ");
-    const description=String(e.beschreibung||"").replace(/^\[NOTFALL\]\s*/i,"").trim();
-    const statusIndex=NOTDIENST_STATUS.findIndex(s=>s.key===info.key), progress=info.key==="erledigt"?100:Math.round((statusIndex/(NOTDIENST_STATUS.length-1))*100);
-    const buttons=NOTDIENST_STATUS.filter(s=>s.key!=="erledigt" || info.key==="arbeit").map(s=>{
-      const current=s.key===info.key, disabled=s.key!==info.key && s.key!==info.next;
-      return `<button class="notdienst-status-btn ${current?"current":""}" ${disabled?"disabled":""} onclick="updateNotdienstStatus('${escapeNd(e.id)}','${s.key}')">${s.label}</button>`;
-    }).join("");
-    return `<article class="notdienst-active-card ${info.key}">
-      <div class="notdienst-active-head"><div><div class="notdienst-active-badge">${info.label}</div><h3>${escapeNd(e.titel)}</h3><div class="notdienst-meta">📅 ${escapeNd((e.datum||"").split("-").reverse().join("."))} · 🕒 ${escapeNd(e.von||"")} · 👤 ${escapeNd(e.mitarbeiter||"-")}</div></div><div class="notdienst-progress"><span style="width:${progress}%"></span></div></div>
-      <div class="notdienst-customer-grid">
-        <div><small>KUNDE</small><strong>${escapeNd(customer)}</strong></div>
-        <div><small>TELEFON</small><strong>${e.telefonnummer?`<a href="tel:${escapeNd(e.telefonnummer)}">${escapeNd(e.telefonnummer)}</a>`:"–"}</strong></div>
-        <div><small>ADRESSE</small><strong>${escapeNd([address,city].filter(Boolean).join(" · ")||"–")}</strong></div>
-        <div><small>EINSATZINFO</small><strong>${escapeNd(description||"Keine weitere Angabe")}</strong></div>
-      </div>
-      <div class="notdienst-status-actions">${buttons}</div>
-      <div class="notdienst-card-actions">
-        ${info.key!=="erledigt"?`<button class="btnP" onclick="openNotdienstNavigation('${escapeNd(e.id)}')">🧭 Navigation</button>`:""}
-        ${info.key!=="notdienst"?`<button class="btnS" onclick="openNotdienstRegiebericht('${escapeNd(e.id)}')">📄 Regiebericht</button>`:""}
-        ${info.key==="arbeit"?`<button class="btnP" onclick="updateNotdienstStatus('${escapeNd(e.id)}','erledigt')">✅ Einsatz abschließen</button>`:""}
-      </div>
-    </article>`;
-  };
-  box.innerHTML=`<div class="notdienst-section-title">AKTIVE EINSÄTZE</div>${active.length?active.map(card).join(""):"<div class=\"notdienst-empty-card\">✅ Keine offenen Notfalleinsätze.</div>"}`+(finished.length?`<div class="notdienst-section-title notdienst-finished-title">LETZTE ABGESCHLOSSENE EINSÄTZE</div>${finished.map(card).join("")}`:"");
-}
-
-async function updateNotdienstStatus(id,status){
-  const entry=(window.AppData?.kalender?.eintraege||[]).find(e=>String(e.id)===String(id)); if(!entry) return;
-  try{
-    if(window.supabaseReady && window.supabaseClient && !String(id).startsWith("LOCAL-")){
-      const {error}=await window.supabaseClient.from("kalender_eintraege").update({status}).eq("id",id); if(error) throw error; await loadKalenderFromSupabase();
-    }else{
-      entry.status=status; if(typeof saveAppData==="function") saveAppData(); if(typeof renderKalender==="function") renderKalender(); if(typeof renderDashboardWeek==="function") renderDashboardWeek();
-    }
-    renderNotdienst(); if(status==="vor_ort") openNotdienstRegiebericht(id);
-  }catch(err){ console.error("Notdienst Status konnte nicht gespeichert werden:",err); alert("Der Status konnte nicht gespeichert werden: "+(err?.message||"Unbekannter Fehler")); }
-}
-
-function getNotdienstAddress(entry){ return [[entry.strasse,entry.hausnummer].filter(Boolean).join(" "),[entry.postleitzahl,entry.ort].filter(Boolean).join(" ")].filter(Boolean).join(", "); }
-function openNotdienstNavigation(id){
-  const entry=(window.AppData?.kalender?.eintraege||[]).find(e=>String(e.id)===String(id)); if(!entry) return;
-  const address=getNotdienstAddress(entry); if(!address){alert("Für diesen Einsatz ist keine vollständige Adresse hinterlegt.");return;}
-  const encoded=encodeURIComponent(address),ua=navigator.userAgent||"";
-  if(/iPhone|iPad|iPod/i.test(ua)){ window.location.href="maps://?daddr="+encoded; setTimeout(()=>{window.location.href="http://maps.apple.com/?daddr="+encoded;},500); }
-  else if(/Android/i.test(ua)){ window.location.href="geo:0,0?q="+encoded; setTimeout(()=>{window.location.href="https://www.google.com/maps/dir/?api=1&destination="+encoded;},700); }
-  else window.open("https://www.google.com/maps/dir/?api=1&destination="+encoded,"_blank");
-}
-
-function openNotdienstRegiebericht(id){
-  const entry=(window.AppData?.kalender?.eintraege||[]).find(e=>String(e.id)===String(id)); if(!entry) return;
-  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value||"";};
-  if(typeof iRB==="function") iRB();
-  set("rb_dat",entry.datum); set("rb_vn",entry.vorname); set("rb_nn",entry.nachname); set("rb_tel",entry.telefonnummer);
-  set("rb_adr",[entry.strasse,entry.hausnummer].filter(Boolean).join(" ")); set("rb_plz",entry.postleitzahl); set("rb_ort",entry.ort);
-  set("rb_bau","Notdiensteinsatz – "+(entry.titel||"")); set("rb_bem",String(entry.beschreibung||"").replace(/^\[NOTFALL\]\s*/i,""));
-  const modal=document.getElementById("serviceModal");
-  if(modal){ modal.classList.add("service-report-modal"); modal.classList.remove("hidden"); modal.style.display="flex"; document.body.style.overflow="hidden"; }
-  else if(typeof go==="function") go("kalender");
-}
-
-function openNotdienstForm(){
-  const start=document.getElementById("notdienstStart"),form=document.getElementById("notdienstForm"); if(start)start.classList.add("hidden"); if(form)form.classList.remove("hidden");
-  document.getElementById("nd_datum").value=notdienstToday(); document.getElementById("nd_uhrzeit").value=notdienstNow(); document.getElementById("nd_normaler_termin").checked=false;
-  ["nd_vorname","nd_nachname","nd_telefon","nd_strasse","nd_plz","nd_ort","nd_beschreibung"].forEach(id=>document.getElementById(id).value=""); selectedNotdienstType="Türöffnung";
-  document.querySelectorAll(".notdienst-type").forEach(btn=>btn.classList.toggle("active",btn.dataset.type==="Türöffnung"));
-  const saved=localStorage.getItem("schluesseldienst-mobile-employee"); if(saved&&document.getElementById("nd_mitarbeiter"))document.getElementById("nd_mitarbeiter").value=saved;
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-function closeNotdienstForm(){ const start=document.getElementById("notdienstStart"),form=document.getElementById("notdienstForm"); if(form)form.classList.add("hidden"); if(start)start.classList.remove("hidden"); renderNotdienst(); }
-function selectNotdienstType(type,button){ selectedNotdienstType=type; document.querySelectorAll(".notdienst-type").forEach(btn=>btn.classList.remove("active")); if(button)button.classList.add("active"); }
-
-async function saveNotdienst(startNavigation=false){
-  const datum=document.getElementById("nd_datum").value,uhrzeit=document.getElementById("nd_uhrzeit").value,vorname=document.getElementById("nd_vorname").value.trim(),nachname=document.getElementById("nd_nachname").value.trim(),telefon=document.getElementById("nd_telefon").value.trim(),strasse=document.getElementById("nd_strasse").value.trim(),plz=document.getElementById("nd_plz").value.trim(),ort=document.getElementById("nd_ort").value.trim(),beschreibung=document.getElementById("nd_beschreibung").value.trim(),mitarbeiter=document.getElementById("nd_mitarbeiter").value,normalerTermin=document.getElementById("nd_normaler_termin").checked;
-  if(!vorname&&!nachname){alert("Bitte mindestens Vor- oder Nachname des Kunden eingeben.");return;}
-  const title=[selectedNotdienstType,vorname,nachname].filter(Boolean).join(" – ");
-  const entry={titel:title||"Notfalleinsatz",datum,von:uhrzeit?uhrzeit+":00":null,bis:null,typ:normalerTermin?"termin":"notdienst",status:normalerTermin?"geplant":"notdienst",mitarbeiter:mitarbeiter||null,nachname:nachname||null,vorname:vorname||null,telefonnummer:telefon||null,strasse:strasse||null,hausnummer:null,postleitzahl:plz||null,ort:ort||null,beschreibung:"[NOTFALL] "+selectedNotdienstType+(beschreibung?"\n"+beschreibung:"")};
-  try{
-    let savedEntry=entry;
-    if(window.supabaseReady&&window.supabaseClient){
-      const {data,error}=await window.supabaseClient.from("kalender_eintraege").insert(entry).select().single(); if(error)throw new Error(error.message||JSON.stringify(error)); savedEntry=data||entry; await loadKalenderFromSupabase();
-    }else{
-      entry.id="LOCAL-"+Date.now();entry.von=uhrzeit;entry.bis="";if(!window.AppData)window.AppData={};if(!AppData.kalender)AppData.kalender={eintraege:[]};if(!Array.isArray(AppData.kalender.eintraege))AppData.kalender.eintraege=[];AppData.kalender.eintraege.push(entry);saveAppData();renderKalender();alert("Offline gespeichert. Der Einsatz wird nur auf diesem Gerät angezeigt.");
-    }
-    if(typeof renderDashboardWeek==="function")renderDashboardWeek();renderNotdienst();closeNotdienstForm();
-    if(startNavigation&&!normalerTermin){openNotdienstNavigation(savedEntry.id||entry.id);return;}
-    alert(normalerTermin?"Der Vorgang wurde als normaler Termin angelegt.":"Der Notfalleinsatz wurde erfolgreich angelegt.");
-  }catch(err){console.error("Notdienst konnte nicht gespeichert werden:",err);alert("Der Einsatz konnte nicht gespeichert werden: "+(err?.message||"Unbekannter Fehler"));}
-}
-
-function injectNotdienstStyles(){
-  if(document.getElementById("notdienstRuntimeStyles"))return;
-  const s=document.createElement("style");s.id="notdienstRuntimeStyles";s.textContent=`
-    .notdienst-active-list{display:flex;flex-direction:column;gap:14px;margin:0 0 22px}
-    .notdienst-section-title{font-size:11px;font-weight:800;letter-spacing:.16em;color:#7eb3e0;margin:8px 2px 2px;text-transform:uppercase}
-    .notdienst-finished-title{margin-top:18px}
-    .notdienst-empty-card{padding:20px;border:1px solid rgba(59,110,165,.28);border-radius:14px;background:rgba(16,42,64,.55);color:#91b4d2;text-align:center}
-    .notdienst-active-card{padding:18px;border-radius:18px;background:linear-gradient(145deg,rgba(20,47,79,.98),rgba(10,28,50,.98));border:1px solid rgba(59,110,165,.38);box-shadow:0 12px 30px rgba(0,0,0,.18)}
-    .notdienst-active-card.notdienst{border-color:rgba(249,115,22,.6)}
-    .notdienst-active-card.unterwegs{border-color:rgba(234,179,8,.55)}
-    .notdienst-active-card.vor_ort{border-color:rgba(59,130,246,.65)}
-    .notdienst-active-card.arbeit{border-color:rgba(34,197,94,.58)}
-    .notdienst-active-card.erledigt{opacity:.82}
-    .notdienst-active-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
-    .notdienst-active-badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:rgba(249,115,22,.13);color:#ffad72;font-size:11px;font-weight:800;margin-bottom:7px}
-    .notdienst-active-card h3{margin:0;color:#f4f9ff;font-size:19px}
-    .notdienst-meta{margin-top:6px;color:#80a8ca;font-size:12px}
-    .notdienst-progress{width:180px;height:8px;border-radius:99px;background:#091a2a;border:1px solid #23405a;overflow:hidden;flex-shrink:0;margin-top:15px}
-    .notdienst-progress span{display:block;height:100%;background:#22c55e;border-radius:99px;transition:width .25s ease}
-    .notdienst-customer-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
-    .notdienst-customer-grid>div{padding:11px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(120,160,200,.12);min-width:0}
-    .notdienst-customer-grid small{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;color:#6f9bc1;margin-bottom:5px}
-    .notdienst-customer-grid strong{display:block;color:#eaf5ff;font-size:12px;line-height:1.4;overflow-wrap:anywhere}
-    .notdienst-customer-grid a{color:#7ec6ff;text-decoration:none}
-    .notdienst-status-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}
-    .notdienst-status-btn{padding:9px 11px;border-radius:10px;border:1px solid rgba(59,110,165,.34);background:#102a40;color:#bcd7ed;font-weight:700;font-size:11px;cursor:pointer}
-    .notdienst-status-btn.current{background:#2563a8;border-color:#58a6e7;color:#fff}
-    .notdienst-status-btn:not(:disabled):hover{border-color:#58a6e7}
-    .notdienst-status-btn:disabled{opacity:.35;cursor:not-allowed}
-    .notdienst-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,160,200,.13)}
-    @media(max-width:760px){
-      .notdienst-header{flex-direction:column;align-items:stretch}
-      .notdienst-header h2{font-size:25px}
-      .notdienst-new-btn{width:100%}
-      .notdienst-active-card{padding:14px}
-      .notdienst-active-head{display:block}
-      .notdienst-active-card h3{font-size:17px}
-      .notdienst-progress{width:100%;margin-top:12px}
-      .notdienst-customer-grid{grid-template-columns:1fr 1fr}
-      .notdienst-status-actions,.notdienst-card-actions{display:grid;grid-template-columns:1fr 1fr}
-      .notdienst-status-btn,.notdienst-card-actions button{width:100%;min-height:42px}
-    }
-    @media(max-width:430px){.notdienst-customer-grid{grid-template-columns:1fr}.notdienst-status-actions,.notdienst-card-actions{grid-template-columns:1fr}}
-  `;document.head.appendChild(s);
-}
-
-injectNotdienstStyles();
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(renderNotdienst,150));else setTimeout(renderNotdienst,150);
-setInterval(()=>{if(document.getElementById("notdienst")&&!document.getElementById("notdienst").classList.contains("hidden"))renderNotdienst();},2000);
+const ND_PRICE_KEY="schluesseldienst-notdienst-preise-v1";
+const ND_DEFAULT={anfahrt:0,arbeitsstunde:0,nacht:0,wochenende:0,feiertag:0,materialAufschlag:0,mwst:19};
+function pad2(v){return String(v).padStart(2,"0")}
+function notdienstToday(){const d=new Date();return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())}
+function notdienstNow(){const d=new Date();return pad2(d.getHours())+":"+pad2(d.getMinutes())}
+function escapeNd(v){return String(v||"").replace(/[&<>\"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+function isNotdienstEntry(e){return e&&e.typ==="notdienst"}
+function notdienstStatusInfo(s){return NOTDIENST_STATUS.find(x=>x.key===s)||NOTDIENST_STATUS[0]}
+function getNdPrices(){try{return {...ND_DEFAULT,...JSON.parse(localStorage.getItem(ND_PRICE_KEY)||"{}")}}catch(e){return {...ND_DEFAULT}}}
+function ndEuro(v){return Number(v||0).toLocaleString("de-DE",{style:"currency",currency:"EUR"})}
+function ensureNotdienstView(){const host=document.getElementById("notdienst");if(!host)return null;let box=document.getElementById("notdienstAktiv");if(!box){box=document.createElement("div");box.id="notdienstAktiv";box.className="notdienst-active-list";const form=document.getElementById("notdienstForm");host.insertBefore(box,form||null)}return box}
+function ndHours(e){return Number(e.ndArbeitsstunden||localStorage.getItem("nd-hours-"+e.id)||0)}
+function ndCalc(e){const p=getNdPrices(),h=ndHours(e);const d=new Date((e.datum||"")+"T"+(e.von||"00:00"));let z=0;if(d.getHours()>=22||d.getHours()<6)z+=p.nacht;if(d.getDay()===0||d.getDay()===6)z+=p.wochenende;if(p.feiertag&&e.ndFeiertag)z+=p.feiertag;const netto=p.anfahrt+h*p.arbeitsstunde+z;const mwst=netto*p.mwst/100;return {netto,mwst,total:netto+mwst,zuschlag:z}}
+function ndSetHours(id,v){localStorage.setItem("nd-hours-"+id,String(Number(v)||0));renderNotdienst()}
+function toggleNdSettings(){const x=document.getElementById("ndPricePanel");if(x)x.classList.toggle("hidden")}
+function saveNdSettings(){const ids=["anfahrt","arbeitsstunde","nacht","wochenende","feiertag","material","mwst"];const p={};ids.forEach(k=>{p[k==="material"?"materialAufschlag":k]=Number(document.getElementById("ndp_"+k).value)||0});localStorage.setItem(ND_PRICE_KEY,JSON.stringify({...ND_DEFAULT,...p}));toggleNdSettings();renderNotdienst();alert("Notdienst-Preise wurden gespeichert.")}
+function ensureNdPricePanel(){const host=document.getElementById("notdienst");if(!host||document.getElementById("ndPriceWrap"))return;const p=getNdPrices();const w=document.createElement("div");w.id="ndPriceWrap";w.innerHTML=`<div class="ndp-toolbar"><div><div class="dashboard-eyebrow">ABRECHNUNG</div><strong>Notdienst-Preise</strong><span>Zentrale Preisvorgaben für die Einsatzkalkulation</span></div><button class="btnS" onclick="toggleNdSettings()">⚙️ Preise & Einstellungen</button></div><div id="ndPricePanel" class="ndp-panel hidden"><div class="sec">Preis-Einstellungen</div><div class="ndp-grid"><label>Anfahrt / Pauschale €<input id="ndp_anfahrt" type="number" min="0" step="0.01" value="${p.anfahrt}"></label><label>Arbeitsstunde €<input id="ndp_arbeitsstunde" type="number" min="0" step="0.01" value="${p.arbeitsstunde}"></label><label>Nachtzuschlag €<input id="ndp_nacht" type="number" min="0" step="0.01" value="${p.nacht}"></label><label>Wochenendzuschlag €<input id="ndp_wochenende" type="number" min="0" step="0.01" value="${p.wochenende}"></label><label>Feiertagszuschlag €<input id="ndp_feiertag" type="number" min="0" step="0.01" value="${p.feiertag}"></label><label>Materialaufschlag %<input id="ndp_material" type="number" min="0" step="0.1" value="${p.materialAufschlag}"></label><label>MwSt. %<input id="ndp_mwst" type="number" min="0" step="0.1" value="${p.mwst}"></label></div><div class="ndp-actions"><button class="btnS" onclick="toggleNdSettings()">Abbrechen</button><button class="btnP" onclick="saveNdSettings()">💾 Preise speichern</button></div></div>`;host.insertBefore(w,document.getElementById("notdienstStart")||host.firstChild)}
+function renderNotdienst(){const box=ensureNotdienstView();if(!box)return;ensureNdPricePanel();const entries=(window.AppData?.kalender?.eintraege||[]).filter(isNotdienstEntry).sort((a,b)=>((b.datum||"")+(b.von||"")).localeCompare((a.datum||"")+(a.von||"")));const active=entries.filter(e=>e.status!=="erledigt"),finished=entries.filter(e=>e.status==="erledigt").slice(0,5);const card=e=>{const info=notdienstStatusInfo(e.status),customer=[e.vorname,e.nachname].filter(Boolean).join(" ")||"Kunde",address=[[e.strasse,e.hausnummer].filter(Boolean).join(" "),[e.postleitzahl,e.ort].filter(Boolean).join(" ")].filter(Boolean).join(", "),desc=String(e.beschreibung||"").replace(/^\[NOTFALL\]\s*/i,"").trim(),idx=NOTDIENST_STATUS.findIndex(s=>s.key===info.key),progress=info.key==="erledigt"?100:Math.round(idx/4*100);const buttons=NOTDIENST_STATUS.filter(s=>s.key!=="erledigt"||info.key==="arbeit").map(s=>`<button class="notdienst-status-btn ${s.key===info.key?"current":""}" ${s.key!==info.key&&s.key!==info.next?"disabled":""} onclick="updateNotdienstStatus('${escapeNd(e.id)}','${s.key}')">${s.label}</button>`).join("");const c=ndCalc(e);return `<article class="notdienst-active-card ${info.key}"><div class="notdienst-active-head"><div><div class="notdienst-active-badge">${info.label}</div><h3>${escapeNd(e.titel)}</h3><div class="notdienst-meta">📅 ${escapeNd((e.datum||"").split("-").reverse().join("."))} · 🕒 ${escapeNd(e.von||"")} · 👤 ${escapeNd(e.mitarbeiter||"-")}</div></div><div class="notdienst-progress"><span style="width:${progress}%"></span></div></div><div class="notdienst-customer-grid"><div><small>KUNDE</small><strong>${escapeNd(customer)}</strong></div><div><small>TELEFON</small><strong>${e.telefonnummer?`<a href="tel:${escapeNd(e.telefonnummer)}">${escapeNd(e.telefonnummer)}</a>`:"–"}</strong></div><div><small>ADRESSE</small><strong>${escapeNd(address||"–")}</strong></div><div><small>EINSATZINFO</small><strong>${escapeNd(desc||"Keine weitere Angabe")}</strong></div></div><div class="ndp-calc"><div><small>VORLÄUFIGE KALKULATION</small><strong>${ndEuro(c.total)}</strong></div><label>Arbeitszeit Std.<input type="number" min="0" step="0.25" value="${ndHours(e)}" onchange="ndSetHours('${escapeNd(e.id)}',this.value)"></label><span>Anfahrt ${ndEuro(getNdPrices().anfahrt)} · Arbeit ${ndEuro(ndHours(e)*getNdPrices().arbeitsstunde)} · Zuschlag ${ndEuro(c.zuschlag)} · Netto ${ndEuro(c.netto)} · MwSt. ${ndEuro(c.mwst)}</span></div><div class="notdienst-status-actions">${buttons}</div><div class="notdienst-card-actions">${info.key!=="erledigt"?`<button class="btnP" onclick="openNotdienstNavigation('${escapeNd(e.id)}')">🧭 Navigation</button>`:""}${info.key!=="notdienst"?`<button class="btnS" onclick="openNotdienstRegiebericht('${escapeNd(e.id)}')">📄 Regiebericht</button>`:""}${info.key==="arbeit"?`<button class="btnP" onclick="updateNotdienstStatus('${escapeNd(e.id)}','erledigt')">✅ Einsatz abschließen</button>`:""}</div></article>`};box.innerHTML=`<div class="notdienst-section-title">AKTIVE EINSÄTZE</div>${active.length?active.map(card).join(""):"<div class=\"notdienst-empty-card\">🚨 Aktuell ist kein Notfalleinsatz aktiv.</div>"}`+(finished.length?`<div class="notdienst-section-title notdienst-finished-title">LETZTE ABGESCHLOSSENE EINSÄTZE</div>${finished.map(card).join("")}`:"")}
+async function updateNotdienstStatus(id,status){const e=(window.AppData?.kalender?.eintraege||[]).find(x=>String(x.id)===String(id));if(!e)return;try{if(window.supabaseReady&&window.supabaseClient&&!String(id).startsWith("LOCAL-")){const {error}=await window.supabaseClient.from("kalender_eintraege").update({status}).eq("id",id);if(error)throw error;await loadKalenderFromSupabase()}else{e.status=status;if(typeof saveAppData==="function")saveAppData();if(typeof renderKalender==="function")renderKalender();if(typeof renderDashboardWeek==="function")renderDashboardWeek()}renderNotdienst();if(status==="vor_ort")openNotdienstRegiebericht(id)}catch(err){console.error(err);alert("Der Status konnte nicht gespeichert werden: "+(err?.message||"Unbekannter Fehler"))}}
+function getNotdienstAddress(e){return [[e.strasse,e.hausnummer].filter(Boolean).join(" "),[e.postleitzahl,e.ort].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+function openNotdienstNavigation(id){const e=(window.AppData?.kalender?.eintraege||[]).find(x=>String(x.id)===String(id));if(!e)return;const a=getNotdienstAddress(e);if(!a){alert("Für diesen Einsatz ist keine vollständige Adresse hinterlegt.");return}const q=encodeURIComponent(a),ua=navigator.userAgent||"";if(/iPhone|iPad|iPod/i.test(ua)){window.location.href="maps://?daddr="+q;setTimeout(()=>window.location.href="http://maps.apple.com/?daddr="+q,500)}else if(/Android/i.test(ua)){window.location.href="geo:0,0?q="+q;setTimeout(()=>window.location.href="https://www.google.com/maps/dir/?api=1&destination="+q,700)}else window.open("https://www.google.com/maps/dir/?api=1&destination="+q,"_blank")}
+function openNotdienstRegiebericht(id){const e=(window.AppData?.kalender?.eintraege||[]).find(x=>String(x.id)===String(id));if(!e)return;const set=(i,v)=>{const el=document.getElementById(i);if(el)el.value=v||""};if(typeof iRB==="function")iRB();set("rb_dat",e.datum);set("rb_vn",e.vorname);set("rb_nn",e.nachname);set("rb_tel",e.telefonnummer);set("rb_adr",[e.strasse,e.hausnummer].filter(Boolean).join(" "));set("rb_plz",e.postleitzahl);set("rb_ort",e.ort);set("rb_bau","Notdiensteinsatz – "+(e.titel||""));set("rb_bem",String(e.beschreibung||"").replace(/^\[NOTFALL\]\s*/i,""));const m=document.getElementById("serviceModal");if(m){m.classList.add("service-report-modal");m.classList.remove("hidden");m.style.display="flex";document.body.style.overflow="hidden"}else if(typeof go==="function")go("kalender")}
+function openNotdienstForm(){const s=document.getElementById("notdienstStart"),f=document.getElementById("notdienstForm");if(s)s.classList.add("hidden");if(f)f.classList.remove("hidden");document.getElementById("nd_datum").value=notdienstToday();document.getElementById("nd_uhrzeit").value=notdienstNow();document.getElementById("nd_normaler_termin").checked=false;["nd_vorname","nd_nachname","nd_telefon","nd_strasse","nd_plz","nd_ort","nd_beschreibung"].forEach(id=>document.getElementById(id).value="");selectedNotdienstType="Türöffnung";document.querySelectorAll(".notdienst-type").forEach(b=>b.classList.toggle("active",b.dataset.type==="Türöffnung"));const saved=localStorage.getItem("schluesseldienst-mobile-employee");if(saved)document.getElementById("nd_mitarbeiter").value=saved;window.scrollTo({top:0,behavior:"smooth"})}
+function closeNotdienstForm(){document.getElementById("notdienstForm")?.classList.add("hidden");document.getElementById("notdienstStart")?.classList.remove("hidden");renderNotdienst()}
+function selectNotdienstType(t,b){selectedNotdienstType=t;document.querySelectorAll(".notdienst-type").forEach(x=>x.classList.remove("active"));if(b)b.classList.add("active")}
+async function saveNotdienst(startNavigation=false){const datum=document.getElementById("nd_datum").value,uhrzeit=document.getElementById("nd_uhrzeit").value,vorname=document.getElementById("nd_vorname").value.trim(),nachname=document.getElementById("nd_nachname").value.trim(),telefon=document.getElementById("nd_telefon").value.trim(),strasse=document.getElementById("nd_strasse").value.trim(),plz=document.getElementById("nd_plz").value.trim(),ort=document.getElementById("nd_ort").value.trim(),beschreibung=document.getElementById("nd_beschreibung").value.trim(),mitarbeiter=document.getElementById("nd_mitarbeiter").value,normalerTermin=document.getElementById("nd_normaler_termin").checked;if(!vorname&&!nachname){alert("Bitte mindestens Vor- oder Nachname des Kunden eingeben.");return}const entry={titel:[selectedNotdienstType,vorname,nachname].filter(Boolean).join(" – ")||"Notfalleinsatz",datum,von:uhrzeit?uhrzeit+":00":null,bis:null,typ:normalerTermin?"termin":"notdienst",status:normalerTermin?"geplant":"notdienst",mitarbeiter:mitarbeiter||null,nachname:nachname||null,vorname:vorname||null,telefonnummer:telefon||null,strasse:strasse||null,hausnummer:null,postleitzahl:plz||null,ort:ort||null,beschreibung:"[NOTFALL] "+selectedNotdienstType+(beschreibung?"\n"+beschreibung:"")};try{let saved=entry;if(window.supabaseReady&&window.supabaseClient){const {data,error}=await window.supabaseClient.from("kalender_eintraege").insert(entry).select().single();if(error)throw new Error(error.message||JSON.stringify(error));saved=data||entry;await loadKalenderFromSupabase()}else{entry.id="LOCAL-"+Date.now();entry.von=uhrzeit;entry.bis="";window.AppData=window.AppData||{};AppData.kalender=AppData.kalender||{eintraege:[]};AppData.kalender.eintraege.push(entry);saveAppData();renderKalender();alert("Offline gespeichert. Der Einsatz wird nur auf diesem Gerät angezeigt.")}renderDashboardWeek?.();renderNotdienst();closeNotdienstForm();if(startNavigation&&!normalerTermin){openNotdienstNavigation(saved.id||entry.id);return}alert(normalerTermin?"Der Vorgang wurde als normaler Termin angelegt.":"Der Notfalleinsatz wurde erfolgreich angelegt.")}catch(err){console.error(err);alert("Der Einsatz konnte nicht gespeichert werden: "+(err?.message||"Unbekannter Fehler"))}}
+function injectNotdienstStyles(){if(document.getElementById("notdienstRuntimeStyles"))return;const s=document.createElement("style");s.id="notdienstRuntimeStyles";s.textContent=`.notdienst-active-list{display:flex;flex-direction:column;gap:14px;margin:0 0 22px}.notdienst-section-title{font-size:11px;font-weight:800;letter-spacing:.16em;color:#7eb3e0;margin:8px 2px 2px;text-transform:uppercase}.notdienst-finished-title{margin-top:18px}.notdienst-empty-card{padding:20px;border:1px solid rgba(59,110,165,.28);border-radius:14px;background:rgba(16,42,64,.55);color:#91b4d2;text-align:center}.notdienst-active-card{padding:18px;border-radius:18px;background:linear-gradient(145deg,rgba(20,47,79,.98),rgba(10,28,50,.98));border:1px solid rgba(59,110,165,.38);box-shadow:0 12px 30px rgba(0,0,0,.18)}.notdienst-active-card.notdienst{border-color:rgba(249,115,22,.6)}.notdienst-active-card.unterwegs{border-color:rgba(234,179,8,.55)}.notdienst-active-card.vor_ort{border-color:rgba(59,130,246,.65)}.notdienst-active-card.arbeit{border-color:rgba(34,197,94,.58)}.notdienst-active-card.erledigt{opacity:.82}.notdienst-active-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.notdienst-active-badge{display:inline-flex;padding:5px 9px;border-radius:999px;background:rgba(249,115,22,.13);color:#ffad72;font-size:11px;font-weight:800;margin-bottom:7px}.notdienst-active-card h3{margin:0;color:#f4f9ff;font-size:19px}.notdienst-meta{margin-top:6px;color:#80a8ca;font-size:12px}.notdienst-progress{width:180px;height:8px;border-radius:99px;background:#091a2a;border:1px solid #23405a;overflow:hidden;flex-shrink:0;margin-top:15px}.notdienst-progress span{display:block;height:100%;background:#22c55e;border-radius:99px;transition:width .25s ease}.notdienst-customer-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}.notdienst-customer-grid>div{padding:11px;border-radius:11px;background:rgba(255,255,255,.035);border:1px solid rgba(120,160,200,.12);min-width:0}.notdienst-customer-grid small{display:block;font-size:9px;font-weight:800;letter-spacing:.12em;color:#6f9bc1;margin-bottom:5px}.notdienst-customer-grid strong{display:block;color:#eaf5ff;font-size:12px;line-height:1.4;overflow-wrap:anywhere}.notdienst-customer-grid a{color:#7ec6ff;text-decoration:none}.notdienst-status-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.notdienst-status-btn{padding:9px 11px;border-radius:10px;border:1px solid rgba(59,110,165,.34);background:#102a40;color:#bcd7ed;font-weight:700;font-size:11px;cursor:pointer}.notdienst-status-btn.current{background:#2563a8;border-color:#58a6e7;color:#fff}.notdienst-status-btn:not(:disabled):hover{border-color:#58a6e7}.notdienst-status-btn:disabled{opacity:.35;cursor:not-allowed}.notdienst-card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid rgba(120,160,200,.13)}.ndp-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 16px;margin:0 0 14px;border:1px solid rgba(59,110,165,.32);border-radius:15px;background:rgba(12,35,58,.72);color:#a9c7df}.ndp-toolbar strong{display:block;color:#eef7ff;font-size:15px;margin:2px 0}.ndp-toolbar span{font-size:12px}.ndp-panel{padding:18px;margin-bottom:14px;border:1px solid rgba(59,110,165,.42);border-radius:16px;background:#102a40}.ndp-panel.hidden{display:none}.ndp-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.ndp-grid label{font-size:11px;color:#8fb2d0;font-weight:700}.ndp-grid input{display:block;width:100%;box-sizing:border-box;margin-top:5px}.ndp-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.ndp-calc{margin-top:13px;padding:12px;border-radius:12px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);display:flex;align-items:center;gap:14px;flex-wrap:wrap}.ndp-calc small{display:block;color:#7eb3e0;font-size:9px;font-weight:800;letter-spacing:.1em}.ndp-calc strong{font-size:17px;color:#f1fff5}.ndp-calc label{font-size:10px;color:#8fb2d0}.ndp-calc input{width:90px;margin-left:5px}.ndp-calc span{font-size:10px;color:#789dbd}@media(max-width:760px){.notdienst-active-head{display:block}.notdienst-progress{width:100%;margin-top:12px}.notdienst-customer-grid{grid-template-columns:1fr 1fr}.notdienst-status-actions,.notdienst-card-actions{display:grid;grid-template-columns:1fr 1fr}.notdienst-status-btn,.notdienst-card-actions button{width:100%;min-height:42px}.ndp-toolbar{flex-direction:column;align-items:stretch}.ndp-toolbar button{width:100%}.ndp-grid{grid-template-columns:1fr 1fr}}@media(max-width:430px){.notdienst-customer-grid,.ndp-grid{grid-template-columns:1fr}.notdienst-status-actions,.notdienst-card-actions{grid-template-columns:1fr}.ndp-calc{display:grid;grid-template-columns:1fr}.ndp-calc input{width:100%;margin:5px 0 0}}`;document.head.appendChild(s)}
+injectNotdienstStyles();if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(renderNotdienst,150));else setTimeout(renderNotdienst,150);setInterval(()=>{const n=document.getElementById("notdienst");if(n&&!n.classList.contains("hidden"))renderNotdienst()},2000);
