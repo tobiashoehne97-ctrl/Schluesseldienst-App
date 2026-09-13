@@ -28,11 +28,23 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       c.src="js/notdienst-katalog-v2.js?v=20260913-2";
       c.onload=()=>{
         console.log("Notdienst-Katalog v2 geladen");
-        const r=document.createElement("script");
-        r.src="js/notdienst-report-fix-v2.js?v=20260913-1";
-        r.onload=()=>console.log("Notdienst-Regiebericht-Fix geladen");
-        r.onerror=()=>console.warn("Notdienst-Regiebericht-Fix konnte nicht geladen werden.");
-        document.head.appendChild(r);
+        const m=document.createElement("script");
+        m.src="js/notdienst-material-fix-v1.js?v=20260913-1";
+        m.onload=()=>{
+          console.log("Notdienst-Material-Fix geladen");
+          const r=document.createElement("script");
+          r.src="js/notdienst-report-fix-v2.js?v=20260913-1";
+          r.onload=()=>console.log("Notdienst-Regiebericht-Fix geladen");
+          r.onerror=()=>console.warn("Notdienst-Regiebericht-Fix konnte nicht geladen werden.");
+          document.head.appendChild(r);
+        };
+        m.onerror=()=>{
+          console.warn("Notdienst-Material-Fix konnte nicht geladen werden.");
+          const r=document.createElement("script");
+          r.src="js/notdienst-report-fix-v2.js?v=20260913-1";
+          document.head.appendChild(r);
+        };
+        document.head.appendChild(m);
       };
       c.onerror=()=>console.warn("Notdienst-Katalog konnte nicht geladen werden.");
       document.head.appendChild(c);
@@ -41,6 +53,11 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
       const c=document.createElement("script");
       c.src="js/notdienst-katalog-v2.js?v=20260913-2";
+      c.onload=()=>{
+        const m=document.createElement("script");
+        m.src="js/notdienst-material-fix-v1.js?v=20260913-1";
+        document.head.appendChild(m);
+      };
       document.head.appendChild(c);
     };
     document.head.appendChild(p);
