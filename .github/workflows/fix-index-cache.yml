@@ -17,9 +17,15 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          s2 = s.replace('js/appInit.js</script>', 'js/appInit.js?v=20260913-10</script>')
+          s2 = re.sub(
+              r'js/appInit\.js(?:\?v=[^"\']+)?</script>',
+              'js/appInit.js?v=20260913-15</script>',
+              s,
+              count=1
+          )
           if s2 != s:
               p.write_text(s2, encoding='utf-8')
           PY
