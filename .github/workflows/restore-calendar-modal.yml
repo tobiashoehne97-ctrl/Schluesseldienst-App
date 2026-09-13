@@ -1,0 +1,32 @@
+name: Restore calendar modal
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: ${{ !contains(github.event.head_commit.message, '[calendar-modal-fixed]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject calendar modal and bump appInit
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<div class="modal" id="pdfMod"'
+          modal='''<div class="modal hidden" id="kalenderModal" role="dialog" aria-modal="true" aria-labelledby="kal_modal_titel"><div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;margin:auto;padding:22px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px"><strong id="kal_modal_titel" style="font-size:20px">Kalender</strong><button class="btnS" type="button" onclick="closeKalenderModal()">✕</button></div><div id="kal_modal_content"></div></div></div>'''
+          if 'id="kalenderModal"' not in s:
+              if marker not in s: raise SystemExit('PDF modal marker not found')
+              s=s.replace(marker,modal+'\\n'+marker,1)
+          s=s.replace('js/appInit.js?v=20260913-15</script>','js/appInit.js?v=20260914-17</script>')
+          p.write_text(s,encoding='utf-8')
+          PY
+          rm -f .github/workflows/restore-calendar-modal.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html .github/workflows/restore-calendar-modal.yml
+          git commit -m 'Restore calendar modal [calendar-modal-fixed]'
+          git push
