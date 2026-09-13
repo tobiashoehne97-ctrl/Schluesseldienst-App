@@ -58,4 +58,15 @@ if (document.readyState === "loading") {
 if (typeof renderCustomerList === "function") {
     renderCustomerList();
 }
+
+// Zentrale Zeitprotokollierung nach den bestehenden Modulen laden.
+// Cache-Busting sorgt dafür, dass GitHub Pages die neue Version übernimmt.
+(function loadZeitprotokoll(){
+  const s=document.createElement("script");
+  s.src="js/zeitprotokoll.js?v=20260913-1";
+  s.onload=()=>{ if(typeof renderNotdienst==="function") renderNotdienst(); };
+  s.onerror=()=>console.warn("Zeitprotokollierung konnte nicht geladen werden.");
+  document.head.appendChild(s);
+})();
+
 console.log("Application started");
