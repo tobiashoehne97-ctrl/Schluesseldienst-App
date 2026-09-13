@@ -1,10 +1,11 @@
-/* Calendar Overlay Fix v2
-   Sicherheitsnetz gegen haengen gebliebene Fullscreen-Modals.
-   Versteckte Modals duerfen niemals den Seiteninhalt blockieren.
+/* Calendar Overlay Fix v3
+   Sicherheitsnetz gegen beim Seitenstart haengen gebliebene Fullscreen-Modals.
+   Nach dem Start werden Modals nicht mehr laufend ueberwacht, damit normale
+   Modal-Oeffnungen durch die Anwendung nicht blockiert werden.
 */
 (function(){
-  if(window.__calendarOverlayFixV2)return;
-  window.__calendarOverlayFixV2=true;
+  if(window.__calendarOverlayFixV3)return;
+  window.__calendarOverlayFixV3=true;
 
   function hide(el){
     if(!el)return;
@@ -14,31 +15,13 @@
     el.style.pointerEvents='none';
   }
 
-  function syncAll(){
-    document.querySelectorAll('.modal').forEach(function(el){
-      /* Nur ein ausdruecklich geoeffnetes Modal darf sichtbar sein. */
-      if(!el.classList.contains('open')) hide(el);
-    });
-    var pdf=document.getElementById('pdfMod');
-    if(pdf && !pdf.classList.contains('open')) hide(pdf);
-    if(!document.querySelector('.modal.open')) document.body.style.overflow='';
-  }
-
   function init(){
-    syncAll();
-    if(document.body){
-      new MutationObserver(function(){
-        /* Keine Dauer-Manipulation: nur reagieren, wenn ein Modal sichtbar wird. */
-        document.querySelectorAll('.modal').forEach(function(el){
-          if(!el.classList.contains('open')){
-            if(getComputedStyle(el).display!=='none' || el.style.pointerEvents!=='none') hide(el);
-          }
-        });
-      }).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','style']});
-    }
+    document.querySelectorAll('.modal').forEach(hide);
+    hide(document.getElementById('pdfMod'));
+    document.body.style.overflow='';
+    console.log('Calendar Overlay Fix v3 geladen');
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
   else init();
-  console.log('Calendar Overlay Fix v2 geladen');
 })();
