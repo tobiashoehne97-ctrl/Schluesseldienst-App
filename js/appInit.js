@@ -18,7 +18,14 @@ if (typeof renderCustomerList === "function") renderCustomerList();
 (function loadNotdienstWorkflow(){
   const s=document.createElement("script");
   s.src="js/notdienst-workflow.js?v=20260913-5";
-  s.onload=()=>console.log("Notdienst-Workflow geladen v5");
+  s.onload=()=>{
+    console.log("Notdienst-Workflow geladen v5");
+    const p=document.createElement("script");
+    p.src="js/notdienst-preise-v2.js?v=20260913-1";
+    p.onload=()=>console.log("Notdienst-Preislogik v2 geladen");
+    p.onerror=()=>console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
+    document.head.appendChild(p);
+  };
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
