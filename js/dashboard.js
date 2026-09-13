@@ -107,17 +107,39 @@ function renderDashboardWeek() {
       workEntries.slice(0,4).forEach(entry => {
         const item = document.createElement("div");
         item.className = "week-entry";
+        item.setAttribute("role","button");
+        item.tabIndex = 0;
         item.innerHTML = '<span class="week-entry-dot" style="background:'+
           (typeof getStatusColor === "function" ? getStatusColor(entry.status) : "#3b82c4")+
           '"></span><div><strong>'+escapeDashboardHtml(entry.titel || "Einsatz")+'</strong><small>'+
           escapeDashboardHtml((entry.von || "") + ((entry.bis) ? " – "+entry.bis : ""))+
           '</small></div>';
+
+        // Ein Termin wird direkt geöffnet. Der Klick darf nicht zusätzlich
+        // die Tagesübersicht des umgebenden Buttons öffnen.
+        const openEntry = function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (typeof openKalenderEntryDetails === "function") {
+            openKalenderEntryDetails(entry.id);
+          }
+        };
+        item.addEventListener("click", openEntry);
+        item.addEventListener("keydown", function(ev){
+          if(ev.key === "Enter" || ev.key === " ") openEntry(ev);
+        });
+
         body.appendChild(item);
       });
       if (workEntries.length > 4) {
         const more = document.createElement("div");
         more.className = "week-more";
         more.textContent = "+"+(workEntries.length-4)+" weitere";
+        more.addEventListener("click", function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (typeof openKalenderDay === "function") openKalenderDay(iso);
+        });
         body.appendChild(more);
       }
     } else {
@@ -135,9 +157,6 @@ function renderDashboardWeek() {
     }
 
     if (availability.length) {
-      // Verfügbarkeiten als echte Zeitbalken direkt im Wochentag.
-      // Inline-Styles sorgen dafür, dass die Darstellung unabhängig vom CSS-Cache
-      // von GitHub Pages zuverlässig sichtbar bleibt.
       const availabilityBox = document.createElement("div");
       availabilityBox.style.cssText =
         "margin-top:8px;padding:8px;border-radius:9px;background:rgba(8,24,38,.72);border:1px solid #23405a";
@@ -225,7 +244,6 @@ function renderDashboardWeek() {
   });
 }
 
-
 function dashboardTimeToMinutes(value) {
   const parts = String(value || "00:00").slice(0,5).split(":");
   return (Number(parts[0]) || 0) * 60 + (Number(parts[1]) || 0);
@@ -307,8 +325,6 @@ function initDashboard() {
 
   updateDashboard();
   initMobileEmployeeDashboard();
-
-  // Kalender wird nach kalender.js noch einmal gerendert.
   setTimeout(renderDashboardWeek, 0);
 }
 
