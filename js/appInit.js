@@ -42,8 +42,20 @@ if (typeof renderCustomerList === "function") renderCustomerList();
               console.log("Notdienst Start Fix geladen");
               const a=document.createElement("script");
               a.src="js/notdienst-workflow-access-fix-v1.js?v=20260913-1";
-              a.onload=()=>console.log("Notdienst Workflow Access Fix geladen");
-              a.onerror=()=>console.warn("Notdienst Workflow Access Fix konnte nicht geladen werden.");
+              a.onload=()=>{
+                console.log("Notdienst Workflow Access Fix geladen");
+                const z=document.createElement("script");
+                z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";
+                z.onload=()=>console.log("Notdienst Stability Fix geladen");
+                z.onerror=()=>console.warn("Notdienst Stability Fix konnte nicht geladen werden.");
+                document.head.appendChild(z);
+              };
+              a.onerror=()=>{
+                console.warn("Notdienst Workflow Access Fix konnte nicht geladen werden.");
+                const z=document.createElement("script");
+                z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";
+                document.head.appendChild(z);
+              };
               document.head.appendChild(a);
             };
             st.onerror=()=>console.warn("Notdienst Start Fix konnte nicht geladen werden.");
@@ -71,6 +83,11 @@ if (typeof renderCustomerList === "function") renderCustomerList();
           st.onload=()=>{
             const a=document.createElement("script");
             a.src="js/notdienst-workflow-access-fix-v1.js?v=20260913-1";
+            a.onload=()=>{
+              const z=document.createElement("script");
+              z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";
+              document.head.appendChild(z);
+            };
             document.head.appendChild(a);
           };
           document.head.appendChild(st);
@@ -84,4 +101,4 @@ if (typeof renderCustomerList === "function") renderCustomerList();
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
-console.log("Application started v9");
+console.log("Application started v10");
