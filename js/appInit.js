@@ -15,15 +15,27 @@ async function initApplication() {
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initApplication); else initApplication();
 if (typeof renderCustomerList === "function") renderCustomerList();
-(function loadNotdienstWorkflow(){
+(function loadNotdienstModules(){
   const s=document.createElement("script");
-  s.src="js/notdienst-workflow.js?v=20260913-5";
+  s.src="js/notdienst-workflow.js?v=20260913-6";
   s.onload=()=>{
-    console.log("Notdienst-Workflow geladen v5");
+    console.log("Notdienst-Workflow geladen v6");
     const p=document.createElement("script");
-    p.src="js/notdienst-preise-v2.js?v=20260913-1";
-    p.onload=()=>console.log("Notdienst-Preislogik v2 geladen");
-    p.onerror=()=>console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
+    p.src="js/notdienst-preise-v2.js?v=20260913-2";
+    p.onload=()=>{
+      console.log("Notdienst-Preislogik v2 geladen");
+      const c=document.createElement("script");
+      c.src="js/notdienst-katalog.js?v=20260913-1";
+      c.onload=()=>console.log("Notdienst-Katalog geladen v1");
+      c.onerror=()=>console.warn("Notdienst-Katalog konnte nicht geladen werden.");
+      document.head.appendChild(c);
+    };
+    p.onerror=()=>{
+      console.warn("Notdienst-Preislogik konnte nicht geladen werden.");
+      const c=document.createElement("script");
+      c.src="js/notdienst-katalog.js?v=20260913-1";
+      document.head.appendChild(c);
+    };
     document.head.appendChild(p);
   };
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
