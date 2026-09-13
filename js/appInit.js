@@ -19,7 +19,6 @@ if (typeof renderCustomerList === "function") renderCustomerList();
   const s=document.createElement("script");
   s.src="js/notdienst-workflow.js?v=20260913-10";
   s.onload=()=>{
-    console.log("Notdienst-Workflow geladen v10");
     const p=document.createElement("script");
     p.src="js/notdienst-preise-v2.js?v=20260913-3";
     p.onload=()=>{
@@ -42,14 +41,14 @@ if (typeof renderCustomerList === "function") renderCustomerList();
                 z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";
                 z.onload=()=>{
                   const sf=document.createElement("script");
-                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-2";
+                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-3";
                   sf.onload=()=>console.log("Notdienst Save Fix v4 geladen");
                   sf.onerror=()=>console.warn("Notdienst Save Fix v4 konnte nicht geladen werden.");
                   document.head.appendChild(sf);
                 };
                 z.onerror=()=>{
                   const sf=document.createElement("script");
-                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-2";
+                  sf.src="js/notdienst-save-fix-v3.js?v=20260913-3";
                   document.head.appendChild(sf);
                 };
                 document.head.appendChild(z);
@@ -75,4 +74,4 @@ if (typeof renderCustomerList === "function") renderCustomerList();
   s.onerror=()=>console.warn("Notdienst-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
-console.log("Application started v12");
+console.log("Application started v13");
