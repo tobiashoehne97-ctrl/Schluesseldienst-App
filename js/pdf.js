@@ -35,7 +35,7 @@ function pSec(doc,y,t,rows){
 function pSig(doc,y,sig,name,dat){const W=210,M=16;if(y+44>270){doc.addPage();y=20;}doc.setFillColor(242,247,254);doc.roundedRect(M,y,W-2*M,42,3,3,"F");doc.setDrawColor(37,99,168);doc.setLineWidth(0.3);doc.roundedRect(M,y,W-2*M,42,3,3,"S");doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(37,99,168);doc.text("KUNDENUNTERSCHRIFT",M+4,y+7);doc.setFont("helvetica","normal");doc.setFontSize(6.5);doc.setTextColor(100,120,150);doc.text("Mit meiner Unterschrift bestatige ich die Richtigkeit der Angaben.",M+4,y+13);if(sig){try{doc.addImage(sig,"PNG",M+4,y+15,78,20,undefined,"FAST");}catch(e){}}else{doc.setDrawColor(160,180,210);doc.line(M+4,y+35,M+90,y+35);}doc.setFontSize(7);doc.setTextColor(120,140,165);doc.text(String(name),M+4,y+40);doc.text("Datum: "+dat,W-M-32,y+40);return y+48;}
 function pFoto(doc,y,fotos){if(!fotos.length)return y;const W=210,M=16;if(y+46>270){doc.addPage();y=20;}doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(30,80,160);doc.text("FOTOS",M,y+5);y+=9;let ix=M;for(const b of fotos.slice(0,6)){if(y+42>270){doc.addPage();y=20;ix=M;}try{doc.addImage(b,"JPEG",ix,y,44,34,undefined,"FAST");}catch(e){}ix+=48;if(ix>W-40){ix=M;y+=38;}}return y+40;}
 
-async async function genPDF(mod){
+async async async function genPDF(mod){
   window._currentModul = mod;
   const{jsPDF}=window.jspdf;
   const doc=new jsPDF({unit:"mm",format:"a4"});
