@@ -20,8 +20,8 @@ jobs:
           import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          pattern = r'js/appInit\.js(?:\?v=[^"\']+)?</script>'
-          s2, n = re.subn(pattern, 'js/appInit.js?v=20260914-22</script>', s, count=1)
+          pattern = r"js/appInit\.js(?:\?v=[^\"']+)?</script>"
+          s2, n = re.subn(pattern, 'js/appInit.js?v=20260914-23</script>', s, count=1)
           if n == 0:
               raise SystemExit('appInit script tag not found in index.html')
           if s2 != s:
