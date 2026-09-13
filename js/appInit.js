@@ -17,9 +17,9 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 if (typeof renderCustomerList === "function") renderCustomerList();
 (function loadNotdienstModules(){
   const s=document.createElement("script");
-  s.src="js/notdienst-workflow.js?v=20260913-6";
+  s.src="js/notdienst-workflow.js?v=20260913-7";
   s.onload=()=>{
-    console.log("Notdienst-Workflow geladen v6");
+    console.log("Notdienst-Workflow geladen v7");
     const p=document.createElement("script");
     p.src="js/notdienst-preise-v2.js?v=20260913-2";
     p.onload=()=>{
@@ -28,23 +28,18 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       c.src="js/notdienst-katalog-v2.js?v=20260913-2";
       c.onload=()=>{
         console.log("Notdienst-Katalog v2 geladen");
-        const m=document.createElement("script");
-        m.src="js/notdienst-material-fix-v1.js?v=20260913-1";
-        m.onload=()=>{
-          console.log("Notdienst-Material-Fix geladen");
-          const r=document.createElement("script");
-          r.src="js/notdienst-report-fix-v2.js?v=20260913-1";
-          r.onload=()=>console.log("Notdienst-Regiebericht-Fix geladen");
-          r.onerror=()=>console.warn("Notdienst-Regiebericht-Fix konnte nicht geladen werden.");
-          document.head.appendChild(r);
+        const r=document.createElement("script");
+        r.src="js/notdienst-report-fix-v2.js?v=20260913-1";
+        r.onload=()=>{
+          console.log("Notdienst-Regiebericht-Fix geladen");
+          const m=document.createElement("script");
+          m.src="js/notdienst-material-workfix-v1.js?v=20260913-1";
+          m.onload=()=>console.log("Notdienst-Materialfeld-Fix geladen");
+          m.onerror=()=>console.warn("Notdienst-Materialfeld-Fix konnte nicht geladen werden.");
+          document.head.appendChild(m);
         };
-        m.onerror=()=>{
-          console.warn("Notdienst-Material-Fix konnte nicht geladen werden.");
-          const r=document.createElement("script");
-          r.src="js/notdienst-report-fix-v2.js?v=20260913-1";
-          document.head.appendChild(r);
-        };
-        document.head.appendChild(m);
+        r.onerror=()=>console.warn("Notdienst-Regiebericht-Fix konnte nicht geladen werden.");
+        document.head.appendChild(r);
       };
       c.onerror=()=>console.warn("Notdienst-Katalog konnte nicht geladen werden.");
       document.head.appendChild(c);
@@ -55,7 +50,7 @@ if (typeof renderCustomerList === "function") renderCustomerList();
       c.src="js/notdienst-katalog-v2.js?v=20260913-2";
       c.onload=()=>{
         const m=document.createElement("script");
-        m.src="js/notdienst-material-fix-v1.js?v=20260913-1";
+        m.src="js/notdienst-material-workfix-v1.js?v=20260913-1";
         document.head.appendChild(m);
       };
       document.head.appendChild(c);
