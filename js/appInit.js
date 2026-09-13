@@ -22,9 +22,16 @@ if (typeof renderCustomerList === "function") renderCustomerList();
 })();
 (function loadCalendarModalFix(){
   const s=document.createElement("script");
-  s.src="js/kalender-modal-open-fix-v1.js?v=20260914-1";
+  s.src="js/kalender-modal-open-fix-v1.js?v=20260914-5";
   s.onload=()=>console.log("Kalender Modal Open Fix geladen");
   s.onerror=()=>console.warn("Kalender Modal Open Fix konnte nicht geladen werden.");
   document.head.appendChild(s);
 })();
-console.log("Application started v21");
+(function loadCalendarOverlayFix(){
+  const s=document.createElement("script");
+  s.src="js/calendar-overlay-fix-v1.js?v=20260914-5";
+  s.onload=()=>console.log("Calendar Overlay Fix geladen");
+  s.onerror=()=>console.warn("Calendar Overlay Fix konnte nicht geladen werden.");
+  document.head.appendChild(s);
+})();
+console.log("Application started v22");
