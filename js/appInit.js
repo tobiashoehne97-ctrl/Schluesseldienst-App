@@ -83,4 +83,12 @@ if (typeof renderCustomerList === "function") renderCustomerList();
   document.head.appendChild(s);
 })();
 
-console.log("Application started v15");
+(function loadCalendarEmergencyFix(){
+  const s=document.createElement("script");
+  s.src="js/kalender-emergency-fix-v3.js?v=20260914-1";
+  s.onload=()=>console.log("Kalender Emergency Fix v3 geladen");
+  s.onerror=()=>console.warn("Kalender Emergency Fix v3 konnte nicht geladen werden.");
+  document.head.appendChild(s);
+})();
+
+console.log("Application started v16");
