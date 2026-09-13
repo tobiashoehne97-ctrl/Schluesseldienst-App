@@ -22,7 +22,7 @@ jobs:
           s = p.read_text(encoding='utf-8')
           s2 = re.sub(
               r'js/appInit\.js(?:\?v=[^"\']+)?</script>',
-              'js/appInit.js?v=20260914-18</script>',
+              'js/appInit.js?v=20260914-19</script>',
               s,
               count=1
           )
