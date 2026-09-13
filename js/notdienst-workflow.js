@@ -1,8 +1,8 @@
-/* Notdienst-Einsatzablauf + Zeitdokumentation
+/* Notdienst-Einsatzablauf + Zeitdokumentation + Abschluss
    Zeit ist Dokumentation und beeinflusst niemals automatisch den Preis.
 */
 (function(){
-  const KEY='schluesseldienst-notdienst-zeiten-v4';
+  const KEY='schluesseldienst-notdienst-zeiten-v5';
   const pad=n=>String(n).padStart(2,'0');
   const now=()=>new Date().toISOString();
   const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||JSON.stringify(d))}catch(e){return d}};
@@ -17,11 +17,20 @@
 
   function entry(id){return (window.AppData?.kalender?.eintraege||[]).find(e=>String(e.id)===String(id));}
   function address(e){return [[e.strasse,e.hausnummer].filter(Boolean).join(' '),[e.postleitzahl,e.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ')}
+  function price(e){
+    const candidates=[e?.endpreis,e?.gesamtpreis,e?.zuZahlen,e?.zu_zahlen,e?.preis,e?.betrag,e?.total,e?.rechnungssumme,e?.notdienstPreis,e?.notdienst_preis];
+    const n=candidates.find(v=>v!==undefined&&v!==null&&v!==''&&!isNaN(Number(v)));
+    return n===undefined?'':Number(n).toFixed(2).replace('.',',')+' €';
+  }
+  function paymentOptions(){return [
+    ['bar','💶 Barzahlung'],['karte','💳 Kartenzahlung'],['ec','💳 EC-/Girocard'],['ueberweisung','🏦 Überweisung'],['rechnung','🧾 Rechnung'],['sonstiges','Weitere Zahlungsart']
+  ]}
 
   function ensureStyle(){
     if(document.getElementById('ndWfStyle'))return;
     const s=document.createElement('style');s.id='ndWfStyle';
-    s.textContent=`#ndWorkflowModal{position:fixed;inset:0;z-index:99999;background:rgba(3,12,24,.84);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:18px}#ndWorkflowModal.open{display:flex}.nd-wf{width:min(680px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#102c43;border:1px solid #315a7c;border-radius:24px;box-shadow:0 24px 70px rgba(0,0,0,.5);color:#eaf5ff;padding:24px}.nd-wf-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.nd-wf-top h2{margin:4px 0;font-size:25px}.nd-wf-sub{color:#8fb8d8;font-size:14px}.nd-wf-close{border:1px solid #315a7c;background:#183a54;color:#dcefff;border-radius:12px;padding:9px 12px;font-size:18px}.nd-wf-status{display:inline-block;padding:7px 11px;border-radius:999px;background:#194e78;color:#bfe2ff;font-weight:800;font-size:12px;text-transform:uppercase}.nd-wf-clock{text-align:center;padding:30px 10px 24px}.nd-wf-clock .time{font-size:58px;font-weight:800}.nd-wf-clock .label{color:#8fb8d8;font-size:14px}.nd-wf-info{background:#163850;border:1px solid #285675;border-radius:16px;padding:15px;margin-bottom:18px}.nd-wf-info strong{display:block;font-size:17px;margin-bottom:5px}.nd-wf-info span{display:block;color:#a8c7df;font-size:14px;line-height:1.5}.nd-wf-btn{width:100%;border:0;border-radius:15px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;margin-top:10px}.nd-wf-success{background:#22a06b;color:white}.nd-wf-primary{background:#287dcc;color:white}.nd-wf-steps{display:flex;gap:7px;margin:18px 0}.nd-wf-step{flex:1;height:5px;border-radius:4px;background:#25445b}.nd-wf-step.active{background:#3787c8}.nd-wf-step.done{background:#2caf75}.nd-wf-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0}.nd-wf-summary div{background:#163850;border:1px solid #285675;border-radius:12px;padding:11px}.nd-wf-summary small{display:block;color:#80a9c9;font-size:11px}.nd-wf-summary strong{display:block;margin-top:3px}.nd-wf-field{margin:14px 0}.nd-wf-field label{display:block;font-size:12px;color:#8fb8d8;font-weight:800;text-transform:uppercase;margin-bottom:7px}.nd-wf-field textarea{width:100%;box-sizing:border-box;background:#17374f;border:1px solid #315a7c;color:#eef8ff;border-radius:12px;padding:12px;font-size:16px;min-height:95px;resize:vertical}@media(max-width:600px){#ndWorkflowModal{padding:0}.nd-wf{width:100%;height:100%;max-height:none;border-radius:0;border:0;padding:20px 18px}.nd-wf-clock .time{font-size:52px}}`;
+    s.textContent=`#ndWorkflowModal{position:fixed;inset:0;z-index:99999;background:rgba(3,12,24,.84);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:18px}#ndWorkflowModal.open{display:flex}.nd-wf{width:min(680px,100%);max-height:calc(100vh - 36px);overflow:auto;background:#102c43;border:1px solid #315a7c;border-radius:24px;box-shadow:0 24px 70px rgba(0,0,0,.5);color:#eaf5ff;padding:24px}.nd-wf-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.nd-wf-top h2{margin:4px 0;font-size:25px}.nd-wf-sub{color:#8fb8d8;font-size:14px}.nd-wf-close{border:1px solid #315a7c;background:#183a54;color:#dcefff;border-radius:12px;padding:9px 12px;font-size:18px}.nd-wf-status{display:inline-block;padding:7px 11px;border-radius:999px;background:#194e78;color:#bfe2ff;font-weight:800;font-size:12px;text-transform:uppercase}.nd-wf-clock{text-align:center;padding:30px 10px 24px}.nd-wf-clock .time{font-size:58px;font-weight:800}.nd-wf-clock .label{color:#8fb8d8;font-size:14px}.nd-wf-info{background:#163850;border:1px solid #285675;border-radius:16px;padding:15px;margin-bottom:18px}.nd-wf-info strong{display:block;font-size:17px;margin-bottom:5px}.nd-wf-info span{display:block;color:#a8c7df;font-size:14px;line-height:1.5}.nd-wf-btn{width:100%;border:0;border-radius:15px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;margin-top:10px}.nd-wf-success{background:#22a06b;color:white}.nd-wf-primary{background:#287dcc;color:white}.nd-wf-danger{background:#a84b4b;color:white}.nd-wf-steps{display:flex;gap:7px;margin:18px 0}.nd-wf-step{flex:1;height:5px;border-radius:4px;background:#25445b}.nd-wf-step.active{background:#3787c8}.nd-wf-step.done{background:#2caf75}.nd-wf-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0}.nd-wf-summary div{background:#163850;border:1px solid #285675;border-radius:12px;padding:11px}.nd-wf-summary small{display:block;color:#80a9c9;font-size:11px}.nd-wf-summary strong{display:block;margin-top:3px}.nd-wf-field{margin:14px 0}.nd-wf-field label{display:block;font-size:12px;color:#8fb8d8;font-weight:800;text-transform:uppercase;margin-bottom:7px}.nd-wf-field textarea,.nd-wf-field select{width:100%;box-sizing:border-box;background:#17374f;border:1px solid #315a7c;color:#eef8ff;border-radius:12px;padding:12px;font-size:16px}.nd-wf-field textarea{min-height:95px;resize:vertical}.nd-wf-price{background:#173e5a;border:1px solid #39749b;border-radius:18px;padding:18px;margin:18px 0;text-align:center}.nd-wf-price small{display:block;color:#8fb8d8;text-transform:uppercase;font-size:11px;font-weight:800}.nd-wf-price strong{display:block;font-size:34px;margin-top:5px}.nd-wf-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}.nd-wf-choice button{border:1px solid #315a7c;background:#17374f;color:#eaf5ff;border-radius:14px;padding:14px;font-weight:800;font-size:15px}.nd-wf-choice button.selected{border-color:#43a978;background:#195c48}.nd-wf-sign{height:180px;background:#fff;border-radius:14px;border:2px solid #315a7c;touch-action:none;display:block;width:100%}.nd-wf-sign-actions{display:flex;gap:10px}.nd-wf-sign-actions button{flex:1;border:1px solid #315a7c;background:#17374f;color:#eaf5ff;border-radius:12px;padding:11px;font-weight:700}@media(max-width:600px){#ndWorkflowModal{padding:0}.nd-wf{width:100%;height:100%;max-height:none;border-radius:0;border:0;padding:20px 18px}.nd-wf-clock .time{font-size:52px}.nd-wf-choice{grid-template-columns:1fr 1fr}}
+`;
     document.head.appendChild(s);
   }
 
@@ -36,7 +45,7 @@
 
   function renderWork(id){
     const e=entry(id),t=getTimes(id);if(!e)return;clearInterval(timer);
-    document.getElementById('ndWorkflowInner').innerHTML=`<div class="nd-wf-top"><div><div class="nd-wf-status">📍 Vor Ort</div><h2>Einsatz dokumentieren</h2><div class="nd-wf-sub">Was wurde vorgefunden und was wurde durchgeführt?</div></div><button class="nd-wf-close" onclick="window.closeNdWorkflow()">×</button></div><div class="nd-wf-steps"><div class="nd-wf-step done"></div><div class="nd-wf-step active"></div><div class="nd-wf-step"></div></div><div class="nd-wf-summary"><div><small>Fahrt gestartet</small><strong>${fmt(t.fahrtStart)}</strong></div><div><small>Angekommen</small><strong>${fmt(t.angekommen)}</strong></div><div><small>Fahrtdauer</small><strong>${durationText(duration(t.fahrtStart,t.angekommen))}</strong></div><div><small>Arbeitsbeginn</small><strong>${fmt(t.arbeitStart)}</strong></div></div><div class="nd-wf-field"><label>Was wurde vorgefunden?</label><textarea id="ndWfVorgefunden" placeholder="z. B. Schloss defekt, Schlüssel abgebrochen ...">${esc(t.vorgefunden||'')}</textarea></div><div class="nd-wf-field"><label>Was wurde durchgeführt?</label><textarea id="ndWfDurchgefuehrt" placeholder="z. B. Schloss ausgebaut und ersetzt ...">${esc(t.durchgefuehrt||'')}</textarea></div><div class="nd-wf-field"><label>Material / Besonderheiten</label><textarea id="ndWfMaterial" placeholder="Verwendetes Material oder weitere Hinweise ...">${esc(t.materialText||'')}</textarea></div><button class="nd-wf-btn nd-wf-primary" onclick="window.ndContinueToReport('${esc(id)}')">Weiter zum Regiebericht →</button>`;
+    document.getElementById('ndWorkflowInner').innerHTML=`<div class="nd-wf-top"><div><div class="nd-wf-status">📍 Vor Ort</div><h2>Einsatz dokumentieren</h2><div class="nd-wf-sub">Was wurde vorgefunden und was wurde durchgeführt?</div></div><button class="nd-wf-close" onclick="window.closeNdWorkflow()">×</button></div><div class="nd-wf-steps"><div class="nd-wf-step done"></div><div class="nd-wf-step active"></div><div class="nd-wf-step"></div></div><div class="nd-wf-summary"><div><small>Fahrt gestartet</small><strong>${fmt(t.fahrtStart)}</strong></div><div><small>Angekommen</small><strong>${fmt(t.angekommen)}</strong></div><div><small>Fahrtdauer</small><strong>${durationText(duration(t.fahrtStart,t.angekommen))}</strong></div><div><small>Arbeitsbeginn</small><strong>${fmt(t.arbeitStart)}</strong></div></div><div class="nd-wf-field"><label>Was wurde vorgefunden?</label><textarea id="ndWfVorgefunden" placeholder="z. B. Schloss defekt, Schlüssel abgebrochen ...">${esc(t.vorgefunden||'')}</textarea></div><div class="nd-wf-field"><label>Was wurde durchgeführt?</label><textarea id="ndWfDurchgefuehrt" placeholder="z. B. Schloss ausgebaut und ersetzt ...">${esc(t.durchgefuehrt||'')}</textarea></div><div class="nd-wf-field"><label>Material / Besonderheiten</label><textarea id="ndWfMaterial" placeholder="Verwendetes Material oder weitere Hinweise ...">${esc(t.materialText||'')}</textarea></div><button class="nd-wf-btn nd-wf-primary" onclick="window.ndContinueToClose('${esc(id)}')">Einsatz abschließen →</button>`;
   }
 
   window.ndArrived=async function(id){
@@ -47,12 +56,31 @@
     renderWork(id);
   };
 
-  window.ndContinueToReport=function(id){
-    const t=getTimes(id);t.vorgefunden=document.getElementById('ndWfVorgefunden')?.value.trim()||'';t.durchgefuehrt=document.getElementById('ndWfDurchgefuehrt')?.value.trim()||'';t.materialText=document.getElementById('ndWfMaterial')?.value.trim()||'';
-    const all=read(KEY,{});all[id]=t;write(KEY,all);activeId=id;
-    if(typeof window.openNotdienstRegiebericht==='function')window.openNotdienstRegiebericht(id);
-    setTimeout(()=>{const el=document.getElementById('rb_bem');if(el){const extra=[t.vorgefunden,t.durchgefuehrt,t.materialText].filter(Boolean).join('\n\n');if(extra)el.value=extra}},100);
+  window.ndContinueToClose=function(id){
+    const t=getTimes(id);t.vorgefunden=document.getElementById('ndWfVorgefunden')?.value.trim()||'';t.durchgefuehrt=document.getElementById('ndWfDurchgefuehrt')?.value.trim()||'';t.materialText=document.getElementById('ndWfMaterial')?.value.trim()||'';const all=read(KEY,{});all[id]=t;write(KEY,all);renderClose(id);
+  };
+
+  function renderClose(id){
+    const e=entry(id),t=getTimes(id);if(!e)return;
+    document.getElementById('ndWorkflowInner').innerHTML=`<div class="nd-wf-top"><div><div class="nd-wf-status">🧾 Einsatzabschluss</div><h2>Einsatz abschließen</h2><div class="nd-wf-sub">Bitte Abschluss, Zahlung und Unterschrift erfassen.</div></div><button class="nd-wf-close" onclick="window.closeNdWorkflow()">×</button></div><div class="nd-wf-steps"><div class="nd-wf-step done"></div><div class="nd-wf-step done"></div><div class="nd-wf-step active"></div></div><div class="nd-wf-choice"><button id="ndCompleteYes" onclick="window.ndSetCompletion('${esc(id)}','ja')">✅ Einsatz konnte abgeschlossen werden</button><button id="ndCompleteNo" onclick="window.ndSetCompletion('${esc(id)}','nein')">📅 Folgetermin erforderlich</button></div><div class="nd-wf-price"><small>Zu zahlender Betrag</small><strong>${price(e)||'Preis wird aus dem Auftrag übernommen'}</strong></div><div class="nd-wf-field"><label>Zahlungsart</label><select id="ndPayment"><option value="">Bitte Zahlungsart auswählen …</option>${paymentOptions().map(x=>`<option value="${x[0]}" ${t.zahlungsart===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div><div class="nd-wf-field"><label>Unterschrift Kunde</label><canvas id="ndSignature" class="nd-wf-sign"></canvas><div class="nd-wf-sign-actions"><button onclick="window.ndClearSignature()">Unterschrift löschen</button></div></div><button class="nd-wf-btn nd-wf-success" onclick="window.ndFinish('${esc(id)}')">Abschluss speichern</button>`;
+    window.ndSetCompletion(id,t.abschluss||'');
+    initSignature();
+  }
+
+  window.ndSetCompletion=function(id,value){const all=read(KEY,{});all[id]=all[id]||{};all[id].abschluss=value;write(KEY,all);document.getElementById('ndCompleteYes')?.classList.toggle('selected',value==='ja');document.getElementById('ndCompleteNo')?.classList.toggle('selected',value==='nein')};
+
+  let sig=null,drawing=false;
+  function initSignature(){const c=document.getElementById('ndSignature');if(!c)return;sig=c;const ratio=Math.max(1,window.devicePixelRatio||1),rect=c.getBoundingClientRect();c.width=Math.round(rect.width*ratio);c.height=Math.round(rect.height*ratio);const ctx=c.getContext('2d');ctx.scale(ratio,ratio);ctx.strokeStyle='#111';ctx.lineWidth=2;ctx.lineCap='round';const pos=e=>{const r=c.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return {x:p.clientX-r.left,y:p.clientY-r.top}};const start=e=>{drawing=true;ctx.beginPath();const p=pos(e);ctx.moveTo(p.x,p.y);e.preventDefault()};const move=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();e.preventDefault()};const end=()=>drawing=false;c.addEventListener('pointerdown',start);c.addEventListener('pointermove',move);c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end)}
+  window.ndClearSignature=function(){const c=document.getElementById('ndSignature');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height)};
+
+  window.ndFinish=async function(id){
+    const all=read(KEY,{}),t=all[id]||{};t.zahlungsart=document.getElementById('ndPayment')?.value||'';t.unterschrift=document.getElementById('ndSignature')?.toDataURL('image/png')||'';t.ende=t.ende||now();t.erledigt=now();all[id]=t;write(KEY,all);
+    const e=entry(id);if(e)e.status=t.abschluss==='nein'?'folgetermin':'erledigt';
+    try{if(window.supabaseReady&&window.supabaseClient&&!String(id).startsWith('LOCAL-')){const r=await window.supabaseClient.from('kalender_eintraege').update({status:e?.status||'erledigt'}).eq('id',id);if(r.error)throw r.error}else if(typeof window.saveAppData==='function')window.saveAppData()}catch(err){console.warn('Abschlussstatus konnte nicht gespeichert werden',err)}
+    if(typeof window.renderNotdienst==='function')window.renderNotdienst();
     closeWorkflowOnly();
+    if(typeof window.openNotdienstRegiebericht==='function')window.openNotdienstRegiebericht(id);
+    setTimeout(()=>{const el=document.getElementById('rb_bem');if(el){const extra=[t.vorgefunden,t.durchgefuehrt,t.materialText,t.abschluss==='nein'?'Folgetermin erforderlich.':'Einsatz abgeschlossen.'].filter(Boolean).join('\n\n');if(extra)el.value=extra}},120);
   };
 
   function closeWorkflowOnly(){clearInterval(timer);document.getElementById('ndWorkflowModal')?.classList.remove('open')}
@@ -69,68 +97,19 @@
   };
 
   async function findSavedNotdienst(before,snap){
-    const local=()=>{
-      const list=(window.AppData?.kalender?.eintraege||[]).filter(e=>e?.typ==='notdienst');
-      let found=list.find(x=>!before.has(String(x.id)));
-      if(!found&&snap)found=list.filter(x=>x.datum===snap.datum&&String(x.von||'').startsWith(String(snap.uhrzeit||''))&&String(x.vorname||'').trim()===String(snap.vorname||'').trim()&&String(x.nachname||'').trim()===String(snap.nachname||'').trim()).sort((a,b)=>String(b.id).localeCompare(String(a.id)))[0];
-      return found||null;
-    };
+    const local=()=>{const list=(window.AppData?.kalender?.eintraege||[]).filter(e=>e?.typ==='notdienst');let found=list.find(x=>!before.has(String(x.id)));if(!found&&snap)found=list.filter(x=>x.datum===snap.datum&&String(x.von||'').startsWith(String(snap.uhrzeit||''))&&String(x.vorname||'').trim()===String(snap.vorname||'').trim()&&String(x.nachname||'').trim()===String(snap.nachname||'').trim()).sort((a,b)=>String(b.id).localeCompare(String(a.id)))[0];return found||null};
     let found=local();if(found)return found;
-    if(window.supabaseReady&&window.supabaseClient&&snap){
-      try{
-        let q=window.supabaseClient.from('kalender_eintraege').select('*').eq('typ','notdienst').eq('datum',snap.datum).limit(20);
-        const r=await q;
-        if(!r.error&&Array.isArray(r.data)){
-          found=r.data.filter(x=>String(x.von||'').startsWith(String(snap.uhrzeit||''))&&String(x.vorname||'').trim()===String(snap.vorname||'').trim()&&String(x.nachname||'').trim()===String(snap.nachname||'').trim()).sort((a,b)=>String(b.id).localeCompare(String(a.id)))[0]||null;
-          if(found){
-            window.AppData=window.AppData||{};window.AppData.kalender=window.AppData.kalender||{};window.AppData.kalender.eintraege=window.AppData.kalender.eintraege||[];
-            const i=window.AppData.kalender.eintraege.findIndex(x=>String(x.id)===String(found.id));
-            if(i>=0)window.AppData.kalender.eintraege[i]=found;else window.AppData.kalender.eintraege.push(found);
-            return found;
-          }
-        }
-      }catch(err){console.warn('Supabase-Suche nach neuem Notdiensteinsatz fehlgeschlagen',err)}
-    }
+    if(window.supabaseReady&&window.supabaseClient&&snap){try{const r=await window.supabaseClient.from('kalender_eintraege').select('*').eq('typ','notdienst').eq('datum',snap.datum).limit(20);if(!r.error&&Array.isArray(r.data)){found=r.data.filter(x=>String(x.von||'').startsWith(String(snap.uhrzeit||''))&&String(x.vorname||'').trim()===String(snap.vorname||'').trim()&&String(x.nachname||'').trim()===String(snap.nachname||'').trim()).sort((a,b)=>String(b.id).localeCompare(String(a.id)))[0]||null;if(found){window.AppData=window.AppData||{};window.AppData.kalender=window.AppData.kalender||{};window.AppData.kalender.eintraege=window.AppData.kalender.eintraege||[];const i=window.AppData.kalender.eintraege.findIndex(x=>String(x.id)===String(found.id));if(i>=0)window.AppData.kalender.eintraege[i]=found;else window.AppData.kalender.eintraege.push(found);return found}}}catch(err){console.warn('Supabase-Suche nach neuem Notdiensteinsatz fehlgeschlagen',err)}}
     return null;
   }
 
-  async function waitForNewNotdienst(before,snap,tries=32){
-    for(let i=0;i<tries;i++){
-      const found=await findSavedNotdienst(before,snap);if(found)return found;
-      if(typeof window.loadKalenderFromSupabase==='function'){try{await window.loadKalenderFromSupabase()}catch(e){}}
-      await new Promise(r=>setTimeout(r,250));
-    }
-    return null;
-  }
+  async function waitForNewNotdienst(before,snap,tries=32){for(let i=0;i<tries;i++){const found=await findSavedNotdienst(before,snap);if(found)return found;if(typeof window.loadKalenderFromSupabase==='function'){try{await window.loadKalenderFromSupabase()}catch(e){}}await new Promise(r=>setTimeout(r,250))}return null}
 
   let originalSave=null,wrappedSave=null;
-  function installSaveHook(){
-    const base=window.saveNotdienst;
-    if(typeof base!=='function'||base===wrappedSave)return;
-    originalSave=base;
-    wrappedSave=async function(useNavigation){
-      const snap={datum:document.getElementById('nd_datum')?.value||'',uhrzeit:document.getElementById('nd_uhrzeit')?.value||'',vorname:document.getElementById('nd_vorname')?.value||'',nachname:document.getElementById('nd_nachname')?.value||''};
-      const before=new Set((window.AppData?.kalender?.eintraege||[]).filter(e=>e?.typ==='notdienst').map(e=>String(e.id)));
-      try{await originalSave(false)}catch(err){console.error('Notdiensteinsatz konnte nicht gespeichert werden',err);alert('Der Notfalleinsatz konnte nicht gespeichert werden: '+(err?.message||err));return}
-      const e=await waitForNewNotdienst(before,snap);
-      if(e){await window.startNotdienstWorkflow(e.id,!!useNavigation)}
-      else alert('Der Notfalleinsatz wurde gespeichert, aber der Einsatz konnte nicht automatisch gestartet werden. Bitte die Seite einmal neu laden.');
-    };
-    window.saveNotdienst=wrappedSave;
-  }
+  function installSaveHook(){const base=window.saveNotdienst;if(typeof base!=='function'||base===wrappedSave)return;originalSave=base;wrappedSave=async function(useNavigation){const snap={datum:document.getElementById('nd_datum')?.value||'',uhrzeit:document.getElementById('nd_uhrzeit')?.value||'',vorname:document.getElementById('nd_vorname')?.value||'',nachname:document.getElementById('nd_nachname')?.value||''};const before=new Set((window.AppData?.kalender?.eintraege||[]).filter(e=>e?.typ==='notdienst').map(e=>String(e.id)));try{await originalSave(false)}catch(err){console.error('Notdiensteinsatz konnte nicht gespeichert werden',err);alert('Der Notfalleinsatz konnte nicht gespeichert werden: '+(err?.message||err));return}const e=await waitForNewNotdienst(before,snap);if(e){await window.startNotdienstWorkflow(e.id,!!useNavigation)}else alert('Der Notfalleinsatz wurde gespeichert, aber der Einsatz konnte nicht automatisch gestartet werden. Bitte die Seite einmal neu laden.')};window.saveNotdienst=wrappedSave}
 
-  function convertButtons(){
-    const form=document.getElementById('notdienstForm');if(!form)return;
-    form.querySelectorAll('button').forEach(b=>{const oc=b.getAttribute('onclick')||'';if(!oc.includes('saveNotdienst'))return;if(oc.includes('true')){b.setAttribute('onclick','saveNotdienst(true)');b.textContent='🚗 Fahrt starten + Navigation'}else{b.setAttribute('onclick','saveNotdienst(false)');b.textContent='🚗 Fahrt starten ohne Navigation'}})
-  }
-
-  const originalGenPDF=window.genPDF;
-  window.genPDF=function(type){
-    const result=typeof originalGenPDF==='function'?originalGenPDF.apply(this,arguments):undefined;
-    if(type==='rb'&&activeId){setTime(activeId,'ende');setTime(activeId,'erledigt');const e=entry(activeId);if(e)e.status='erledigt';if(window.supabaseReady&&window.supabaseClient&&!String(activeId).startsWith('LOCAL-'))window.supabaseClient.from('kalender_eintraege').update({status:'erledigt'}).eq('id',activeId).then(()=>{}).catch(()=>{});if(typeof window.renderNotdienst==='function')window.renderNotdienst()}
-    return result;
-  };
-
+  function convertButtons(){const form=document.getElementById('notdienstForm');if(!form)return;form.querySelectorAll('button').forEach(b=>{const oc=b.getAttribute('onclick')||'';if(!oc.includes('saveNotdienst'))return;if(oc.includes('true')){b.setAttribute('onclick','saveNotdienst(true)');b.textContent='🚗 Fahrt starten + Navigation'}else{b.setAttribute('onclick','saveNotdienst(false)');b.textContent='🚗 Fahrt starten ohne Navigation'}})}
+  const originalGenPDF=window.genPDF;window.genPDF=function(type){const result=typeof originalGenPDF==='function'?originalGenPDF.apply(this,arguments):undefined;if(type==='rb'&&activeId){setTime(activeId,'ende');setTime(activeId,'erledigt');const e=entry(activeId);if(e)e.status='erledigt';if(window.supabaseReady&&window.supabaseClient&&!String(activeId).startsWith('LOCAL-'))window.supabaseClient.from('kalender_eintraege').update({status:'erledigt'}).eq('id',activeId).then(()=>{}).catch(()=>{});if(typeof window.renderNotdienst==='function')window.renderNotdienst()}return result};
   function init(){modal();installSaveHook();convertButtons();setInterval(()=>{installSaveHook();convertButtons()},500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
