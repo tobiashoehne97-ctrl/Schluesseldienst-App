@@ -1122,7 +1122,7 @@ async function doMail(nurBuero){
       alert("Das PDF ist noch nicht verfügbar. Bitte den Regiebericht erneut erstellen.");
       return;
     }
-    const btn=event?.currentTarget;
+    const btn=window.event?.currentTarget;
     if(btn){btn.disabled=true;btn.dataset.originalText=btn.textContent;btn.textContent="Wird versendet…";}
     try{
       const response=await fetch("/.netlify/functions/send-regiebericht",{
