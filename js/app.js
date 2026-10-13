@@ -1103,11 +1103,61 @@ function naechsterAuftrag() {
   tab(mod, 0);
 }
 
-function doMail(nurBuero){
-  const to=nurBuero?BUERO:(document.getElementById("mailEm").value||BUERO);
-  const cc=(!nurBuero&&document.getElementById("mailEm").value)?BUERO:"";
+async function doMail(nurBuero){
+  const emailInput=document.getElementById("mailEm");
+  const kundenEmail=(emailInput?.value||"").trim();
   const typ=curMail.typ||"Dokument";
-  const anr=typ==="Angebot"?"unser Angebot":typ==="Regiebericht"?"Ihren Arbeitsrapport":"Ihr Einsatzprotokoll";
+
+  // Regieberichte werden über die Netlify-Funktion wirklich versendet,
+  // einschließlich des gerade erzeugten PDF als E-Mail-Anhang.
+  if(typ==="Regiebericht"){
+    if(!nurBuero&&!kundenEmail){
+      alert("Bitte zuerst die E-Mail-Adresse des Kunden eingeben oder „Nur Büro“ wählen.");
+      emailInput?.focus();
+      return;
+    }
+    const pdfUri=window._currentPdfUri||"";
+    const pdfBase64=pdfUri.includes(",")?pdfUri.split(",")[1]:"";
+    if(!pdfBase64){
+      alert("Das PDF ist noch nicht verfügbar. Bitte den Regiebericht erneut erstellen.");
+      return;
+    }
+    const btn=event?.currentTarget;
+    if(btn){btn.disabled=true;btn.dataset.originalText=btn.textContent;btn.textContent="Wird versendet…";}
+    try{
+      const response=await fetch("/.netlify/functions/send-regiebericht",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          email:nurBuero?BUERO:kundenEmail,
+          cc:(!nurBuero&&kundenEmail)?BUERO:"",
+          entry:{
+            vorname:document.getElementById("rb_vn")?.value||"",
+            nachname:document.getElementById("rb_nn")?.value||"",
+            datum:document.getElementById("rb_dat")?.value||curMail.dat||"",
+            nr:curMail.nr
+          },
+          pdfBase64,
+          filename:(curMail.nr||"Regiebericht")+".pdf"
+        })
+      });
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok||!result.success)throw new Error(result.error||"Der E-Mail-Versand ist fehlgeschlagen.");
+      const status=document.getElementById("mailOk");
+      if(status){status.textContent=nurBuero?"✓ Regiebericht ans Büro versendet":"✓ Regiebericht an Kunde und Büro versendet";status.classList.remove("hidden");}
+    }catch(error){
+      console.error("Regiebericht-E-Mail fehlgeschlagen:",error);
+      alert("E-Mail konnte nicht versendet werden: "+(error.message||error)+"\n\nBitte prüfen, ob die App über Netlify geöffnet ist und RESEND_API_KEY sowie FROM_EMAIL in Netlify gesetzt sind.");
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=btn.dataset.originalText|| (nurBuero?"🏢 Nur Büro":"Kunde + Büro");}
+    }
+    return;
+  }
+
+  // Türöffnung und Angebote behalten vorerst den bisherigen Mailprogramm-Workflow.
+  const to=nurBuero?BUERO:(kundenEmail||BUERO);
+  const cc=(!nurBuero&&kundenEmail)?BUERO:"";
+  const anr=typ==="Angebot"?"unser Angebot":"Ihr Einsatzprotokoll";
   const subj=encodeURIComponent(typ+" "+curMail.nr+" - "+FN);
   const body=encodeURIComponent("Sehr geehrte/r "+(curMail.name||"Kundin/Kunde")+",\n\nanbei erhalten Sie "+anr+" vom "+(curMail.dat||"")+"."+"\n\nAuftragsnummer: "+curMail.nr+"\n"+(curMail.info||"")+"\n\nMit freundlichen Gruessen\n"+FN+"\n"+FS+" - "+FP+"\nTel: "+FT);
   let href="mailto:"+encodeURIComponent(to)+"?subject="+subj+"&body="+body;
