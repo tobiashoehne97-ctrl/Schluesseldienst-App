@@ -423,6 +423,18 @@ async function loadArchiv() {
       openArchivPdf(e);
     };
 
+    if (e.typ === "RB" && String(e.pdf_path || "").startsWith("regiebericht")) {
+      const mailBtn = document.createElement("button");
+      mailBtn.className = "btnS";
+      mailBtn.style.cssText = "padding:7px 12px;font-size:12px";
+      mailBtn.textContent = "📧 Per E-Mail";
+      mailBtn.onclick = function(ev) {
+        ev.stopPropagation();
+        emailArchivRegiebericht(e);
+      };
+      actions.appendChild(mailBtn);
+    }
+
     const delBtn = document.createElement("button");
     delBtn.className = "btnD";
     delBtn.style.cssText = "font-size:11px;padding:4px 10px";
@@ -442,6 +454,64 @@ async function loadArchiv() {
     card.onclick = function() { openArchivPdf(e); };
     container.appendChild(card);
   });
+}
+
+async function emailArchivRegiebericht(archiveEntry) {
+  if (!archiveEntry || archiveEntry.typ !== "RB") return;
+  const email = window.prompt("An welche E-Mail-Adresse soll der Regiebericht gesendet werden?");
+  if (email === null) return;
+  const recipient = email.trim();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipient)) {
+    alert("Bitte eine gültige E-Mail-Adresse eingeben.");
+    return;
+  }
+
+  let reportEntry = null;
+  const path = String(archiveEntry.pdf_path || "");
+  if (path.startsWith("regiebericht-snapshot:")) {
+    reportEntry = decodeRegieberichtSnapshot(path);
+  } else if (path.startsWith("regiebericht:")) {
+    const id = path.slice("regiebericht:".length);
+    reportEntry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === id) || null;
+    if ((!reportEntry || !reportEntry.regiebericht) && window.supabaseClient) {
+      const { data, error } = await window.supabaseClient
+        .from("kalender_eintraege").select("*").eq("id", id).maybeSingle();
+      if (error) throw error;
+      if (data) reportEntry = typeof normalizeKalenderEntry === "function" ? normalizeKalenderEntry(data) : data;
+      if (typeof reportEntry?.regiebericht === "string") {
+        try { reportEntry.regiebericht = JSON.parse(reportEntry.regiebericht); } catch (_) {}
+      }
+    }
+  }
+
+  if (!reportEntry?.regiebericht) {
+    alert("Der archivierte Regiebericht konnte nicht geladen werden.");
+    return;
+  }
+  if (typeof createServiceReportPdfBase64 !== "function") {
+    alert("Die PDF-Erstellung ist noch nicht geladen. Bitte die App neu laden.");
+    return;
+  }
+
+  try {
+    const pdfBase64 = await createServiceReportPdfBase64(reportEntry);
+    const response = await fetch("/.netlify/functions/send-regiebericht", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: recipient,
+        entry: reportEntry,
+        pdfBase64,
+        filename: "Regiebericht-" + (reportEntry.id || archiveEntry.nr) + ".pdf"
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.success) throw new Error(result.error || "E-Mail konnte nicht versendet werden.");
+    alert("Der archivierte Regiebericht wurde erfolgreich an " + recipient + " versendet.");
+  } catch (err) {
+    console.error("Archiv-Regiebericht versenden:", err);
+    alert("Der archivierte Regiebericht konnte nicht versendet werden: " + (err.message || err));
+  }
 }
 
 async function openArchivPdf(entry) {
