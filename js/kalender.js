@@ -972,6 +972,42 @@ function showServiceEmailInput(){
     '</div>';
 }
 
+async function createServiceReportPdfBase64(entry){
+  if(!window.jspdf?.jsPDF) throw new Error("Die PDF-Bibliothek ist nicht geladen.");
+  if(typeof window.html2canvas!=="function") throw new Error("Die PDF-Bildbibliothek ist nicht geladen. Bitte die Seite neu laden.");
+
+  const frame=document.createElement("iframe");
+  frame.setAttribute("aria-hidden","true");
+  frame.style.cssText="position:fixed;left:-12000px;top:0;width:794px;height:1800px;border:0;background:#fff";
+  document.body.appendChild(frame);
+  try{
+    const doc=frame.contentDocument;
+    doc.open();
+    doc.write("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=794'><style>"+getRegieberichtPrintCss()+"</style></head><body>"+buildRegieberichtHtml(entry)+"</body></html>");
+    doc.close();
+    await new Promise(resolve=>setTimeout(resolve,350));
+    const paper=doc.querySelector(".rb-paper");
+    if(!paper) throw new Error("Der Regiebericht konnte nicht für das PDF vorbereitet werden.");
+    const canvas=await window.html2canvas(paper,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false,windowWidth:794});
+    const image=canvas.toDataURL("image/jpeg",0.94);
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const pageWidth=210,pageHeight=297;
+    const imageHeight=canvas.height*pageWidth/canvas.width;
+    const pages=Math.max(1,Math.ceil(imageHeight/pageHeight));
+    for(let page=0;page<pages;page++){
+      if(page>0) pdf.addPage();
+      pdf.addImage(image,"JPEG",0,-page*pageHeight,pageWidth,imageHeight,undefined,"FAST");
+    }
+    const dataUri=pdf.output("datauristring");
+    const base64=dataUri.includes(",")?dataUri.split(",")[1]:"";
+    if(!base64) throw new Error("Das PDF konnte nicht erstellt werden.");
+    return base64;
+  }finally{
+    frame.remove();
+  }
+}
+
 async function sendServiceRegiebericht(){
   const email=document.getElementById("service_customer_email")?.value.trim();
   const entry=getServiceEntry();
@@ -985,23 +1021,26 @@ async function sendServiceRegiebericht(){
   }
 
   const btn=document.getElementById("service_send_mail_btn");
-  if(btn){btn.disabled=true;btn.textContent="⏳ Bericht wird gesendet...";}
+  if(btn){btn.disabled=true;btn.textContent="⏳ PDF wird erstellt...";}
 
   try{
+    const pdfBase64=await createServiceReportPdfBase64(entry);
+    if(btn) btn.textContent="📧 E-Mail wird versendet...";
     const response=await fetch("/.netlify/functions/send-regiebericht",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         email,
         entry,
-        html:buildRegieberichtHtml(entry)
+        pdfBase64,
+        filename:"Regiebericht-"+(entry.id||"Einsatz")+".pdf"
       })
     });
 
     const result=await response.json().catch(()=>({}));
-    if(!response.ok) throw new Error(result.error||"E-Mail konnte nicht versendet werden.");
+    if(!response.ok||!result.success) throw new Error(result.error||"E-Mail konnte nicht versendet werden.");
 
-    alert("📧 Der Regiebericht wurde erfolgreich an "+email+" versendet.");
+    alert("📧 Der Regiebericht wurde mit PDF-Anhang erfolgreich an "+email+" versendet.");
     finishServiceAndReturn();
   }catch(err){
     console.error("E-Mail-Versand fehlgeschlagen:",err);
