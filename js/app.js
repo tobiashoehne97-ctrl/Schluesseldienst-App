@@ -461,7 +461,7 @@ async function emailArchivRegiebericht(archiveEntry) {
   const email = window.prompt("An welche E-Mail-Adresse soll der Regiebericht gesendet werden?");
   if (email === null) return;
   const recipient = email.trim();
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipient)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
     alert("Bitte eine gültige E-Mail-Adresse eingeben.");
     return;
   }
