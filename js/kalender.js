@@ -623,6 +623,9 @@ function openServiceModal(title,content){
   modal.classList.add("open");
   modal.style.display="flex";
   modal.style.pointerEvents="auto";
+  const modalCard=modal.querySelector(".card");
+  if(modalCard) modalCard.scrollTop=0;
+  contentEl.scrollTop=0;
   document.body.style.overflow="hidden";
 }
 
