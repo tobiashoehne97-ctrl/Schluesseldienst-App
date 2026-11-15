@@ -1,0 +1,30 @@
+/* Tresor-Berater – Ergänzung zur bestehenden Schlüsseldienst-App */
+.tresor-wrap{max-width:1500px;margin:0 auto;color:#e8f0f8}
+.tresor-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+.tresor-head h1{font-size:28px;margin:3px 0 6px;color:#f4f9ff}
+.tresor-muted{color:#8eb9de;font-size:13px;line-height:1.5}
+.tresor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tresor-tabs button{padding:10px 15px;border-radius:9px;border:1px solid rgba(59,110,165,.35);background:rgba(255,255,255,.05);color:#9fc7e9;font-weight:700}
+.tresor-tabs button.active{background:#245f9b;color:#fff;border-color:#4b8fcb}
+.tresor-panel{background:rgba(255,255,255,.055);border:1px solid rgba(59,110,165,.3);border-radius:15px;padding:18px;margin-bottom:16px}
+.tresor-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tresor-field label{display:block;color:#90adc8;font-size:12px;margin:0 0 5px}
+.tresor-field input,.tresor-field select,.tresor-field textarea{width:100%;min-width:0}
+.tresor-field textarea{min-height:75px}
+.tresor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tresor-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}
+.tresor-card{border:1px solid rgba(59,110,165,.32);background:rgba(8,24,45,.65);border-radius:13px;padding:15px}
+.tresor-card h3{font-size:17px;color:#fff;margin:5px 0}
+.tresor-card .price{font-size:23px;font-weight:850;color:#fff;margin:12px 0 5px}
+.tresor-tag{display:inline-block;padding:4px 8px;border-radius:20px;background:rgba(59,130,196,.18);color:#9bc9ef;font-size:11px;margin:2px}
+.tresor-table-wrap{overflow:auto}
+.tresor-table{width:100%;border-collapse:collapse;min-width:760px}
+.tresor-table th,.tresor-table td{padding:10px;text-align:left;border-bottom:1px solid rgba(100,150,190,.18);font-size:13px}
+.tresor-table th{color:#8eb9de}
+.tresor-login{max-width:430px;margin:7vh auto}
+.tresor-login h2{margin-bottom:8px}
+.tresor-status{padding:10px 12px;border-radius:8px;background:rgba(59,130,196,.12);color:#a8c9e7;font-size:13px;margin:10px 0}
+.tresor-status.error{background:rgba(192,57,43,.14);color:#ffb4aa}
+.tresor-empty{padding:25px;text-align:center;color:#8eb9de;border:1px dashed rgba(100,150,190,.3);border-radius:12px}
+@media(max-width:1000px){.tresor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.tresor-head{flex-direction:column}.tresor-grid{grid-template-columns:1fr}.tresor-panel{padding:13px}.tresor-head h1{font-size:23px}}
