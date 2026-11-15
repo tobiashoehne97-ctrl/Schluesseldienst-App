@@ -63,7 +63,7 @@ with technical (
   ('T05925',1255,710,580,1035,545,418,236,290,'Elektronikschloss',null,null,null,null,'tested',60,'LFS 60 P / EN 15659','Rottner Katalog Ungeprüfte Tresore 2023/2024, S. 3','2023/2024','Außenhöhe inklusive Sockel; Außentiefe inklusive Beschlag; Innenhöhe und Volumen inklusive Schublade.'),
 
   -- Stone SE 65 EL: Rottner geprüfte Tresore 2023/2024, Seite 29
-  ('T04943',630,490,385,530,400,290,61,72,'Elektronikschloss','EN 1143-1','I',65000,20000,'none',null,null,'Rottner Katalog Geprüfte Tresore 2023/2024, S. 29','2023/2024','Einwandiger Korpus; in der Quelle ist kein Feuerschutz ausgewiesen.'),
+  ('T04943',630,490,385,530,400,290,61,72,'Elektronikschloss','EN 1143-1','I',65000,20000,'unknown',null,null,'Rottner Katalog Geprüfte Tresore 2023/2024, S. 29','2023/2024','Einwandiger Korpus; in der Quelle ist kein Feuerschutz ausgewiesen.'),
 
   -- Delta: Rottner geprüfte Tresore 2023/2024, Seite 30
   ('T05807',330,430,270,230,345,200,16,28,'Doppelbartschloss','EN 1143-1','I',65000,20000,'conditional',null,null,'Rottner Katalog Geprüfte Tresore 2023/2024, S. 30','2023/2024','Wandtresor; Einbauvorschriften beachten.'),
@@ -72,7 +72,7 @@ with technical (
   ('T05810',430,490,385,330,405,350,46,42,'Elektronikschloss','EN 1143-1','I',65000,20000,'conditional',null,null,'Rottner Katalog Geprüfte Tresore 2023/2024, S. 30','2023/2024','Wandtresor; Einbauvorschriften beachten.'),
 
   -- Gunmaster XL: Rottner Waffenschrank-Katalog 2023/2024, Seite 18
-  ('T06182',100,370,275,90,300,200,5.4,5.5,'Fingerprint / Zahlencode / Schlüssel',null,null,null,null,'none',null,null,'Rottner Katalog Waffenschränke 2023/2024, S. 18','2023/2024','Laut Rottner in Deutschland nicht für Waffen geeignet; nicht als gesetzeskonformes Waffenbehältnis empfehlen.')
+  ('T06182',100,370,275,90,300,200,5.4,5.5,'Fingerprint / Zahlencode / Schlüssel',null,null,null,null,'unknown',null,null,'Rottner Katalog Waffenschränke 2023/2024, S. 18','2023/2024','Laut Rottner in Deutschland nicht für Waffen geeignet; nicht als gesetzeskonformes Waffenbehältnis empfehlen.')
 )
 update public.safe_products p
 set
