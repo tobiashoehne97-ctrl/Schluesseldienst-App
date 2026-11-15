@@ -65,11 +65,11 @@
 </div>
 <div class="modal hidden" id="kalenderModal" role="dialog" aria-modal="true" aria-labelledby="kal_modal_titel"><div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;margin:auto;padding:22px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px"><strong id="kal_modal_titel" style="font-size:20px">Kalender</strong><button class="btnS" type="button" onclick="closeKalenderModal()">✕</button></div><div id="kal_modal_content"></div></div></div><!-- Einsatz- und Regieberichtfenster -->
 <div class="modal hidden" id="serviceModal" role="dialog" aria-modal="true" aria-labelledby="service_modal_titel">
-  <div style="position:fixed;top:12px;left:12px;right:12px;z-index:10001;display:flex;gap:10px;padding:10px;background:#10243d;border:1px solid #34506f;border-radius:12px;box-shadow:0 4px 18px #0008">
-    <button class="btnS" type="button" style="flex:1;padding:13px;background:#fff;color:#10243d;font-weight:800" onclick="closeServiceModal();go('kalender')">← Zurück zum Kalender</button>
-    <button class="btnS" type="button" style="flex:1;padding:13px;background:#fff;color:#10243d;font-weight:800" onclick="closeServiceModal();go('menu')">☰ Zum Menü</button>
+  <div style="position:fixed;top:12px;left:12px;right:12px;height:64px;min-height:64px;max-height:64px;z-index:10001;display:flex;align-items:center;gap:10px;padding:8px 12px;background:#10243d;border:1px solid #34506f;border-radius:12px;box-shadow:0 4px 18px #0008;box-sizing:border-box">
+    <button class="btnS" type="button" style="flex:1 1 0;height:46px;min-height:46px;max-height:46px;padding:8px 12px;background:#fff;color:#10243d;font-weight:800;white-space:nowrap" onclick="closeServiceModal();go('kalender')">← Zurück zum Kalender</button>
+    <button class="btnS" type="button" style="flex:1 1 0;height:46px;min-height:46px;max-height:46px;padding:8px 12px;background:#fff;color:#10243d;font-weight:800;white-space:nowrap" onclick="closeServiceModal();go('menu')">☰ Zum Menü</button>
   </div>
-  <div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 96px);overflow:auto;margin:76px auto 12px;padding:22px">
+  <div class="card" style="position:relative;z-index:10000;width:min(760px,calc(100vw - 32px));height:calc(100vh - 112px);max-height:calc(100vh - 112px);overflow:auto;margin:88px auto 12px;padding:22px">
     <div style="margin-bottom:14px">
       <strong id="service_modal_titel" style="font-size:20px">Einsatz</strong>
       <button class="btnS" type="button" style="float:right" aria-label="Einsatzfenster schließen" onclick="closeServiceModal()">✕</button>
@@ -91,7 +91,7 @@
 <script src="js/pdf.js"></script>
 <script src="js/app.js?v=20261013-1"></script>
 <script src="js/dashboard.js?v=20260909-2"></script>
-<script src="js/kalender.js?v=20261115-5"></script>
+<script src="js/kalender.js?v=20261115-6"></script>
 <script src="js/notdienst.js?v=20260909-4"></script>
 <script src="js/appInit.js?v=20260914-24"></script>
 </body>
