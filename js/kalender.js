@@ -616,15 +616,24 @@ function openServiceModal(title,content){
   modal?.classList.remove("service-report-modal");
   const titleEl=document.getElementById("service_modal_titel");
   const contentEl=document.getElementById("service_modal_content");
-  if(!modal||!contentEl)return;
+  if(!modal||!titleEl||!contentEl)return;
   titleEl.textContent=title;
   contentEl.innerHTML=content;
   modal.classList.remove("hidden");
+  modal.classList.add("open");
+  modal.style.display="flex";
+  modal.style.pointerEvents="auto";
   document.body.style.overflow="hidden";
 }
 
 function closeServiceModal(){
-  document.getElementById("serviceModal")?.classList.add("hidden");
+  const modal=document.getElementById("serviceModal");
+  if(modal){
+    modal.classList.remove("open");
+    modal.classList.add("hidden");
+    modal.style.display="none";
+    modal.style.pointerEvents="none";
+  }
   document.body.style.overflow="";
 }
 
