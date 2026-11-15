@@ -81,7 +81,7 @@ values
 -- Waffenschränke
 ('Rottner','Gunmaster XL','T06182','Waffenschrank','unknown',null,'to_order',true,'Rottner Preisliste 2026, Seite 5','01.05.2026','Artikelnummer und Modellbezeichnung aus der Preisliste; technische Produktdaten nicht in dieser Quelle enthalten.')
 
-on conflict (article_number) do nothing;
+on conflict do nothing;
 
 commit;
 
