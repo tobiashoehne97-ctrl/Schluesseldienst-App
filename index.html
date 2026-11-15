@@ -66,7 +66,7 @@
 <div class="modal hidden" id="kalenderModal" role="dialog" aria-modal="true" aria-labelledby="kal_modal_titel"><div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;margin:auto;padding:22px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px"><strong id="kal_modal_titel" style="font-size:20px">Kalender</strong><button class="btnS" type="button" onclick="closeKalenderModal()">✕</button></div><div id="kal_modal_content"></div></div></div>\n<!-- Einsatz- und Regieberichtfenster -->
 <div class="modal hidden" id="serviceModal" role="dialog" aria-modal="true" aria-labelledby="service_modal_titel">
   <div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;margin:auto;padding:22px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div style="position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:-22px -22px 16px;padding:14px 22px;background:#fff;border-bottom:1px solid #d7dee8">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <button class="btnS" type="button" onclick="closeServiceModal();go('kalender')">← Zurück zum Kalender</button>
         <button class="btnS" type="button" onclick="closeServiceModal();go('menu')">☰ Menü</button>
@@ -93,7 +93,7 @@
 <script src="js/pdf.js"></script>
 <script src="js/app.js?v=20261013-1"></script>
 <script src="js/dashboard.js?v=20260909-2"></script>
-<script src="js/kalender.js?v=20261115-2"></script>
+<script src="js/kalender.js?v=20261115-3"></script>
 <script src="js/notdienst.js?v=20260909-4"></script>
 <script src="js/appInit.js?v=20260914-24"></script>
 </body>
