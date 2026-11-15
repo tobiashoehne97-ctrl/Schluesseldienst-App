@@ -1151,10 +1151,14 @@ function openRegiebericht(id){
   if(!entry?.regiebericht){ alert("Für diesen Termin ist noch kein Regiebericht vorhanden."); return; }
   const html=buildRegieberichtHtml(entry);
   openServiceModal("📄 Regiebericht",
+    "<div style=\"position:sticky;top:0;z-index:20;display:flex;gap:8px;padding:8px;background:#fff;border-bottom:1px solid #d7dee8\">"+
+    "<button class=\"btnS\" style=\"flex:1;padding:12px\" onclick=\"closeServiceModal();go('kalender')\">← Kalender</button>"+
+    "<button class=\"btnS\" style=\"flex:1;padding:12px\" onclick=\"closeServiceModal();go('menu')\">☰ Menü</button>"+
+    "</div>"+
     "<style>"+getRegieberichtPrintCss()+"</style>"+
     "<div style=\"overflow:auto;background:#dbe2ea;padding:0;border-radius:10px;width:100%\"><div style=\"width:100%\">"+html+"</div></div>"+
     "<button class=\"btnS\" style=\"width:100%;padding:13px;margin-top:12px\" onclick=\"printRegiebericht('"+String(entry.id).replace(/'/g,"\\'")+"')\">🖨️ Drucken / Als PDF speichern</button>"+
-    "<button class=\"btnP\" style=\"width:100%;padding:13px;margin-top:8px\" onclick=\"closeServiceModal()\">✓ Schließen</button>"
+    "<button class=\"btnP\" style=\"width:100%;padding:13px;margin-top:8px\" onclick=\"closeServiceModal();go('menu')\">✓ Schließen und zum Menü</button>"
   );
   document.getElementById("serviceModal")?.classList.add("service-report-modal");
 }
