@@ -1172,7 +1172,8 @@ function printRegiebericht(id){
   const win=window.open("","_blank");
   if(!win){ alert("Das Druckfenster konnte nicht geöffnet werden. Bitte Pop-ups erlauben."); return; }
   win.document.open();
-  win.document.write("<!doctype html><html><head><meta charset=\"utf-8\"><title>Regiebericht</title><style>"+getRegieberichtPrintCss()+"</style></head><body>"+buildRegieberichtHtml(entry)+"<script>window.onload=()=>window.print();<\/script></body></html>");
+  const toolbar="<div class='no-print' style='position:sticky;top:0;z-index:9999;display:flex;gap:10px;padding:12px;background:#10243d;color:#fff;font-family:Arial,sans-serif;box-shadow:0 2px 8px #0003'><button onclick='window.close();setTimeout(()=>{if(!window.closed)history.back()},150)' style='flex:1;padding:12px;border:0;border-radius:8px;font-weight:700'>← Zurück zur App</button><button onclick='window.print()' style='flex:1;padding:12px;border:0;border-radius:8px;font-weight:700'>Drucken</button></div>";
+  win.document.write("<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>Regiebericht</title><style>"+getRegieberichtPrintCss()+".no-print{display:flex}@media print{.no-print{display:none!important}}</style></head><body>"+toolbar+buildRegieberichtHtml(entry)+"<script>window.onload=()=>window.print();<\/script></body></html>");
   win.document.close();
 }
 
