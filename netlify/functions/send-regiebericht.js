@@ -37,7 +37,8 @@ exports.handler = async (event) => {
           <div style="font-family:Arial,Helvetica,sans-serif;color:#172033;line-height:1.5">
             <h2 style="color:#164b7d">Schlüsseldienst Christian Höhne</h2>
             <p>Guten Tag ${safeCustomer},</p>
-            <p>anbei erhalten Sie den Regiebericht zu unserem Einsatz vom ${date} als PDF.</p>
+            <p>anbei erhalten Sie den Regiebericht zu unserem Einsatz vom ${date} als PDF-Anhang.</p>
+            <p>Bei Rückfragen stehen wir Ihnen gerne zur Verfügung.</p>
             <p>Mit freundlichen Grüßen<br><strong>Schlüsseldienst Christian Höhne</strong></p>
           </div>
         `,
