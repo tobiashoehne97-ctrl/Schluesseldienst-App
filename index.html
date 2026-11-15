@@ -66,9 +66,15 @@
 <div class="modal hidden" id="kalenderModal" role="dialog" aria-modal="true" aria-labelledby="kal_modal_titel"><div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;margin:auto;padding:22px"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px"><strong id="kal_modal_titel" style="font-size:20px">Kalender</strong><button class="btnS" type="button" onclick="closeKalenderModal()">✕</button></div><div id="kal_modal_content"></div></div></div>\n<!-- Einsatz- und Regieberichtfenster -->
 <div class="modal hidden" id="serviceModal" role="dialog" aria-modal="true" aria-labelledby="service_modal_titel">
   <div class="card" style="width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;margin:auto;padding:22px">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button class="btnS" type="button" onclick="closeServiceModal();go('kalender')">← Zurück zum Kalender</button>
+        <button class="btnS" type="button" onclick="closeServiceModal();go('menu')">☰ Menü</button>
+      </div>
+      <button class="btnS" type="button" aria-label="Einsatzfenster schließen" onclick="closeServiceModal()">✕</button>
+    </div>
+    <div style="margin-bottom:14px">
       <strong id="service_modal_titel" style="font-size:20px">Einsatz</strong>
-      <button class="btnS" type="button" onclick="closeServiceModal()">✕</button>
     </div>
     <div id="service_modal_content"></div>
   </div>
