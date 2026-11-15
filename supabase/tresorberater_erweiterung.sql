@@ -29,3 +29,8 @@ comment on column public.safe_products.source_reference is
   'Katalog/Flyer und Seite als Herkunftsnachweis der technischen Produktdaten.';
 comment on column public.safe_products.source_date is
   'Stand oder Datum der verwendeten Produktquelle.';
+
+-- Artikelnummern sind innerhalb des Produktbestands eindeutig; verhindert doppelte Importe.
+create unique index if not exists safe_products_article_number_unique
+  on public.safe_products (article_number)
+  where article_number is not null and trim(article_number) <> '';
