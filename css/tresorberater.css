@@ -28,3 +28,12 @@
 .tresor-empty{padding:25px;text-align:center;color:#8eb9de;border:1px dashed rgba(100,150,190,.3);border-radius:12px}
 @media(max-width:1000px){.tresor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.tresor-head{flex-direction:column}.tresor-grid{grid-template-columns:1fr}.tresor-panel{padding:13px}.tresor-head h1{font-size:23px}}
+
+/* Serienübersicht in der Kundenberatung */
+.tresor-series-card{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:20px 22px;margin:0 0 12px;border:1px solid rgba(90,138,184,.35);border-radius:14px;background:#10243d;color:#e8f2fb;cursor:pointer;transition:background .18s,border-color .18s}
+.tresor-series-card:hover{background:#173454;border-color:#6da6d8}
+.tresor-series-name{font-size:18px;font-weight:800;flex:1}
+.tresor-series-count{font-size:13px;color:#9fc2e3}
+.tresor-series-arrow{font-size:28px;color:#9fc2e3}
+.tresor-series-back{margin-bottom:14px}
+.tresor-series-back h3{margin:14px 0 4px}
