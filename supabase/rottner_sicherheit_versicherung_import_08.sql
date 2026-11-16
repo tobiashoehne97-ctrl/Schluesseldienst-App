@@ -57,14 +57,20 @@ with source_data (article_number, source_reference, source_date, note) as (
    'Herstellerklassifizierung der Home-Case-Serie: keine Sicherheitsstufe. Versicherungswert privat und gewerblich in Deutschland jeweils nur nach Absprache mit der Versicherung.'),
 
   -- Fifty Safe
-  ('T06376','Rottner Produktdatenblatt T06376','Produktdatenblatt'),
-  ('T06377','Rottner Produktdatenblatt T06377','Produktdatenblatt'),
+  ('T06376','Rottner Produktdatenblatt T06376','Produktdatenblatt',
+   'Herstellerklassifizierung: keine Sicherheitsstufe. Versicherungswert privat und gewerblich in Deutschland jeweils nur nach Absprache mit der Versicherung.'),
+  ('T06377','Rottner Produktdatenblatt T06377','Produktdatenblatt',
+   'Herstellerklassifizierung: keine Sicherheitsstufe. Versicherungswert privat und gewerblich in Deutschland jeweils nur nach Absprache mit der Versicherung.'),
 
   -- Vintage colours; same documented security and insurance classification
-  ('T06505','Rottner Produktdatenblatt Vintage-Serie; Artikelnummer T06505','Produktdatenblatt'),
-  ('T06506','Rottner Produktdatenblatt T06506','Produktdatenblatt'),
-  ('T06507','Rottner Produktdatenblatt T06507','Produktdatenblatt'),
-  ('T06508','Rottner Produktdatenblatt T06508','Produktdatenblatt')
+  ('T06505','Rottner Produktdatenblatt Vintage-Serie; Artikelnummer T06505','Produktdatenblatt',
+   'Herstellerklassifizierung: keine Sicherheitsstufe. Versicherungswert privat und gewerblich in Deutschland jeweils nur nach Absprache mit der Versicherung.'),
+  ('T06506','Rottner Produktdatenblatt T06506','Produktdatenblatt',
+   'Herstellerklassifizierung: keine Sicherheitsstufe. Versicherungswert privat und gewerblich in Deutschland jeweils nur nach Absprache mit der Versicherung.'),
+  ('T06507','Rottner Produktdatenblatt T06507','Produktdatenblatt',
+   'Herstellerklassifizierung: keine Sicherheitsstufe. Versicherungswert privat und gewerblich in Deutschland jeweils nur nach Absprache mit der Versicherung.'),
+  ('T06508','Rottner Produktdatenblatt T06508','Produktdatenblatt',
+   'Herstellerklassifizierung: keine Sicherheitsstufe. Versicherungswert privat und gewerblich in Deutschland jeweils nur nach Absprache mit der Versicherung.')
 ),
 normalized as (
   select
