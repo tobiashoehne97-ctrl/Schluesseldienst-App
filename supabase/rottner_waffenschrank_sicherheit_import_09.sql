@@ -48,6 +48,11 @@ with source_data (
    '2023 / Produktdatenblatt',
    'Herstellerklassifizierung S1 nach EN 14450. Versicherung privat und gewerblich in Deutschland laut Hersteller nur nach Absprache. S1 ist nicht gleich EN 0 nach EN 1143-1; nicht als regulärer EN-0-Waffenschrank ausweisen.'),
 
+  ('T06134','EN 14450','S1',null,null,
+   'Rottner Waffenschrank-Katalog 2023, S. 7; Rottner Produktdatenblatt Yukon 40',
+   '2023 / Produktdatenblatt',
+   'Herstellerklassifizierung S1 nach EN 14450. Rottner weist darauf hin, dass der Yukon 40 in Deutschland nur als Munitionsschrank verwendbar ist. Versicherung privat und gewerblich in Deutschland nur nach Absprache.'),
+
   -- Non-certified models: manufacturer warning for Germany; no insurance amount.
   ('T06395',null,null,null,null,
    'Rottner Waffenschrank-Katalog 2023, S. 14',
