@@ -121,7 +121,7 @@ where p.article_number = s.article_number
 
 commit;
 
--- Kontrolle der 18 geprüften Datensätze
+-- Kontrolle der 19 geprüften Datensätze
 select
   article_number, model, category,
   security_standard, security_class,
@@ -129,7 +129,7 @@ select
   source_reference, notes
 from public.safe_products
 where article_number in (
-'T06414','T06415',
+'T06414','T06415','T06134',
 'T06009','T06390','T06391','T06392','T06394',
 'T06395','T04712','T05983','T04647','T05984','T06387',
 'T06182','T04269','T05752','T06094','T06327'
