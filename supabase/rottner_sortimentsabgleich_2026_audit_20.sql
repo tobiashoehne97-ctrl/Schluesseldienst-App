@@ -7,7 +7,7 @@
 -- Briefkästen, Schlüsselanhänger, Geldkassetten, Schlüsselschränke,
 -- Dokumententaschen, Waffenhalter und sonstiges Zubehör sind ausgeschlossen.
 -- Erweiterte Vergleichsliste aus Preisliste 2026, Seiten 2-5; zusätzliche Artikel aus den im ersten Audit als außerhalb der Liste gemeldeten Datenbankartikeln wurden ergänzt.
-Hinweis: Artikelgruppen außerhalb des Tresor-Sortiments (z. B. Geld-/Schlüsselorganisation und Zubehör) bleiben ausgeschlossen.
+-- Hinweis: Artikelgruppen außerhalb des Tresor-Sortiments (z. B. Geld-/Schlüsselorganisation und Zubehör) bleiben ausgeschlossen.
 -- Fehlende Artikel werden nur angezeigt, nicht automatisch importiert.
 
 with expected (article_number, listed_model, listed_category) as (
