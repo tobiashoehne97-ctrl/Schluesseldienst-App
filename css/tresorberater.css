@@ -37,3 +37,12 @@
 .tresor-series-arrow{font-size:28px;color:#9fc2e3}
 .tresor-series-back{margin-bottom:14px}
 .tresor-series-back h3{margin:14px 0 4px}
+
+/* Verkaufspreiskalkulation */
+.tresor-calc-preview{padding:15px 17px;border:1px solid rgba(90,150,205,.35);border-radius:11px;background:rgba(8,24,45,.72)}
+.tresor-calc-title{font-size:12px;color:#9fc2e3;text-transform:uppercase;letter-spacing:.05em}
+.tresor-calc-price{font-size:28px;font-weight:850;color:#fff;margin:4px 0 10px}
+.tresor-calc-details{display:flex;gap:10px 20px;flex-wrap:wrap;font-size:13px}
+.tresor-calc-ek{color:#ff8f8f;font-weight:700}
+.tresor-calc-profit{color:#75dda0;font-weight:700}
+.tresor-series-price{display:inline-block;color:#8fe0a9;margin-top:5px;font-size:14px}
