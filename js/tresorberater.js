@@ -102,8 +102,9 @@
     const xml=new DOMParser().parseFromString(svg,"image/svg+xml");
     if(xml.querySelector("parsererror")){alert("Die A6-SVG-Vorlage konnte nicht gelesen werden.");return}
     const texts=Array.from(xml.querySelectorAll("text"));
+    const normalizeText=value=>String(value??"").trim().replace(/\\s+/g," ");
     const setText=(oldValue,newValue)=>{
-      const node=texts.find(el=>el.textContent.trim().replace(/\\s+/g," ")===oldValue);
+      const node=texts.find(el=>normalizeText(el.textContent)===normalizeText(oldValue));
       if(node)node.textContent=String(newValue??"–");
       return node;
     };
