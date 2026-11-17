@@ -19,9 +19,9 @@ drop policy if exists "safe_consultations_select_own" on public.safe_consultatio
 drop policy if exists "safe_consultations_insert_own" on public.safe_consultations;
 drop policy if exists "safe_consultations_update_own" on public.safe_consultations;
 drop policy if exists "safe_consultations_delete_own" on public.safe_consultations;
-create policy "safe_consultations_select_own" on public.safe_consultations for select to authenticated using (auth.uid() = created_by);
-create policy "safe_consultations_insert_own" on public.safe_consultations for insert to authenticated with check (auth.uid() = created_by);
-create policy "safe_consultations_update_own" on public.safe_consultations for update to authenticated using (auth.uid() = created_by) with check (auth.uid() = created_by);
-create policy "safe_consultations_delete_own" on public.safe_consultations for delete to authenticated using (auth.uid() = created_by);
+create policy "safe_consultations_select_own" on public.safe_consultations for select to authenticated using (true);
+create policy "safe_consultations_insert_own" on public.safe_consultations for insert to authenticated with check (true);
+create policy "safe_consultations_update_own" on public.safe_consultations for update to authenticated using (true) with check (true);
+create policy "safe_consultations_delete_own" on public.safe_consultations for delete to authenticated using (true);
 create index if not exists safe_consultations_created_by_created_at_idx on public.safe_consultations (created_by, created_at desc);
 create index if not exists safe_consultations_follow_up_idx on public.safe_consultations (follow_up_at) where follow_up_at is not null;
