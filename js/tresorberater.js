@@ -88,16 +88,71 @@
   function fireLabel(p){const t=p.fire_protection_type||"unknown";if(t==="tested")return (p.fire_minutes||"Dauer offen")+" Minuten · "+(p.fire_standard||"Prüfnorm nicht angegeben");if(t==="none")return "Ohne Feuerschutz";if(t==="conditional")return "Bedingter Feuerschutz";return "Keine Angabe"}
   function compareRows(){return [["Kategorie",p=>p.category],["Artikelnummer",p=>p.article_number],["Einbruchschutz-Norm",p=>p.security_standard],["Sicherheitsklasse",p=>p.security_class],["Feuerschutz",fireLabel],["Versicherungswert privat",p=>p.insured_private!=null?euro(p.insured_private):null],["Versicherungswert gewerblich",p=>p.insured_commercial!=null?euro(p.insured_commercial):null],["Außenmaße (H × B × T)",p=>p.height_mm||p.width_mm||p.depth_mm?[p.height_mm||"–",p.width_mm||"–",p.depth_mm||"–"].join(" × ")+" mm":null],["Innenmaße (H × B × T)",p=>p.inner_height_mm||p.inner_width_mm||p.inner_depth_mm?[p.inner_height_mm||"–",p.inner_width_mm||"–",p.inner_depth_mm||"–"].join(" × ")+" mm":null],["Gewicht",p=>p.weight_kg!=null?p.weight_kg+" kg":null],["Innenvolumen",p=>p.volume_l!=null?p.volume_l+" l":null],["Schlossart",p=>p.lock_type],["Verfügbarkeit",p=>p.stock_status==="in_stock"?"Lagernd im Geschäft":"Muss bestellt werden"],["Verkaufspreis inkl. MwSt.",p=>p.sale_price_gross!=null?euro(p.sale_price_gross):"Preis auf Anfrage"]]}
   function createComparisonPdf(){const chosen=selectedComparisonProducts();if(chosen.length<2||chosen.length>3){alert("Bitte wähle zwei oder drei Tresore aus.");return}const win=window.open("","_blank");if(!win){alert("Der PDF-Druck wurde vom Browser blockiert. Bitte Pop-ups für diese App erlauben und erneut versuchen.");return}const rows=compareRows();const tableRows=rows.map(([label,get])=>'<tr><th>'+esc(label)+'</th>'+chosen.map(p=>'<td>'+esc(get(p)||"Keine Angabe")+'</td>').join("")+'</tr>').join("");const date=new Date().toLocaleDateString("de-DE");const html='<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Tresorvergleich – Schlüsseldienst Höhne</title><style>@page{size:A4 landscape;margin:14mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#17283b;margin:0;font-size:11px}.head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #173e63;padding-bottom:12px;margin-bottom:18px}.brand{font-size:19px;font-weight:800;color:#173e63}.sub{color:#64748b;margin-top:4px}.date{color:#64748b}h1{font-size:22px;margin:0 0 5px;color:#173e63}.intro{margin:0 0 16px;color:#526477}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{padding:9px 10px;border:1px solid #d7e0e8;vertical-align:top;overflow-wrap:anywhere}thead th{background:#173e63;color:white;font-size:13px;text-align:left}tbody th{width:19%;background:#edf2f7;text-align:left;color:#263e56}tbody td{background:#fff}tbody tr:nth-child(even) td{background:#f8fafc}.price-row th,.price-row td{font-weight:800;font-size:15px}.price-row td{color:#0d6840;background:#eaf7ef!important}.foot{margin-top:16px;padding-top:9px;border-top:1px solid #d7e0e8;color:#64748b;font-size:9px;line-height:1.5}.actions{margin:18px 0}.actions button{background:#173e63;color:#fff;border:0;border-radius:6px;padding:10px 16px;font-weight:bold;cursor:pointer}@media print{.actions{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><header class="head"><div><div class="brand">SCHLÜSSELDIENST HÖHNE</div><div class="sub">Tresorberatung · Produktvergleich</div></div><div class="date">Erstellt am '+date+'</div></header><h1>Ihre Tresor-Auswahl im Vergleich</h1><p class="intro">Die folgende Übersicht stellt die ausgewählten Modelle anhand der bei uns hinterlegten Produktdaten gegenüber.</p><table><thead><tr><th>Merkmal</th>'+chosen.map(p=>'<th>'+esc(p.model)+'</th>').join("")+'</tr></thead><tbody>'+tableRows+'</tbody></table><div class="foot">Hinweis: Versicherungswerte sind katalogabhängige Richtwerte und keine Versicherungszusage. Technische Angaben entsprechen dem bei der Beratung hinterlegten Datenstand. Preise verstehen sich inklusive gesetzlicher Umsatzsteuer. Verfügbarkeit vorbehaltlich zwischenzeitlichem Verkauf.</div><div class="actions"><button type="button" onclick="window.close()">← Zurück zur Tresorberatung</button> <button type="button" onclick="window.print()">PDF drucken / speichern</button></div><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},350)})</script></body></html>';win.document.open();win.document.write(html);win.document.close()}
-  function printPriceTag(p){
+  async function printPriceTag(p){
     if(!p)return;
-    const win=window.open("","_blank");if(!win){alert("Bitte Pop-ups für diese App erlauben.");return}
+    let svg;
+    try{
+      const response=await fetch("assets/Preisschild-A6.svg",{cache:"no-store"});
+      if(!response.ok)throw new Error("SVG-Vorlage nicht gefunden");
+      svg=await response.text();
+    }catch(error){
+      alert("Die originale A6-SVG-Vorlage fehlt noch unter assets/Preisschild-A6.svg. Bitte die Datei dort im Projekt ablegen.");
+      return;
+    }
+    const xml=new DOMParser().parseFromString(svg,"image/svg+xml");
+    if(xml.querySelector("parsererror")){alert("Die A6-SVG-Vorlage konnte nicht gelesen werden.");return}
+    const texts=Array.from(xml.querySelectorAll("text"));
+    const setText=(oldValue,newValue)=>{
+      const node=texts.find(el=>el.textContent.trim().replace(/\\s+/g," ")===oldValue);
+      if(node)node.textContent=String(newValue??"–");
+      return node;
+    };
+    const fitText=(node,maxChars,baseSize,minSize)=>{
+      if(!node)return;
+      const ratio=Math.min(1,maxChars/Math.max(maxChars,String(node.textContent).length));
+      node.style.fontSize=Math.max(minSize,baseSize*ratio)+"px";
+    };
     const standard=[p.security_standard,p.security_class].filter(Boolean).join(" ")||"Keine Angabe";
-    let fire="Keine Angabe";if(p.fire_protection_type==="none")fire="Ohne Feuerschutz";else if(p.fire_protection_type==="conditional")fire="Bedingter Feuerschutz";else if(p.fire_protection_type==="tested")fire=[p.fire_minutes?String(p.fire_minutes)+" Minuten":null,p.fire_standard].filter(Boolean).join(" ")||"Geprüfter Feuerschutz";
+    let fire="Keine Angabe";
+    if(p.fire_protection_type==="none")fire="Ohne Feuerschutz";
+    else if(p.fire_protection_type==="conditional")fire="Bedingter Feuerschutz";
+    else if(p.fire_protection_type==="tested"){
+      const mins=p.fire_minutes?String(p.fire_minutes)+" Minuten":null;
+      const detail=String(p.fire_standard||"").match(/(?:LFS|DIS)\\s*\\d+\\s*P?/i)?.[0]||"";
+      fire=[mins,detail].filter(Boolean).join(" ")||"Geprüfter Feuerschutz";
+    }
     const weight=p.weight_kg!=null?String(p.weight_kg).replace(".",",")+" kg":"Keine Angabe";
-    const dim=p.height_mm||p.width_mm||p.depth_mm?[p.height_mm,p.width_mm,p.depth_mm].map(v=>v?String(Number(v)/10).replace(".",","):"–").join(" × ")+" cm":"Keine Angabe";
-    const model=esc(p.model||"Produkt"),sub=esc(p.description||p.category||"Tresor"),price=p.sale_price_gross!=null?euro(p.sale_price_gross):"Preis auf Anfrage";
-    const html='<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Preisschild – '+model+'</title><style>@page{size:106mm 148mm;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;width:106mm;height:148mm}body{font-family:Arial,sans-serif;color:#183247;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{position:relative;width:106mm;height:148mm;overflow:hidden;background:#fff}.top{position:absolute;left:0;top:2mm;width:65mm;height:18mm;background:linear-gradient(110deg,#102b43,#244f9b);clip-path:polygon(0 0,100% 0,80% 100%,0 100%);color:white;padding:5mm 0 0 14mm}.shield{position:absolute;left:7mm;top:5mm;width:6mm;height:8mm;border:1px solid white;clip-path:polygon(50% 0,100% 18%,90% 75%,50% 100%,10% 75%,0 18%)}.slogan{font-size:7pt;font-weight:bold}.tagline{font-size:4.5pt;margin-top:1.5mm}.logo{position:absolute;right:5mm;top:3mm;width:43mm;height:15mm;object-fit:contain}.model{position:absolute;left:32.5%;top:30.2%;width:65%;font-size:13.5pt;line-height:1.08;font-weight:bold;overflow-wrap:anywhere}.subtitle{position:absolute;left:32.5%;top:35.7%;width:65%;font-size:7.8pt;color:#687785}.specs{position:absolute;left:3.6%;top:30.1%;width:24.2%;height:23%;border:.25mm solid #193b63;padding:1.2mm 1.1mm;display:flex;flex-direction:column;gap:1.4mm;overflow:hidden}.spec b{display:block;font-size:6.7pt;margin-bottom:.5mm}.spec span{display:block;font-size:5.8pt;overflow-wrap:anywhere}.price{position:absolute;left:21.5%;top:56.2%;width:78%;height:17%;background:linear-gradient(105deg,#102b43,#254e9a);clip-path:polygon(18% 0,100% 0,100% 100%,0 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding-left:10mm;color:white}.amount{font-size:23pt;font-weight:bold;white-space:nowrap}.vat{font-size:6pt;margin-top:1mm}.rule{position:absolute;left:1%;top:73.3%;width:98%;height:.6mm;background:#183247}.footer{position:absolute;left:2%;right:2%;top:75%;height:14%;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center}.foot{height:70%;display:flex;align-items:center;justify-content:center;gap:2mm;padding:0 1mm;font-size:5.5pt;line-height:1.15}.foot+.foot{border-left:.35mm solid #183247}.ico{font-size:18pt}@media screen{body{background:#e8edf2;display:flex;justify-content:center;padding:12px}.sheet{box-shadow:0 2px 14px #0003}}@media print{body{display:block}.sheet{box-shadow:none}}</style></head><body><main class="sheet"><div class="top"><span class="shield"></span><div class="slogan">SICHER AUFBEWAHRT</div><div class="tagline">BERATUNG · AUSWAHL · SERVICE</div></div><img class="logo" src="assets/logo-schluesseldienst-hoehne.jpg"><div class="model">'+model+'</div><div class="subtitle">'+sub+'</div><div class="specs"><div class="spec"><b>Sicherheitsstufe</b><span>'+esc(standard)+'</span></div><div class="spec"><b>Feuerschutz</b><span>'+esc(fire)+'</span></div><div class="spec"><b>Gewicht</b><span>'+esc(weight)+'</span></div><div class="spec"><b>Maße</b><span>'+esc(dim)+'</span></div></div><div class="price"><div class="amount">'+esc(price)+'</div><div class="vat">inkl. MwSt.</div></div><div class="rule"></div><div class="footer"><div class="foot"><span class="ico">☏</span><span>Persönliche Beratung<br>vor Ort</span></div><div class="foot"><span class="ico">⚙</span><span>Große Auswahl für<br>jede Anforderung</span></div><div class="foot"><span class="ico">♧</span><span>Auf Wunsch<br>Lieferung &amp; Montage</span></div></div></main><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},500)})</script></body></html>';
-    win.document.open();win.document.write(html);win.document.close();
+    const dim=p.height_mm||p.width_mm||p.depth_mm
+      ?[p.height_mm,p.width_mm,p.depth_mm].map(v=>v?String(Number(v)/10).replace(".",","):"–").join(" × ")+" in cm"
+      :"Keine Angabe";
+    const insuredValues=[p.insured_private?("privat bis "+euro(p.insured_private)):null,p.insured_commercial?("gewerblich bis "+euro(p.insured_commercial)):null].filter(Boolean);
+    const insured=insuredValues.join(" · ")||"Keine Angabe";
+    const price=p.sale_price_gross!=null?euro(p.sale_price_gross):"Preis auf Anfrage";
+    const replacements=[
+      ["Rottner Titan 30 Fire Blue",p.model||"Produkt"],
+      ["Wertschutztresor mit Feuerschutz",p.description||p.category||"Tresor"],
+      ["EN 14450 S2",standard],
+      ["60 Minuten Papier",fire],
+      ["41kg",weight],
+      ["40 ×  35 ×  29 in cm",dim],
+      ["S2 privat bis 20.000€",insured],
+      ["807,00 €",price]
+    ];
+    const changed=replacements.map(([oldValue,newValue])=>setText(oldValue,newValue));
+    fitText(changed[0],29,42,25);
+    fitText(changed[1],40,33,21);
+    fitText(changed[2],19,26.575,18);
+    fitText(changed[3],19,26.575,18);
+    fitText(changed[4],12,26.575,18);
+    fitText(changed[5],24,26.575,16);
+    fitText(changed[6],27,26.575,15);
+    fitText(changed[7],12,100.394,58);
+    const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
+    const win=window.open("","_blank");
+    if(!win){alert("Bitte Pop-ups für diese App erlauben.");return}
+    win.document.open();
+    win.document.write('<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Preisschild – '+esc(p.model||"Produkt")+'</title><style>@page{size:106mm 148mm;margin:0}html,body{margin:0;padding:0;width:106mm;height:148mm}body{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}.sheet{width:106mm;height:148mm;margin:0;overflow:hidden}.sheet svg{display:block;width:106mm;height:148mm}@media screen{body{background:#e8edf2;display:flex;justify-content:center;padding:12px}.sheet{box-shadow:0 2px 14px #0003}}@media print{body{display:block}.sheet{box-shadow:none}}</style></head><body><main class="sheet">'+svgMarkup+'</main><script>window.addEventListener("load",function(){setTimeout(function(){window.print()},400)})<\\/script></body></html>');
+    win.document.close();
   }
   function productCard(p){const marked=comparisonIds.includes(String(p.id));return '<article class="tresor-card"><span class="tresor-tag">'+esc(p.category||"Wertschutzschrank")+'</span><span class="tresor-tag">'+(p.stock_status==="in_stock"?"Lagernd im Geschäft":"Muss bestellt werden")+'</span><h3>'+esc(p.model)+'</h3><div class="tresor-muted">Art.-Nr. '+esc(p.article_number||"–")+'</div><p>'+esc(p.security_standard||"Keine Angabe")+' · Klasse '+esc(p.security_class||"–")+'</p><p>Feuerschutz: '+(p.fire_protection_type==="conditional"?"Bedingt feuerbeständig":p.fire_protection_type==="tested"?(esc(p.fire_minutes||"Dauer offen")+" Min. · "+esc(p.fire_standard||"Prüfnorm offen")):p.fire_protection_type==="none"?"Ohne Feuerschutz":p.fire_protection_type==="unknown"?"Keine Angabe":(p.fire_minutes?esc(p.fire_minutes)+" Min. · "+esc(p.fire_standard||"Norm nicht hinterlegt"):"Keine Angabe"))+'</p><p>Versicherbar privat: '+(p.insured_private?euro(p.insured_private):"Keine Angabe")+'<br>gewerblich: '+(p.insured_commercial?euro(p.insured_commercial):"Keine Angabe")+'</p><p class="tresor-muted">Außenmaße: '+esc(p.height_mm||"–")+' × '+esc(p.width_mm||"–")+' × '+esc(p.depth_mm||"–")+' mm · '+esc(p.weight_kg||"–")+' kg</p><p class="tresor-muted">Innenmaße: '+esc(p.inner_height_mm||"–")+' × '+esc(p.inner_width_mm||"–")+' × '+esc(p.inner_depth_mm||"–")+' mm · Volumen: '+esc(p.volume_l||"–")+' l · Schloss: '+esc(p.lock_type||"–")+'</p><div class="price">'+(p.sale_price_gross!=null?euro(p.sale_price_gross):"Preis auf Anfrage")+'</div><div class="tresor-muted">Eigener Verkaufspreis inkl. MwSt.</div><button type="button" class="tresor-mark-btn '+(marked?"selected":"")+'" data-mark-compare="'+esc(p.id)+'">'+(marked?"✓ Für Vergleich ausgewählt":"＋ Für Vergleich merken")+'</button><button type="button" class="btnS" data-price-tag="'+esc(p.id)+'">Preisschild drucken</button></article>'}
   // Gruppiert Varianten automatisch über die Serienbezeichnung. Explizite family_name-Angaben haben Vorrang.
