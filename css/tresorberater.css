@@ -61,3 +61,18 @@
 .tresor-mark-btn{width:100%;margin-top:12px;padding:10px 12px;border-radius:8px;border:1px solid #4c83b3;background:#173454;color:#cce6fb;font-weight:750;cursor:pointer}
 .tresor-mark-btn.selected{background:#164d38;border-color:#3c9b70;color:#baf1d2}
 @media(max-width:620px){.tresor-compare-bar{top:4px;padding:12px}.tresor-compare-actions{width:100%}.tresor-compare-actions button{flex:1}}
+
+/* Aufgeräumte Startseite des Tresor-Bereichs */
+.tresor-home-intro{margin:20px 0 18px}
+.tresor-home-intro h2{font-size:25px;color:#f4f9ff;margin:4px 0}
+.tresor-home-intro p{color:#8eb9de;margin:0;font-size:14px}
+.tresor-home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.tresor-home-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;text-align:left;border:1px solid rgba(90,150,205,.38);border-radius:16px;background:linear-gradient(145deg,rgba(25,58,91,.96),rgba(12,32,54,.98));color:#eef6ff;cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
+.tresor-home-card:hover{transform:translateY(-2px);border-color:#77b4e8;background:linear-gradient(145deg,#214d76,#102b49)}
+.tresor-home-icon{display:grid;place-items:center;width:44px;height:44px;margin-bottom:14px;border-radius:12px;background:rgba(104,165,218,.17);font-size:23px}
+.tresor-home-card strong{font-size:19px;margin-bottom:7px}
+.tresor-home-card small{max-width:390px;color:#a9c7e2;font-size:13px;line-height:1.5}
+.tresor-home-card>b{position:absolute;right:20px;bottom:17px;font-size:27px;color:#8eb9de}
+.tresor-section-nav{display:flex;align-items:center;gap:14px;margin:12px 0 18px}
+.tresor-section-nav>span{font-size:17px;font-weight:800;color:#edf6ff}
+@media(max-width:620px){.tresor-home-grid{grid-template-columns:1fr;gap:11px}.tresor-home-card{min-height:145px;padding:17px}.tresor-home-icon{margin-bottom:9px}.tresor-home-card strong{font-size:17px}.tresor-section-nav{align-items:flex-start;flex-direction:column;gap:8px}}
