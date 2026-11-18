@@ -138,7 +138,7 @@
       ["40 ×  35 ×  29 in cm",dim],
       ["S2 privat bis 20.000€",insuredValues[0]||"Privat: Keine Angabe"],
       ["S2 gewerblich bis 20.000€",insuredValues[1]||"Gewerblich: Keine Angabe"],
-      ["807,00 €",price]
+      ["808,00 €",price]
     ];
     const changed=replacements.map(([oldValue,newValue])=>setText(oldValue,newValue));
     fitText(changed[0],29,59.055,34);
