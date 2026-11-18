@@ -147,7 +147,23 @@
     fitText(changed[3],19,29.5,20);
     fitText(changed[4],12,29.5,20);
     fitText(changed[5],24,29.5,18);
-    fitText(changed[6],27,29.5,17);
+    // Versicherungswerte zweizeilig ausgeben, damit beide Angaben innerhalb des Datenkastens bleiben.
+    const insuredNode=changed[6];
+    if(insuredNode){
+      insuredNode.textContent="";
+      insuredNode.style.fontSize="28.5px";
+      const privateLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
+      privateLine.setAttribute("x","34.016px");
+      privateLine.setAttribute("dy","0");
+      privateLine.textContent=insuredValues[0]||"Privat: Keine Angabe";
+      const commercialLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
+      commercialLine.setAttribute("x","34.016px");
+      commercialLine.setAttribute("dy","32px");
+      commercialLine.textContent=insuredValues[1]||"Gewerblich: Keine Angabe";
+      insuredNode.append(privateLine,commercialLine);
+      fitText(privateLine,25,28.5,22);
+      fitText(commercialLine,25,28.5,22);
+    }
     fitText(changed[7],12,100.394,58);
     const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
     const familyImage=products.find(item=>familyKey(item)===familyKey(p)&&item.image_url)?.image_url||null;
