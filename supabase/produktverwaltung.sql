@@ -23,6 +23,7 @@ create table if not exists public.products (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+alter table public.products add column if not exists label_fields jsonb not null default '{"info": true}'::jsonb;
 alter table public.products enable row level security;
 drop policy if exists "products_authenticated_read" on public.products;
 drop policy if exists "products_authenticated_insert" on public.products;
