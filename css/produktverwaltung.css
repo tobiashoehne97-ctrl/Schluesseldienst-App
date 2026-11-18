@@ -23,3 +23,7 @@
 
 /* Auswahl der Felder für individuelle Preisschilder */
 .pm-label-check{display:inline-flex;align-items:center;gap:6px;color:#8eb9de;font-size:11px;white-space:nowrap}.pm-label-check input{accent-color:#3b82c4;width:15px;height:15px;margin:0}.pm-info-label{margin-top:7px}.pm-attribute-row .pm-label-check{padding:0 5px}
+
+/* Layout fixes: attribute label checkbox and preview controls */
+.pm-attribute-row{grid-template-columns:minmax(130px,1fr) minmax(130px,1fr) auto 38px;align-items:center}.pm-attribute-row .pm-label-check{display:flex;align-items:center;justify-content:flex-start;cursor:pointer;min-height:36px}.pm-attribute-row .pm-label-check input{width:16px!important;height:16px!important;min-width:16px;flex:0 0 16px;cursor:pointer;pointer-events:auto}.pm-info-field>label:first-child{display:block;color:#90adc8;font-size:12px}.pm-info-field textarea{display:block;width:100%;margin-top:5px}.pm-info-label{display:flex;align-items:center;width:max-content;cursor:pointer;min-height:30px}.pm-info-label input{width:16px!important;height:16px!important;cursor:pointer;pointer-events:auto}
+@media(max-width:700px){.pm-attribute-row{grid-template-columns:1fr 1fr}.pm-attribute-row .pm-label-check{grid-column:1}.pm-attribute-row .pm-remove-attribute{grid-column:2;justify-self:end}}
