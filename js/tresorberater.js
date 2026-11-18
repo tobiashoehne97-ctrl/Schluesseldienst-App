@@ -140,7 +140,7 @@
       ["807,00 €",price]
     ];
     const changed=replacements.map(([oldValue,newValue])=>setText(oldValue,newValue));
-    fitText(changed[0],29,42,25);
+    fitText(changed[0],29,59.055,34);
     fitText(changed[1],40,33,21);
     fitText(changed[2],19,26.575,18);
     fitText(changed[3],19,26.575,18);
