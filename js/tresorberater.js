@@ -141,8 +141,8 @@
       ["808,00 €",price]
     ];
     const changed=replacements.map(([oldValue,newValue])=>setText(oldValue,newValue));
-    fitText(changed[0],29,59.055,34);
-    fitText(changed[1],40,33,21);
+    fitText(changed[0],29,48,30);
+    fitText(changed[1],40,25,18);
     // Die neue Affinity-Vorlage enthält bereits zwei getrennte Versicherungszeilen und den angepassten Kasten.
     fitText(changed[2],19,29.5,20);
     fitText(changed[3],19,29.5,20);
