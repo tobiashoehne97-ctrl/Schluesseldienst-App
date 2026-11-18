@@ -151,18 +151,21 @@
     const insuredNode=changed[6];
     if(insuredNode){
       insuredNode.textContent="";
-      insuredNode.style.fontSize="28.5px";
+      insuredNode.style.fontSize="25px";
       const privateLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
       privateLine.setAttribute("x","34.016px");
       privateLine.setAttribute("dy","0");
       privateLine.textContent=insuredValues[0]||"Privat: Keine Angabe";
       const commercialLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
       commercialLine.setAttribute("x","34.016px");
-      commercialLine.setAttribute("dy","32px");
+      commercialLine.setAttribute("dy","28px");
       commercialLine.textContent=insuredValues[1]||"Gewerblich: Keine Angabe";
       insuredNode.append(privateLine,commercialLine);
-      fitText(privateLine,25,28.5,22);
-      fitText(commercialLine,25,28.5,22);
+      fitText(privateLine,25,25,21);
+      fitText(commercialLine,25,25,21);
+    }
+    const insuredHeading=texts.find(el=>normalizeText(el.textContent)==="Verischerbar");
+    if(insuredHeading)insuredHeading.textContent="Versicherbar";
     }
     fitText(changed[7],12,100.394,58);
     const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
