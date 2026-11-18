@@ -90,10 +90,10 @@
     const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
     const description=labelAttrs.join(" · ");const shortDescription=labelInfo;
     const compact=size==="small"||size==="medium";
-    const cfg=size==="small"?{w:50,h:23,src:"assets/Preisschild-klein.svg",title:"19.3%",desc:"49.6%",price:"68.5%",titleSize:2.45,descSize:1.65,priceSize:5.3,
+    const cfg=size==="small"?{w:50,h:23,src:"assets/Preisschild-klein.svg",title:"19.3%",desc:"49.6%",price:"68.5%",titleSize:2.45,descSize:1.25,priceSize:5.3,
       titleMask:"left:18%;top:34%;width:66%;height:15%",descMask:"left:18%;top:47%;width:66%;height:12%",priceMask:"left:38%;top:66%;width:55%;height:29%",
       titlePos:"left:19.3%;top:36.5%;width:66%",descPos:"left:19.3%;top:49%;width:66%",pricePos:"left:40%;top:68%;width:54%"}
-      :size==="medium"?{w:80,h:50,src:"assets/Preisschild-mittel.svg",title:"8.5%",desc:"8.5%",price:"30.7%",titleSize:5.8,descSize:3.8,priceSize:10,
+      :size==="medium"?{w:80,h:50,src:"assets/Preisschild-mittel.svg",title:"8.5%",desc:"8.5%",price:"30.7%",titleSize:5.8,descSize:2.8,priceSize:10,
       titleMask:"left:7%;top:33%;width:70%;height:13%",descMask:"left:7%;top:47%;width:65%;height:12%",priceMask:"left:29%;top:70%;width:60%;height:28%",
       titlePos:"left:8.5%;top:34.5%;width:68%",descPos:"left:8.5%;top:48.5%;width:65%",pricePos:"left:31%;top:72%;width:58%"}
       :{w:105,h:148,src:"assets/Preisschild-A6.svg"};
@@ -102,7 +102,7 @@
       content='<img class="template" src="'+cfg.src+'" alt=""><div class="mask title-mask" style="'+cfg.titleMask+'"></div><div class="mask desc-mask" style="'+cfg.descMask+'"></div><div class="mask price-mask" style="'+cfg.priceMask+'"></div>'+
         '<div class="dynamic title" style="'+cfg.titlePos+';font-size:'+cfg.titleSize+'mm">'+safe(p.name)+'</div>'+
         '<div class="dynamic desc" style="'+cfg.descPos+';font-size:'+cfg.descSize+'mm">'+safe(description)+'</div>'+
-        '<div class="dynamic short-desc" style="left:'+(size==="small"?"19.3%":"8.5%")+';top:'+(size==="small"?"57%":"61.5%")+';width:'+(size==="small"?"66%":"65%")+';font-size:'+(size==="small"?"1.35":"2.8")+'mm">'+safe(shortDescription)+'</div>'+
+        '<div class="dynamic short-desc" style="left:'+(size==="small"?"19.3%":"8.5%")+';top:'+(size==="small"?"57%":"61.5%")+';width:'+(size==="small"?"66%":"65%")+';font-size:'+(size==="small"?"1.05":"2.1")+'mm">'+safe(shortDescription)+'</div>'+
         '<div class="dynamic price" style="'+cfg.pricePos+';font-size:'+cfg.priceSize+'mm">'+safe(price)+'</div>';
     }else{
       content='<div class="a6-head"><div class="brand">SCHLÜSSELDIENST<br><i>Christian Höhne</i></div><div class="a6-title">'+safe(p.name)+'</div><div class="a6-desc">'+safe(description)+(description&&shortDescription?'<br>':'')+safe(shortDescription)+'</div></div>'+(p.image_url?'<img class="a6-product" src="'+safe(p.image_url)+'" alt="">':'')+'<div class="a6-price">'+safe(price)+'</div>';
