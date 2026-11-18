@@ -1,0 +1,84 @@
+/* Allgemeine Produktverwaltung für den Ladenbestand */
+(function(){
+  const root=()=>document.getElementById("productManagementApp");
+  let products=[], editingId=null, loaded=false;
+  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const euro=v=>Number(v||0).toLocaleString("de-DE",{style:"currency",currency:"EUR"});
+  const val=id=>document.getElementById(id)?.value??"";
+  const categories=["Tresor","Fahrradschloss","Pflegespray","Schließzylinder","Schlüssel","Schlüsselring","Beschlag","Schloss","Zubehör","Sonstiges"];
+  function shell(){
+    root().innerHTML='<div class="pm-wrap"><div class="pm-header"><div><div class="pm-eyebrow">SCHLÜSSELDIENST HÖHNE · WARENSORTIMENT</div><h1>📦 Produktverwaltung</h1><p>Alle Verkaufsartikel zentral verwalten und später für die Preisschilder verwenden.</p></div><button class="btnP" id="pmNew">＋ Produkt anlegen</button></div><div class="pm-toolbar"><input id="pmSearch" type="search" placeholder="Name, Artikelnummer oder Hersteller suchen …"><select id="pmCategoryFilter"><option value="">Alle Warengruppen</option>'+categories.map(x=>'<option>'+esc(x)+'</option>').join("")+'</select><span id="pmCount"></span></div><div id="pmList"></div><div id="pmEditor" class="pm-editor hidden"></div></div>';
+    document.getElementById("pmNew").onclick=()=>openEditor();
+    document.getElementById("pmSearch").oninput=drawList;
+    document.getElementById("pmCategoryFilter").onchange=drawList;
+  }
+  function render(){
+    const app=root(); if(!app)return;
+    if(!window.supabaseClient){app.innerHTML='<div class="pm-wrap"><h2>Supabase nicht verbunden</h2><p>Bitte lade die Anwendung neu.</p></div>';return}
+    if(!loaded){app.innerHTML='<div class="pm-wrap"><p>Produktdaten werden geladen …</p></div>';return}
+    shell(); drawList();
+  }
+  async function load(){
+    if(!window.supabaseClient){root().innerHTML='<div class="pm-wrap"><p>Supabase ist noch nicht verbunden. Bitte App neu laden.</p></div>';return}
+    const {data,error}=await window.supabaseClient.from("products").select("*").order("name");
+    if(error){
+      root().innerHTML='<div class="pm-wrap"><div class="pm-empty"><h2>Produktdatenbank noch nicht eingerichtet</h2><p>Bitte zuerst <strong>supabase/produktverwaltung.sql</strong> im Supabase SQL Editor ausführen und anschließend hier neu laden.</p><button class="btnP" onclick="initProductManagement()">Erneut versuchen</button><small>'+esc(error.message)+'</small></div></div>';
+      return;
+    }
+    products=data||[]; loaded=true; render();
+  }
+  function drawList(){
+    const q=(val("pmSearch")||"").trim().toLocaleLowerCase("de"),cat=val("pmCategoryFilter");
+    const rows=products.filter(p=>(!cat||p.category===cat)&&[p.name,p.article_number,p.manufacturer,p.category].some(v=>String(v||"").toLocaleLowerCase("de").includes(q)));
+    document.getElementById("pmCount").textContent=rows.length+" Artikel";
+    document.getElementById("pmList").innerHTML=rows.length?'<div class="pm-table-wrap"><table class="pm-table"><thead><tr><th>Produkt</th><th>Warengruppe</th><th>Artikelnummer</th><th>Hersteller</th><th>Verkaufspreis brutto</th><th>Status</th><th></th></tr></thead><tbody>'+rows.map(p=>'<tr><td><div class="pm-product-cell">'+(p.image_url?'<img src="'+esc(p.image_url)+'" alt="" loading="lazy">':'<span class="pm-no-image">📦</span>')+'<span><strong>'+esc(p.name)+'</strong><small>'+esc(p.info||"")+'</small></span></div></td><td>'+esc(p.category||"–")+'</td><td>'+esc(p.article_number||"–")+'</td><td>'+esc(p.manufacturer||"–")+'</td><td><strong>'+(p.sale_price_gross!=null?euro(p.sale_price_gross):"–")+'</strong></td><td><span class="pm-status '+(p.active===false?"off":"on")+'">'+(p.active===false?"Deaktiviert":"Aktiv")+'</span></td><td><button class="btnS" data-edit="'+esc(p.id)+'">Bearbeiten</button></td></tr>').join("")+'</tbody></table></div>':'<div class="pm-empty"><div>📦</div><strong>Noch keine passenden Produkte vorhanden</strong><p>Lege den ersten Artikel an oder passe den Suchfilter an.</p><button class="btnP" id="pmEmptyNew">Produkt anlegen</button></div>';
+    document.getElementById("pmList").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEditor(b.dataset.edit));
+    document.getElementById("pmEmptyNew")?.addEventListener("click",()=>openEditor());
+  }
+  function openEditor(id=null){
+    editingId=id; const p=products.find(x=>String(x.id)===String(id))||{};
+    const attrs=Array.isArray(p.custom_attributes)?p.custom_attributes:[];
+    document.getElementById("pmEditor").classList.remove("hidden");
+    document.getElementById("pmEditor").innerHTML='<div class="pm-editor-head"><div><div class="pm-eyebrow">'+(id?"ARTIKEL BEARBEITEN":"NEUER ARTIKEL")+'</div><h2>'+(id?esc(p.name):"Produkt anlegen")+'</h2></div><button class="btnS" id="pmClose">Schließen ✕</button></div><form id="pmForm"><div class="pm-section-title">Allgemeine Produktdaten</div><div class="pm-form-grid"><label>Produktname *<input id="pmName" required value="'+esc(p.name||"")+'" placeholder="z. B. ABUS Bordo 6000"></label><label>Warengruppe *<select id="pmCategory" required><option value="">Bitte wählen</option>'+categories.map(x=>'<option '+(p.category===x?"selected":"")+'>'+esc(x)+'</option>').join("")+'</select></label><label>Artikelnummer<input id="pmArticle" value="'+esc(p.article_number||"")+'"></label><label>Hersteller<input id="pmManufacturer" value="'+esc(p.manufacturer||"")+'" placeholder="z. B. ABUS, Winkhaus"></label><label>Produktbild-URL<input id="pmImage" type="url" value="'+esc(p.image_url||"")+'" placeholder="https://…"></label><label>Mehrwertsteuer (%)<input id="pmVat" type="number" min="0" max="100" step="0.01" value="'+esc(p.vat_rate??19)+'"></label><label class="pm-wide">Informationen / Kurzbeschreibung<textarea id="pmInfo" rows="3" placeholder="Produktbeschreibung, Besonderheiten …">'+esc(p.info||"")+'</textarea></label></div><div class="pm-section-title">Verkaufspreisermittlung</div><div class="pm-form-grid"><label>Einkaufspreis<input id="pmPurchase" type="number" min="0" step="0.01" value="'+esc(p.purchase_price_input??"")+'" placeholder="0,00"></label><label>Einkaufspreis ist<select id="pmPurchaseType"><option value="net" '+((p.purchase_price_type||"net")==="net"?"selected":"")+'>Netto</option><option value="gross" '+(p.purchase_price_type==="gross"?"selected":"")+'>Brutto inkl. MwSt.</option></select></label><label>Gewünschte Handelsspanne (%)<input id="pmMargin" type="number" min="0" max="99" step="0.5" value="'+esc(p.margin_percent??30)+'"></label><label>Verkaufspreis brutto (manuell)<input id="pmPrice" type="number" min="0" step="0.01" value="'+esc(p.sale_price_gross??"")+'"></label><div class="pm-wide pm-calc" id="pmCalcPreview">Einkaufspreis und Handelsspanne eingeben, um den Verkaufspreis zu berechnen.</div></div><div class="pm-section-title">Individuelle Produkteigenschaften</div><p class="pm-hint">Hier kannst du beliebige Merkmale ergänzen. Beispiele: Inhalt 200 ml, Schutzklasse 8, Durchmesser 25 mm, Farbe Rot.</p><div id="pmAttributes" class="pm-attributes">'+attrs.map((a,i)=>attributeRow(a.key,a.value,i)).join("")+'</div><button type="button" class="btnS" id="pmAddAttribute">＋ Eigenschaft hinzufügen</button><div class="pm-form-grid pm-bottom-fields"><label>Verfügbarkeit<select id="pmStock"><option value="in_stock" '+((p.stock_status||"in_stock")==="in_stock"?"selected":"")+'>Im Geschäft / Lagernd</option><option value="to_order" '+(p.stock_status==="to_order"?"selected":"")+'>Bestellware</option></select></label><label>Aktiv<select id="pmActive"><option value="true" '+(p.active!==false?"selected":"")+'>Ja</option><option value="false" '+(p.active===false?"selected":"")+'>Nein</option></select></label><label class="pm-wide">Interne Notizen<textarea id="pmNotes" rows="2">'+esc(p.notes||"")+'</textarea></label></div><div class="pm-actions"><button class="btnP" type="submit">💾 Produkt speichern</button><button class="btnS" type="button" id="pmCancel">Abbrechen</button>'+(id?'<button class="btnS pm-delete" type="button" id="pmDelete">Produkt löschen</button>':"")+'</div><div id="pmMessage" class="pm-message"></div></form>';
+    document.getElementById("pmClose").onclick=closeEditor;document.getElementById("pmCancel").onclick=closeEditor;
+    document.getElementById("pmAddAttribute").onclick=()=>{const box=document.getElementById("pmAttributes");box.insertAdjacentHTML("beforeend",attributeRow("","",box.children.length));bindAttributeRemove()};
+    bindAttributeRemove();
+    ["pmPurchase","pmPurchaseType","pmMargin","pmVat"].forEach(x=>document.getElementById(x).addEventListener("input",updateCalc));
+    document.getElementById("pmPrice").addEventListener("input",()=>{document.getElementById("pmPrice").dataset.manual="1"});
+    document.getElementById("pmForm").onsubmit=save;
+    document.getElementById("pmDelete")?.addEventListener("click",deleteCurrent);
+    updateCalc(); document.getElementById("pmEditor").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  function attributeRow(key,value,i){return '<div class="pm-attribute-row"><input class="pm-attr-key" aria-label="Eigenschaft" placeholder="Eigenschaft, z. B. Inhalt" value="'+esc(key)+'"><input class="pm-attr-value" aria-label="Wert" placeholder="Wert, z. B. 200 ml" value="'+esc(value)+'"><button type="button" class="pm-remove-attribute" title="Eigenschaft entfernen">×</button></div>'}
+  function bindAttributeRemove(){document.querySelectorAll(".pm-remove-attribute").forEach(b=>b.onclick=()=>b.closest(".pm-attribute-row").remove())}
+  function calc(){
+    const entered=Number(val("pmPurchase")),margin=Number(val("pmMargin")),vat=Number(val("pmVat"));
+    if(!(entered>0)||!Number.isFinite(margin)||margin<0||margin>=100||!Number.isFinite(vat)||vat<0)return null;
+    const purchaseNet=val("pmPurchaseType")==="gross"?entered/(1+vat/100):entered;
+    const saleNet=purchaseNet/(1-margin/100);
+    return {purchaseNet,saleNet,saleGross:saleNet*(1+vat/100),profit:saleNet-purchaseNet,vatAmount:saleNet*vat/100};
+  }
+  function updateCalc(){
+    const box=document.getElementById("pmCalcPreview");if(!box)return;
+    const c=calc();
+    if(!c){box.textContent="Einkaufspreis und Handelsspanne eingeben, um den Verkaufspreis zu berechnen.";return}
+    box.innerHTML='<small>KALKULIERTER VERKAUFSPREIS BRUTTO</small><strong>'+euro(c.saleGross)+'</strong><span>EK netto: '+euro(c.purchaseNet)+'</span><span>VK netto: '+euro(c.saleNet)+'</span><span>MwSt.: '+euro(c.vatAmount)+'</span><span>Rohertrag: '+euro(c.profit)+'</span>';
+    const price=document.getElementById("pmPrice");if(price&&!price.dataset.manual)price.value=c.saleGross.toFixed(2);
+  }
+  async function save(e){
+    e.preventDefault();const msg=document.getElementById("pmMessage"),c=calc(),attrs=[];
+    document.querySelectorAll(".pm-attribute-row").forEach(row=>{const key=row.querySelector(".pm-attr-key").value.trim(),value=row.querySelector(".pm-attr-value").value.trim();if(key||value)attrs.push({key,value})});
+    const product={name:val("pmName").trim(),category:val("pmCategory"),article_number:val("pmArticle").trim()||null,manufacturer:val("pmManufacturer").trim()||null,image_url:val("pmImage").trim()||null,vat_rate:Number(val("pmVat")||19),info:val("pmInfo").trim()||null,purchase_price_input:val("pmPurchase")===""?null:Number(val("pmPurchase")),purchase_price_type:val("pmPurchaseType"),margin_percent:val("pmMargin")===""?null:Number(val("pmMargin")),sale_price_gross:c?Number(c.saleGross.toFixed(2)):(val("pmPrice")===""?null:Number(val("pmPrice"))),sale_price_net:c?Number(c.saleNet.toFixed(2)):null,custom_attributes:attrs,stock_status:val("pmStock"),active:val("pmActive")==="true",notes:val("pmNotes").trim()||null};
+    const query=window.supabaseClient.from("products"),result=editingId?await query.update(product).eq("id",editingId):await query.insert(product);
+    if(result.error){msg.textContent="Speichern fehlgeschlagen: "+result.error.message;msg.classList.add("error");return}
+    msg.textContent="Produkt gespeichert.";msg.classList.remove("error");await load();
+  }
+  async function deleteCurrent(){
+    const p=products.find(x=>String(x.id)===String(editingId));if(!p||!confirm('Produkt "'+p.name+'" wirklich löschen?'))return;
+    const {error}=await window.supabaseClient.from("products").delete().eq("id",editingId);
+    if(error){alert("Löschen fehlgeschlagen: "+error.message);return}
+    closeEditor();await load();
+  }
+  function closeEditor(){document.getElementById("pmEditor").classList.add("hidden");editingId=null}
+  window.initProductManagement=()=>{if(!root())return;loaded=false;load().catch(e=>{root().innerHTML='<div class="pm-wrap"><p>Fehler beim Laden: '+esc(e.message)+'</p></div>'})};
+})();
