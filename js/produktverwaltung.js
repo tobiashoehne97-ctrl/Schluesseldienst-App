@@ -88,21 +88,29 @@
     const details=[p.info,...attrs.map(a=>(a.key?String(a.key).trim()+": ":"")+String(a.value||"").trim())].filter(Boolean);
     const price=p.sale_price_gross!=null?Number(p.sale_price_gross).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" €":"Preis auf Anfrage";
     const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-    const cfg=size==="small"?{w:50,h:23,title:2.8,desc:1.9,price:5.8,brand:1.8}
-      :size==="medium"?{w:80,h:50,title:5.2,desc:3.4,price:9,brand:4.4}
-      :{w:105,h:148,title:22,desc:11,price:30,brand:5};
-    const compact=size!=="a6";
     const description=details.join(" · ");
-    const content=compact
-      ? '<div class="blue-cap"></div><div class="brand">Schlüsseldienst<br><i>Christian Höhne</i></div><div class="product-name">'+safe(p.name)+'</div><div class="product-details">'+safe(description)+'</div><div class="separator"></div><div class="vat">inkl. MwSt.</div><div class="price">'+safe(price)+'</div>'
-      : '<div class="a6-head"><div class="brand">SCHLÜSSELDIENST<br><i>Christian Höhne</i></div><div class="a6-title">'+safe(p.name)+'</div><div class="a6-desc">'+safe(description)+'</div></div>'+(p.image_url?'<img class="a6-product" src="'+safe(p.image_url)+'" alt="">':'')+'<div class="a6-price">'+safe(price)+'</div>';
+    const compact=size==="small"||size==="medium";
+    const cfg=size==="small"?{w:50,h:23,src:"assets/Preisschild-klein.svg",title:"19.3%",desc:"49.6%",price:"68.5%",titleSize:2.45,descSize:1.65,priceSize:5.3,
+      titleMask:"left:18%;top:34%;width:66%;height:15%",descMask:"left:18%;top:47%;width:66%;height:12%",priceMask:"left:38%;top:66%;width:55%;height:29%",
+      titlePos:"left:19.3%;top:36.5%;width:66%",descPos:"left:19.3%;top:49%;width:66%",pricePos:"left:40%;top:68%;width:54%"}
+      :size==="medium"?{w:80,h:50,src:"assets/Preisschild-mittel.svg",title:"8.5%",desc:"8.5%",price:"30.7%",titleSize:5.8,descSize:3.8,priceSize:10,
+      titleMask:"left:7%;top:33%;width:70%;height:13%",descMask:"left:7%;top:47%;width:65%;height:12%",priceMask:"left:29%;top:70%;width:60%;height:28%",
+      titlePos:"left:8.5%;top:34.5%;width:68%",descPos:"left:8.5%;top:48.5%;width:65%",pricePos:"left:31%;top:72%;width:58%"}
+      :{w:105,h:148,src:"assets/Preisschild-A6.svg"};
+    let content;
+    if(compact){
+      content='<img class="template" src="'+cfg.src+'" alt=""><div class="mask title-mask" style="'+cfg.titleMask+'"></div><div class="mask desc-mask" style="'+cfg.descMask+'"></div><div class="mask price-mask" style="'+cfg.priceMask+'"></div>'+
+        '<div class="dynamic title" style="'+cfg.titlePos+';font-size:'+cfg.titleSize+'mm">'+safe(p.name)+'</div>'+
+        '<div class="dynamic desc" style="'+cfg.descPos+';font-size:'+cfg.descSize+'mm">'+safe(description)+'</div>'+
+        '<div class="dynamic price" style="'+cfg.pricePos+';font-size:'+cfg.priceSize+'mm">'+safe(price)+'</div>';
+    }else{
+      content='<div class="a6-head"><div class="brand">SCHLÜSSELDIENST<br><i>Christian Höhne</i></div><div class="a6-title">'+safe(p.name)+'</div><div class="a6-desc">'+safe(description)+'</div></div>'+(p.image_url?'<img class="a6-product" src="'+safe(p.image_url)+'" alt="">':'')+'<div class="a6-price">'+safe(price)+'</div>';
+    }
     const html='<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Preisschild – '+safe(p.name)+'</title><style>'+
-      '*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#172b3d}body{background:#eee}.sheet{position:relative;overflow:hidden;background:#fff;border:.25mm solid #8795a2;width:'+cfg.w+'mm;height:'+cfg.h+'mm;margin:12mm auto;print-color-adjust:exact;-webkit-print-color-adjust:exact}'+
-      '.blue-cap{position:absolute;left:0;top:0;width:67%;height:23%;background:linear-gradient(135deg,#102b43 0%,#234f79 100%);clip-path:polygon(0 0,100% 0,84% 100%,0 100%);box-shadow:0 1mm 1mm #0004}.brand{position:absolute;right:5%;top:3%;width:36%;text-align:center;font-size:'+cfg.brand+'mm;line-height:1.02;font-weight:800;color:#102b3f;letter-spacing:.1mm;text-transform:lowercase}.brand i{font-family:Georgia,serif;font-size:1.22em;font-style:italic;font-weight:700}'+
-      '.product-name{position:absolute;left:19%;right:4%;top:37%;font-size:'+cfg.title+'mm;font-weight:700;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#172b3d}.product-details{position:absolute;left:19%;right:4%;top:54%;font-size:'+cfg.desc+'mm;line-height:1.15;color:#7c8790;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.separator{position:absolute;left:2%;right:2%;top:65%;height:.25mm;background:#102b43}.vat{position:absolute;left:20%;bottom:13%;font-size:'+Math.max(1.7,cfg.desc*.72)+'mm;color:#7c8790}.price{position:absolute;right:18%;bottom:3%;font-size:'+cfg.price+'mm;line-height:1;font-weight:700;color:#102b3f;white-space:nowrap}'+
-      '.a6-head{position:absolute;left:8%;right:8%;top:17%}.a6-title{font-size:22px;font-weight:700;margin-bottom:8mm}.a6-desc{font-size:11px;line-height:1.4;color:#87919a}.a6-product{position:absolute;left:15%;top:43%;width:70%;height:42%;object-fit:contain}.a6-price{position:absolute;bottom:5%;left:8%;right:8%;font-size:30px;font-weight:700;text-align:right;border-top:1px solid #1f3769;padding-top:5mm}'+
-      '@page{size:'+cfg.w+'mm '+cfg.h+'mm;margin:0}@media print{body{background:#fff}.sheet{margin:0;border:.25mm solid #8795a2}}'+
-      '</style></head><body><main class="sheet">'+content+'</main><script>window.onload=()=>setTimeout(()=>window.print(),350);<\/script></body></html>';
+      '*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#122b40}body{background:#eee}.sheet{position:relative;overflow:hidden;background:#fff;width:'+cfg.w+'mm;height:'+cfg.h+'mm;margin:12mm auto;print-color-adjust:exact;-webkit-print-color-adjust:exact}.template{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}.mask{position:absolute;background:#fff}.dynamic{position:absolute;z-index:2;color:#122b40;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}.desc{font-weight:400;color:#858d94}.price{text-align:center}'+
+      '.a6-head{position:absolute;left:8%;right:8%;top:17%}.brand{position:absolute;right:0;top:-10mm;font-size:5px;line-height:1.05;text-align:center;font-weight:700}.brand i{font-family:Georgia,serif;font-size:7px}.a6-title{font-size:22px;font-weight:700;margin-bottom:8mm}.a6-desc{font-size:11px;line-height:1.4;color:#87919a}.a6-product{position:absolute;left:15%;top:43%;width:70%;height:42%;object-fit:contain}.a6-price{position:absolute;bottom:5%;left:8%;right:8%;font-size:30px;font-weight:700;text-align:right;border-top:1px solid #1f3769;padding-top:5mm}'+
+      '@page{size:'+cfg.w+'mm '+cfg.h+'mm;margin:0}@media print{body{background:#fff}.sheet{margin:0}}'+
+      '</style></head><body><main class="sheet">'+content+'</main><script>window.onload=()=>setTimeout(()=>window.print(),500);<\/script></body></html>';
     const w=window.open("","_blank","width=900,height=700");if(!w){alert("Bitte Pop-ups für diese Anwendung erlauben.");return}w.document.open();w.document.write(html);w.document.close();
   }
 
