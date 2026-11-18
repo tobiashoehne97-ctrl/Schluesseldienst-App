@@ -88,8 +88,8 @@
     const details=[p.info,...attrs.map(a=>(a.key?String(a.key).trim()+": ":"")+String(a.value||"").trim())].filter(Boolean);
     const price=p.sale_price_gross!=null?Number(p.sale_price_gross).toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2})+" €":"Preis auf Anfrage";
     const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-    const cfg=size==="small"?{w:50,h:23,title:4.1,desc:2.5,price:7.1,brand:1.5}
-      :size==="medium"?{w:80,h:50,title:7.4,desc:4.2,price:12.2,brand:2.4}
+    const cfg=size==="small"?{w:50,h:23,title:2.8,desc:1.9,price:5.8,brand:1.8}
+      :size==="medium"?{w:80,h:50,title:5.2,desc:3.4,price:9,brand:4.4}
       :{w:105,h:148,title:22,desc:11,price:30,brand:5};
     const compact=size!=="a6";
     const description=details.join(" · ");
