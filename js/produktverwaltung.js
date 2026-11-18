@@ -102,7 +102,7 @@
       content='<img class="template" src="'+cfg.src+'" alt=""><div class="mask title-mask" style="'+cfg.titleMask+'"></div><div class="mask desc-mask" style="'+cfg.descMask+'"></div><div class="mask price-mask" style="'+cfg.priceMask+'"></div>'+
         '<div class="dynamic title" style="'+cfg.titlePos+';font-size:'+cfg.titleSize+'mm">'+safe(p.name)+'</div>'+
         '<div class="dynamic desc" style="'+cfg.descPos+';font-size:'+cfg.descSize+'mm">'+safe(description)+'</div>'+
-        '<div class="dynamic short-desc" style="left:'+(size==="small"?"19.3%":"8.5%")+';top:'+(size==="small"?"57%":"61.5%")+';width:'+(size==="small"?"66%":"65%")+';font-size:'+(size==="small"?"1.05":"2.1")+'mm">'+safe(shortDescription)+'</div>'+
+        '<div class="dynamic short-desc" style="left:'+(size==="small"?"19.3%":"8.5%")+';top:'+(size==="small"?"54%":"58.5%")+';width:'+(size==="small"?"66%":"65%")+';font-size:'+(size==="small"?"1.05":"2.1")+'mm">'+safe(shortDescription)+'</div>'+
         '<div class="dynamic price" style="'+cfg.pricePos+';font-size:'+cfg.priceSize+'mm">'+safe(price)+'</div>';
     }else{
       content='<div class="a6-head"><div class="brand">SCHLÜSSELDIENST<br><i>Christian Höhne</i></div><div class="a6-title">'+safe(p.name)+'</div><div class="a6-desc">'+safe(description)+(description&&shortDescription?'<br>':'')+safe(shortDescription)+'</div></div>'+(p.image_url?'<img class="a6-product" src="'+safe(p.image_url)+'" alt="">':'')+'<div class="a6-price">'+safe(price)+'</div>';
