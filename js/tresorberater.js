@@ -142,11 +142,12 @@
     const changed=replacements.map(([oldValue,newValue])=>setText(oldValue,newValue));
     fitText(changed[0],29,59.055,34);
     fitText(changed[1],40,33,21);
-    fitText(changed[2],19,26.575,18);
-    fitText(changed[3],19,26.575,18);
-    fitText(changed[4],12,26.575,18);
-    fitText(changed[5],24,26.575,16);
-    fitText(changed[6],27,26.575,15);
+    // Technische Werte leicht vergrößern, Beschriftungen und Layout bleiben unverändert.
+    fitText(changed[2],19,29.5,20);
+    fitText(changed[3],19,29.5,20);
+    fitText(changed[4],12,29.5,20);
+    fitText(changed[5],24,29.5,18);
+    fitText(changed[6],27,29.5,17);
     fitText(changed[7],12,100.394,58);
     const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
     const win=window.open("","_blank");
