@@ -58,6 +58,7 @@ function go(id) {
   if (targetId === "auftraege") renderAuftraege();
   if (targetId === "kalender") initKalender();
   if (targetId === "tresore" && typeof initTresorBerater === "function") initTresorBerater();
+  if (targetId === "produkte" && typeof initProductManagement === "function") initProductManagement();
 
   if (targetId === "zeit") {
     iZeit();
