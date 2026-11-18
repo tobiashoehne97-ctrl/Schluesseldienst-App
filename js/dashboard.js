@@ -3,8 +3,8 @@ let dashboardArbeitszeitTimer = null;
 
 const MOBILE_EMPLOYEE_KEY = "schluesseldienst-mobile-employee";
 const mobileEmployeeProfiles = [
-  { name: "Christian Höhne", permissions: ["zeit","kalender","notdienst","stunden"] },
-  { name: "Tobias Höhne", permissions: ["zeit","kalender","notdienst","stunden"] }
+  { name: "Christian Höhne", permissions: ["zeit","kalender","notdienst","stunden","tresore"] },
+  { name: "Tobias Höhne", permissions: ["zeit","kalender","notdienst","stunden","tresore"] }
 ];
 
 function getTodayWorkMinutes() {

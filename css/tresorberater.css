@@ -1,0 +1,107 @@
+/* Tresor-Berater – Ergänzung zur bestehenden Schlüsseldienst-App */
+.tresor-wrap{max-width:1500px;margin:0 auto;color:#e8f0f8}
+.tresor-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}
+.tresor-head h1{font-size:28px;margin:3px 0 6px;color:#f4f9ff}
+.tresor-muted{color:#8eb9de;font-size:13px;line-height:1.5}
+.tresor-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.tresor-tabs button{padding:10px 15px;border-radius:9px;border:1px solid rgba(59,110,165,.35);background:rgba(255,255,255,.05);color:#9fc7e9;font-weight:700}
+.tresor-tabs button.active{background:#245f9b;color:#fff;border-color:#4b8fcb}
+.tresor-panel{background:rgba(255,255,255,.055);border:1px solid rgba(59,110,165,.3);border-radius:15px;padding:18px;margin-bottom:16px}
+.tresor-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.tresor-field label{display:block;color:#90adc8;font-size:12px;margin:0 0 5px}
+.tresor-field input,.tresor-field select,.tresor-field textarea{width:100%;min-width:0}
+.tresor-field textarea{min-height:75px}
+.tresor-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tresor-results{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}
+.tresor-card{border:1px solid rgba(59,110,165,.32);background:rgba(8,24,45,.65);border-radius:13px;padding:15px}
+.tresor-card h3{font-size:17px;color:#fff;margin:5px 0}
+.tresor-card .price{font-size:23px;font-weight:850;color:#fff;margin:12px 0 5px}
+.tresor-tag{display:inline-block;padding:4px 8px;border-radius:20px;background:rgba(59,130,196,.18);color:#9bc9ef;font-size:11px;margin:2px}
+.tresor-table-wrap{overflow:auto}
+.tresor-table{width:100%;border-collapse:collapse;min-width:760px}
+.tresor-table th,.tresor-table td{padding:10px;text-align:left;border-bottom:1px solid rgba(100,150,190,.18);font-size:13px}
+.tresor-table th{color:#8eb9de}
+.tresor-login{max-width:430px;margin:7vh auto}
+.tresor-login h2{margin-bottom:8px}
+.tresor-status{padding:10px 12px;border-radius:8px;background:rgba(59,130,196,.12);color:#a8c9e7;font-size:13px;margin:10px 0}
+.tresor-status.error{background:rgba(192,57,43,.14);color:#ffb4aa}
+.tresor-empty{padding:25px;text-align:center;color:#8eb9de;border:1px dashed rgba(100,150,190,.3);border-radius:12px}
+@media(max-width:1000px){.tresor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.tresor-head{flex-direction:column}.tresor-grid{grid-template-columns:1fr}.tresor-panel{padding:13px}.tresor-head h1{font-size:23px}}
+
+/* Serienübersicht in der Kundenberatung */
+.tresor-series-card{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:20px 22px;margin:0 0 12px;border:1px solid rgba(90,138,184,.35);border-radius:14px;background:#10243d;color:#e8f2fb;cursor:pointer;transition:background .18s,border-color .18s}
+.tresor-series-card:hover{background:#173454;border-color:#6da6d8}
+.tresor-series-name{font-size:18px;font-weight:800;flex:1}
+.tresor-series-count{font-size:13px;color:#9fc2e3}
+.tresor-series-arrow{font-size:28px;color:#9fc2e3}
+.tresor-series-back{margin-bottom:14px}
+.tresor-series-back h3{margin:14px 0 4px}
+
+/* Verkaufspreiskalkulation */
+.tresor-calc-preview{padding:15px 17px;border:1px solid rgba(90,150,205,.35);border-radius:11px;background:rgba(8,24,45,.72)}
+.tresor-calc-title{font-size:12px;color:#9fc2e3;text-transform:uppercase;letter-spacing:.05em}
+.tresor-calc-price{font-size:28px;font-weight:850;color:#fff;margin:4px 0 10px}
+.tresor-calc-details{display:flex;gap:10px 20px;flex-wrap:wrap;font-size:13px}
+.tresor-calc-ek{color:#ff8f8f;font-weight:700}
+.tresor-calc-profit{color:#75dda0;font-weight:700}
+.tresor-series-price{display:inline-block;color:#8fe0a9;margin-top:5px;font-size:14px}
+
+/* Tresor-Merkliste und druckbarer Produktvergleich */
+.tresor-compare-bar{position:sticky;top:8px;z-index:20;margin:0 0 16px;padding:14px 16px;border:1px solid rgba(90,150,205,.45);border-radius:13px;background:#10243df2;box-shadow:0 8px 24px #0003;backdrop-filter:blur(10px)}
+.tresor-compare-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tresor-compare-summary>div:first-child{display:flex;flex-direction:column;gap:3px}
+.tresor-compare-summary strong{color:#fff;font-size:15px}
+.tresor-compare-summary span{color:#9fc2e3;font-size:12px}
+.tresor-compare-actions{display:flex;gap:8px;flex-wrap:wrap}
+.tresor-compare-actions button:disabled{opacity:.4;cursor:not-allowed}
+.tresor-compare-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.tresor-compare-chips>span{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,196,.2);border:1px solid rgba(90,150,205,.35);padding:5px 9px;border-radius:20px;color:#dceeff;font-size:12px}
+.tresor-compare-chips button{border:0;background:transparent;color:#ffb4aa;font-size:18px;line-height:1;cursor:pointer}
+.tresor-mark-btn{width:100%;margin-top:12px;padding:10px 12px;border-radius:8px;border:1px solid #4c83b3;background:#173454;color:#cce6fb;font-weight:750;cursor:pointer}
+.tresor-mark-btn.selected{background:#164d38;border-color:#3c9b70;color:#baf1d2}
+@media(max-width:620px){.tresor-compare-bar{top:4px;padding:12px}.tresor-compare-actions{width:100%}.tresor-compare-actions button{flex:1}}
+
+/* Aufgeräumte Startseite des Tresor-Bereichs */
+.tresor-home-intro{margin:20px 0 18px}
+.tresor-home-intro h2{font-size:25px;color:#f4f9ff;margin:4px 0}
+.tresor-home-intro p{color:#8eb9de;margin:0;font-size:14px}
+.tresor-home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.tresor-home-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-height:190px;padding:22px;text-align:left;border:1px solid rgba(90,150,205,.38);border-radius:16px;background:linear-gradient(145deg,rgba(25,58,91,.96),rgba(12,32,54,.98));color:#eef6ff;cursor:pointer;transition:transform .16s,border-color .16s,background .16s}
+.tresor-home-card:hover{transform:translateY(-2px);border-color:#77b4e8;background:linear-gradient(145deg,#214d76,#102b49)}
+.tresor-home-icon{display:grid;place-items:center;width:44px;height:44px;margin-bottom:14px;border-radius:12px;background:rgba(104,165,218,.17);font-size:23px}
+.tresor-home-card strong{font-size:19px;margin-bottom:7px}
+.tresor-home-card small{max-width:390px;color:#a9c7e2;font-size:13px;line-height:1.5}
+.tresor-home-card>b{position:absolute;right:20px;bottom:17px;font-size:27px;color:#8eb9de}
+.tresor-section-nav{display:flex;align-items:center;gap:14px;margin:12px 0 18px}
+.tresor-section-nav>span{font-size:17px;font-weight:800;color:#edf6ff}
+@media(max-width:620px){.tresor-home-grid{grid-template-columns:1fr;gap:11px}.tresor-home-card{min-height:145px;padding:17px}.tresor-home-icon{margin-bottom:9px}.tresor-home-card strong{font-size:17px}.tresor-section-nav{align-items:flex-start;flex-direction:column;gap:8px}}
+
+/* Kundenberatung: große Auswahlfelder mit Auswahl-Popup */
+.tresor-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:16px}
+.tresor-filter-tile{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-height:118px;padding:17px;text-align:left;border:1px solid rgba(90,150,205,.42);border-radius:13px;background:linear-gradient(145deg,rgba(23,58,91,.95),rgba(10,30,51,.98));color:#eef6ff;cursor:pointer;transition:border-color .15s,transform .15s}
+.tresor-filter-tile:hover{border-color:#7db9e9;transform:translateY(-1px)}
+.tresor-filter-tile>span{font-size:12px;color:#9fc2e3;font-weight:750;text-transform:uppercase;letter-spacing:.04em}
+.tresor-filter-tile>strong{font-size:17px;color:#fff}
+.tresor-filter-tile>small{font-size:11px;color:#80a8cb}
+.tresor-filter-modal{display:none;position:fixed;inset:0;z-index:10050;align-items:center;justify-content:center;padding:18px;background:rgba(3,12,24,.78);backdrop-filter:blur(5px)}
+.tresor-filter-modal.open{display:flex}
+.tresor-filter-dialog{width:min(560px,100%);max-height:min(78vh,720px);overflow:auto;padding:19px;border:1px solid rgba(115,169,214,.45);border-radius:16px;background:#10243d;box-shadow:0 22px 70px #0009}
+.tresor-filter-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.tresor-filter-dialog-head strong{font-size:19px;color:#f4f9ff}
+.tresor-filter-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.tresor-filter-option{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:48px;padding:12px;text-align:left;border:1px solid rgba(100,150,190,.3);border-radius:10px;background:rgba(255,255,255,.055);color:#dceeff;font-weight:700;cursor:pointer}
+.tresor-filter-option.selected{border-color:#55a47b;background:rgba(31,112,75,.25);color:#c8f2d9}
+.tresor-price-filter{display:grid;gap:12px}
+.tresor-price-filter label{font-size:13px;color:#a9c7e2}
+.tresor-price-filter input{width:100%;padding:12px;border:1px solid rgba(100,150,190,.4);border-radius:9px;background:#fff;color:#14283d;font-size:16px}
+@media(max-width:900px){.tresor-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.tresor-filter-grid{grid-template-columns:1fr 1fr;gap:8px}.tresor-filter-tile{min-height:105px;padding:12px}.tresor-filter-tile>strong{font-size:14px}.tresor-filter-options{grid-template-columns:1fr}.tresor-filter-dialog{padding:14px}}
+
+/* Produktverwaltung: Suchdialog und Trefferliste */
+.tresor-product-search-results{display:grid;gap:8px;margin-top:14px;max-height:48vh;overflow:auto}
+.tresor-product-search-result{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:12px 14px;text-align:left;border:1px solid rgba(100,150,190,.3);border-radius:10px;background:rgba(255,255,255,.055);color:#e8f0f8;cursor:pointer}
+.tresor-product-search-result:hover{border-color:#7db9e9;background:rgba(59,130,196,.16)}
+.tresor-product-search-result span{display:flex;flex-direction:column;gap:4px}
+.tresor-product-search-result small{color:#8eb9de;font-size:12px}
+.tresor-product-search-result b{color:#9fc7e9;font-size:12px;white-space:nowrap}
