@@ -151,21 +151,46 @@
     const insuredNode=changed[6];
     if(insuredNode){
       insuredNode.textContent="";
-      insuredNode.style.fontSize="25px";
+      insuredNode.style.fontSize="22.5px";
       const privateLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
       privateLine.setAttribute("x","34.016px");
       privateLine.setAttribute("dy","0");
       privateLine.textContent=insuredValues[0]||"Privat: Keine Angabe";
       const commercialLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
       commercialLine.setAttribute("x","34.016px");
-      commercialLine.setAttribute("dy","28px");
+      commercialLine.setAttribute("dy","25px");
       commercialLine.textContent=insuredValues[1]||"Gewerblich: Keine Angabe";
       insuredNode.append(privateLine,commercialLine);
-      fitText(privateLine,25,25,21);
-      fitText(commercialLine,25,25,21);
+      fitText(privateLine,28,22.5,19);
+      fitText(commercialLine,28,22.5,19);
     }
     const insuredHeading=texts.find(el=>normalizeText(el.textContent)==="Verischerbar");
     if(insuredHeading)insuredHeading.textContent="Versicherbar";
+    // Datenkasten nach rechts und unten erweitern; der neue weiße Hintergrund deckt die alte Kontur ab.
+    const dataGroup=xml.querySelector('g[transform="matrix(1,0,0,1,20.685046,523.746319)"]');
+    if(dataGroup){
+      const panel=xml.createElementNS("http://www.w3.org/2000/svg","rect");
+      panel.setAttribute("x","17");
+      panel.setAttribute("y","60");
+      panel.setAttribute("width","335");
+      panel.setAttribute("height","490");
+      panel.setAttribute("fill","#ffffff");
+      panel.setAttribute("stroke","#aeb9c5");
+      panel.setAttribute("stroke-width","1.5");
+      dataGroup.insertBefore(panel,dataGroup.firstChild);
+      ["Gewicht","41kg","Maße"].forEach(label=>{
+        const node=texts.find(el=>normalizeText(el.textContent)===label);
+        if(node){
+          const y=parseFloat(node.getAttribute("y"));
+          node.setAttribute("y",(y+20)+"px");
+        }
+      });
+      const dimensions=texts.find(el=>normalizeText(el.textContent).replace(/\s+/g," ")==="40 × 35 × 29 in cm");
+      if(dimensions){
+        const y=parseFloat(dimensions.getAttribute("y"));
+        dimensions.setAttribute("y",(y+20)+"px");
+      }
+    }
     fitText(changed[7],12,100.394,58);
     const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
     const familyImage=products.find(item=>familyKey(item)===familyKey(p)&&item.image_url)?.image_url||null;
