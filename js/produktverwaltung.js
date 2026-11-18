@@ -82,7 +82,7 @@
   }
   function closeEditor(){document.getElementById("pmEditor").classList.add("hidden");editingId=null}
 
-  function printLabel(id,size){
+  async function printLabel(id,size){
     const p=products.find(x=>String(x.id)===String(id));if(!p)return;
     const attrs=(Array.isArray(p.custom_attributes)?p.custom_attributes:[]).filter(a=>String(a.key||"").trim()||String(a.value||"").trim());
     const labelAttrs=attrs.filter(a=>a.show_on_label===true).map(a=>(a.key?String(a.key).trim()+": ":"")+String(a.value||"").trim()).filter(Boolean);const labelInfo=p.label_fields?.info!==false&&p.info?String(p.info).trim():"";
@@ -105,14 +105,41 @@
         '<div class="dynamic short-desc" style="left:'+(size==="small"?"19.3%":"8.5%")+';top:'+(size==="small"?"54%":"58.5%")+';width:'+(size==="small"?"66%":"65%")+';font-size:'+(size==="small"?"1.05":"2.1")+'mm">'+safe(shortDescription)+'</div>'+
         '<div class="dynamic price" style="'+cfg.pricePos+';font-size:'+cfg.priceSize+'mm">'+safe(price)+'</div>';
     }else{
-      const a6Lines=labelAttrs.map(x=>'<div class="a6-feature-line">'+safe(x)+'</div>').join("");
-      content='<img class="template" src="assets/Preisschild-A6.svg" alt="">'+
-        '<div class="a6-mask a6-title-mask"></div><div class="a6-mask a6-info-mask"></div><div class="a6-mask a6-features-mask"></div><div class="a6-mask a6-price-mask"></div>'+
-        '<div class="a6-dynamic-title">'+safe(p.name)+'</div>'+
-        (shortDescription?'<div class="a6-dynamic-info">'+safe(shortDescription)+'</div>':'')+
-        '<div class="a6-dynamic-features">'+a6Lines+'</div>'+
-        (p.image_url?'<img class="a6-product" src="'+safe(p.image_url)+'" alt="">':'')+
-        '<div class="a6-dynamic-price">'+safe(price)+'</div><div class="a6-vat">inkl. MwSt.</div>';
+      const popup=window.open("","_blank","width=900,height=700");
+      if(!popup){alert("Bitte Pop-ups für diese Anwendung erlauben.");return}
+      try{
+        const response=await fetch(cfg.src);
+        if(!response.ok)throw new Error("A6-Vorlage konnte nicht geladen werden.");
+        const svgText=await response.text();
+        const parsed=new DOMParser().parseFromString(svgText,"image/svg+xml");
+        if(parsed.querySelector("parsererror"))throw new Error("A6-SVG ist fehlerhaft.");
+        const svg=parsed.documentElement;
+        const textNodes=[...svg.querySelectorAll("text")];
+        const norm=e=>(e.textContent||"").replace(/\\s+/g," ").trim();
+        const findText=fn=>textNodes.find(e=>fn(norm(e)));
+        const titleNode=findText(t=>t.startsWith("Rottner"));
+        const infoNode=findText(t=>t.startsWith("W e rtschutztresor"));
+        const priceNode=findText(t=>t==="808,00 €");
+        if(!titleNode||!infoNode||!priceNode)throw new Error("Die Textfelder in der A6-Vorlage wurden nicht erkannt.");
+        titleNode.textContent=p.name;
+        infoNode.textContent=shortDescription;
+        const featureMatchers=["Sicherheitsstufe","EN 14450","Feuerschutz","60 Minuten","V e rischerba","S2 privat","S2 gewerblich","Gewich","41kg","Maße","40 ×"];
+        const featureNodes=featureMatchers.map(prefix=>findText(t=>t.startsWith(prefix))).filter(Boolean);
+        const selected=attrs.filter(a=>a.show_on_label===true&&String(a.key||a.value||"").trim());
+        featureNodes.forEach((node,index)=>{
+          const itemIndex=Math.floor(index/2), item=selected[itemIndex];
+          if(!item){node.remove();return}
+          const isKey=index%2===0;
+          const value=isKey?String(item.key||"").trim():String(item.value||"").trim();
+          if(!value){node.remove();return}
+          node.textContent=value;
+        });
+        priceNode.textContent=price;
+        const inlineSvg=new XMLSerializer().serializeToString(svg).replace("<svg ","<svg style=\"width:100%;height:100%;display:block\" ");
+        content=inlineSvg;
+      }catch(err){popup.close();alert("A6-Preisschild konnte nicht erstellt werden: "+err.message);return}
+      const html='<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Preisschild – '+safe(p.name)+'</title><style>*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}body{background:#eee}.sheet{width:105mm;height:148mm;margin:12mm auto;background:#fff;overflow:hidden;print-color-adjust:exact;-webkit-print-color-adjust:exact}.sheet svg{width:100%;height:100%;display:block}@page{size:105mm 148mm;margin:0}.preview-tools{display:flex;gap:10px;justify-content:center;padding:16px;position:sticky;top:0;background:#142b43;z-index:10}.preview-tools button{border:1px solid #6b8eae;border-radius:8px;background:#244b70;color:#fff;padding:10px 16px;font-size:14px;cursor:pointer}@media print{body{background:#fff}.preview-tools{display:none}.sheet{margin:0}}</style></head><body><nav class="preview-tools"><button type="button" onclick="window.print()">🖨️ Drucken / als PDF speichern</button><button type="button" onclick="window.close()">← Zurück zur Produktverwaltung</button></nav><main class="sheet">'+content+'</main></body></html>';
+      popup.document.open();popup.document.write(html);popup.document.close();return;
     }
     const html='<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Preisschild – '+safe(p.name)+'</title><style>'+
       '*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;color:#122b40}body{background:#eee}.sheet{position:relative;overflow:hidden;background:#fff;width:'+cfg.w+'mm;height:'+cfg.h+'mm;margin:12mm auto;print-color-adjust:exact;-webkit-print-color-adjust:exact}.template{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}.mask{position:absolute;background:#fff}.dynamic{position:absolute;z-index:2;color:#122b40;line-height:1.08;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}.desc{font-weight:400;color:#858d94}.price{text-align:center}'+
