@@ -115,15 +115,15 @@
         if(parsed.querySelector("parsererror"))throw new Error("A6-SVG ist fehlerhaft.");
         const svg=parsed.documentElement;
         const textNodes=[...svg.querySelectorAll("text")];
-        const norm=e=>(e.textContent||"").replace(/\\s+/g," ").trim();
+        const norm=e=>(e.textContent||"").replace(/\s+/g," ").trim();
         const findText=fn=>textNodes.find(e=>fn(norm(e)));
         const titleNode=findText(t=>t.startsWith("Rottner"));
-        const infoNode=findText(t=>t.startsWith("W e rtschutztresor"));
+        const infoNode=findText(t=>t.startsWith("Wertschutztresor"));
         const priceNode=findText(t=>t==="808,00 €");
         if(!titleNode||!infoNode||!priceNode)throw new Error("Die Textfelder in der A6-Vorlage wurden nicht erkannt.");
         titleNode.textContent=p.name;
         infoNode.textContent=shortDescription;
-        const featureMatchers=["Sicherheitsstufe","EN 14450","Feuerschutz","60 Minuten","V e rischerba","S2 privat","S2 gewerblich","Gewich","41kg","Maße","40 ×"];
+        const featureMatchers=["Sicherheitsstufe","EN 14450","Feuerschutz","60 Minuten","Verischerbar","S2 privat","S2 gewerblich","Gewich","41kg","Maße","40 ×"];
         const featureNodes=featureMatchers.map(prefix=>findText(t=>t.startsWith(prefix))).filter(Boolean);
         const selected=attrs.filter(a=>a.show_on_label===true&&String(a.key||a.value||"").trim());
         featureNodes.forEach((node,index)=>{
