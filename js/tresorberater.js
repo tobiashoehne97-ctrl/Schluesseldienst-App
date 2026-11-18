@@ -92,7 +92,7 @@
     if(!p)return;
     let svg;
     try{
-      const response=await fetch("assets/Preisschild-A6.svg",{cache:"no-store"});
+      const response=await fetch("/assets/Preisschild-A6.svg",{cache:"no-store"});
       if(!response.ok)throw new Error("SVG-Vorlage nicht gefunden");
       svg=await response.text();
     }catch(error){
