@@ -166,7 +166,6 @@
     }
     const insuredHeading=texts.find(el=>normalizeText(el.textContent)==="Verischerbar");
     if(insuredHeading)insuredHeading.textContent="Versicherbar";
-    }
     fitText(changed[7],12,100.394,58);
     const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
     const familyImage=products.find(item=>familyKey(item)===familyKey(p)&&item.image_url)?.image_url||null;
