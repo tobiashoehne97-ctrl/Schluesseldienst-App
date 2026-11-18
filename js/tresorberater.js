@@ -136,62 +136,23 @@
       ["60 Minuten Papier",fire],
       ["41kg",weight],
       ["40 ×  35 ×  29 in cm",dim],
-      ["S2 privat bis 20.000€",insured],
+      ["S2 privat bis 20.000€",insuredValues[0]||"Privat: Keine Angabe"],
+      ["S2 gewerblich bis 20.000€",insuredValues[1]||"Gewerblich: Keine Angabe"],
       ["807,00 €",price]
     ];
     const changed=replacements.map(([oldValue,newValue])=>setText(oldValue,newValue));
     fitText(changed[0],29,59.055,34);
     fitText(changed[1],40,33,21);
-    // Technische Werte leicht vergrößern, Beschriftungen und Layout bleiben unverändert.
+    // Die neue Affinity-Vorlage enthält bereits zwei getrennte Versicherungszeilen und den angepassten Kasten.
     fitText(changed[2],19,29.5,20);
     fitText(changed[3],19,29.5,20);
     fitText(changed[4],12,29.5,20);
     fitText(changed[5],24,29.5,18);
-    // Versicherungswerte zweizeilig ausgeben, damit beide Angaben innerhalb des Datenkastens bleiben.
-    const insuredNode=changed[6];
-    if(insuredNode){
-      insuredNode.textContent="";
-      insuredNode.style.fontSize="22.5px";
-      const privateLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
-      privateLine.setAttribute("x","34.016px");
-      privateLine.setAttribute("dy","0");
-      privateLine.textContent=insuredValues[0]||"Privat: Keine Angabe";
-      const commercialLine=xml.createElementNS("http://www.w3.org/2000/svg","tspan");
-      commercialLine.setAttribute("x","34.016px");
-      commercialLine.setAttribute("dy","25px");
-      commercialLine.textContent=insuredValues[1]||"Gewerblich: Keine Angabe";
-      insuredNode.append(privateLine,commercialLine);
-      fitText(privateLine,28,22.5,19);
-      fitText(commercialLine,28,22.5,19);
-    }
+    fitText(changed[6],28,26.575,20);
+    fitText(changed[7],28,26.575,20);
     const insuredHeading=texts.find(el=>normalizeText(el.textContent)==="Verischerbar");
     if(insuredHeading)insuredHeading.textContent="Versicherbar";
-    // Datenkasten nach rechts und unten erweitern; der neue weiße Hintergrund deckt die alte Kontur ab.
-    const dataGroup=xml.querySelector('g[transform="matrix(1,0,0,1,20.685046,523.746319)"]');
-    if(dataGroup){
-      const panel=xml.createElementNS("http://www.w3.org/2000/svg","rect");
-      panel.setAttribute("x","17");
-      panel.setAttribute("y","60");
-      panel.setAttribute("width","335");
-      panel.setAttribute("height","610");
-      panel.setAttribute("fill","#ffffff");
-      panel.setAttribute("stroke","#aeb9c5");
-      panel.setAttribute("stroke-width","1.5");
-      dataGroup.insertBefore(panel,dataGroup.firstChild);
-      ["Gewicht","41kg","Maße"].forEach(label=>{
-        const node=texts.find(el=>normalizeText(el.textContent)===label);
-        if(node){
-          const y=parseFloat(node.getAttribute("y"));
-          node.setAttribute("y",(y+20)+"px");
-        }
-      });
-      const dimensions=texts.find(el=>normalizeText(el.textContent).replace(/\s+/g," ")==="40 × 35 × 29 in cm");
-      if(dimensions){
-        const y=parseFloat(dimensions.getAttribute("y"));
-        dimensions.setAttribute("y",(y+20)+"px");
-      }
-    }
-    fitText(changed[7],12,100.394,58);
+    fitText(changed[8],12,100.394,58);
     const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
     const familyImage=products.find(item=>familyKey(item)===familyKey(p)&&item.image_url)?.image_url||null;
     const imageUrl=p.image_url||familyImage;
