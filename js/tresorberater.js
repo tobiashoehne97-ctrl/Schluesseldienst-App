@@ -150,7 +150,9 @@
     fitText(changed[6],27,29.5,17);
     fitText(changed[7],12,100.394,58);
     const svgMarkup=new XMLSerializer().serializeToString(xml.documentElement);
-    const productImage=p.image_url?'<img class="product-image" src="'+esc(p.image_url)+'" alt="'+esc(p.model||"Tresor")+'" onerror="this.style.display=\'none\'">':"";
+    const familyImage=products.find(item=>familyKey(item)===familyKey(p)&&item.image_url)?.image_url||null;
+    const imageUrl=p.image_url||familyImage;
+    const productImage=imageUrl?'<img class="product-image" src="'+esc(imageUrl)+'" alt="'+esc(p.model||"Tresor")+'" onerror="this.style.display=\'none\'">':"";
     const win=window.open("","_blank");
     if(!win){alert("Bitte Pop-ups für diese App erlauben.");return}
     win.document.open();
