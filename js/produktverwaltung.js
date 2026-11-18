@@ -101,5 +101,6 @@
       '</style></head><body><main class="sheet">'+content+'</main><script>window.onload=()=>setTimeout(()=>window.print(),350);<\/script></body></html>';
     const w=window.open("","_blank","width=900,height=700");if(!w){alert("Bitte Pop-ups für diese Anwendung erlauben.");return}w.document.open();w.document.write(html);w.document.close();
   }
-\n  window.initProductManagement=()=>{if(!root())return;loaded=false;load().catch(e=>{root().innerHTML='<div class="pm-wrap"><p>Fehler beim Laden: '+esc(e.message)+'</p></div>'})};
+
+  window.initProductManagement=()=>{if(!root())return;loaded=false;load().catch(e=>{root().innerHTML='<div class="pm-wrap"><p>Fehler beim Laden: '+esc(e.message)+'</p></div>'})};
 })();
