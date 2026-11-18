@@ -173,7 +173,7 @@
       panel.setAttribute("x","17");
       panel.setAttribute("y","60");
       panel.setAttribute("width","335");
-      panel.setAttribute("height","490");
+      panel.setAttribute("height","610");
       panel.setAttribute("fill","#ffffff");
       panel.setAttribute("stroke","#aeb9c5");
       panel.setAttribute("stroke-width","1.5");
