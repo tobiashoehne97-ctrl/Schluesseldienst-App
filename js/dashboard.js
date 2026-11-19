@@ -247,7 +247,7 @@ function initMobileEmployeeDashboard() {
     button.onclick = () => selectMobileEmployee(profile.name);
     choices.appendChild(button);
   });
-  const saved = localStorage.getItem(MOBILE_EMPLOYEE_KEY);
+  const loggedInProfile = window.currentEmployee === "Tobias" ? "Tobias Höhne" : window.currentEmployee === "Christian" ? "Christian Höhne" : "";\n  const saved = loggedInProfile || localStorage.getItem(MOBILE_EMPLOYEE_KEY);
   if (saved && mobileEmployeeProfiles.some(p => p.name === saved)) applyMobileEmployee(saved);
 }
 
