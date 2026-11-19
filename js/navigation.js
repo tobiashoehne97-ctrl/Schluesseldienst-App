@@ -27,7 +27,7 @@ function restoreAppTheme() {
 function go(id) {
   restoreAppTheme();
 
-  ["menu","to","rb","an","archiv","auftraege","zeit","kunden","kalender","notdienst","produkte","mitarbeiter","stunden","tresore"].forEach(x => {
+  ["menu","to","rb","an","archiv","auftraege","zeit","kunden","kalender","notdienst","produkte","mitarbeiter","stunden","tresore","kioskverwaltung"].forEach(x => {
     const el = document.getElementById(x);
     if (el) {
       el.classList.add("hidden");
@@ -59,6 +59,7 @@ function go(id) {
   if (targetId === "kalender") initKalender();
   if (targetId === "tresore" && typeof initTresorBerater === "function") initTresorBerater();
   if (targetId === "produkte" && typeof initProductManagement === "function") initProductManagement();
+  if (targetId === "kioskverwaltung" && typeof initKioskManagement === "function") initKioskManagement();
 
   if (targetId === "zeit") {
     iZeit();
