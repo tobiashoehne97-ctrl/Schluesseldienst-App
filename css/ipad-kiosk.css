@@ -27,3 +27,14 @@ body.ipad-kiosk-active{overflow:hidden!important}
 .ipad-kiosk-secondary{background:#1b3853;border:1px solid #57748e;color:#eaf4fc}
 .ipad-kiosk-primary{background:#2674b8;border:1px solid #4a9bdb;color:white}
 @media(max-width:600px){.ipad-kiosk-brand{top:16px;left:18px}.ipad-kiosk-dialog{padding:24px}.ipad-kiosk-actions{flex-direction:column}.ipad-kiosk-caption{bottom:9%;padding:14px}}
+
+
+/* Geschützter Rückweg aus der Beratung zur TV-Präsentation */
+.ipad-kiosk-return{position:fixed;z-index:19000;right:18px;bottom:18px;padding:13px 18px;border:1px solid #54748f;border-radius:12px;background:#102b45;color:#f4f8fc;font-size:15px;font-weight:800;box-shadow:0 8px 28px #0006;cursor:pointer}
+body.ipad-kiosk-active .ipad-kiosk-return{display:none}
+.ipad-kiosk-pin{position:fixed;z-index:21000;inset:0;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}
+.ipad-kiosk-pin.hidden{display:none}
+.ipad-kiosk-pin form{margin-top:18px}
+.ipad-kiosk-pin input{display:block;width:100%;box-sizing:border-box;padding:16px;border:1px solid #54748f;border-radius:10px;background:#f8fbff;color:#142b40;font-size:24px;letter-spacing:.3em;text-align:center}
+.ipad-kiosk-pin-error{min-height:22px;margin-top:8px;color:#ffb6aa;font-size:13px}
+.ipad-kiosk-pin button:disabled{opacity:.6;cursor:wait}
