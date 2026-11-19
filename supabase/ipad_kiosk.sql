@@ -31,3 +31,11 @@ create policy "Kiosk authenticated manage slides"
 
 create index if not exists kiosk_slides_active_order_idx
   on public.kiosk_slides (active, sort_order);
+
+
+-- Angemeldete Mitarbeiter dürfen auch pausierte Einträge in der Verwaltung sehen.
+drop policy if exists "Kiosk authenticated read all slides" on public.kiosk_slides;
+create policy "Kiosk authenticated read all slides"
+  on public.kiosk_slides for select
+  to authenticated
+  using (auth.uid() is not null);
