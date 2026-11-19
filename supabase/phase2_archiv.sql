@@ -23,23 +23,23 @@ alter table public.archiv enable row level security;
 
 drop policy if exists "archiv lesen" on public.archiv;
 create policy "archiv lesen"
-on public.archiv for select
+on public.archiv for select to authenticated
 using (true);
 
 drop policy if exists "archiv schreiben" on public.archiv;
 create policy "archiv schreiben"
-on public.archiv for insert
+on public.archiv for insert to authenticated
 with check (true);
 
 drop policy if exists "archiv aktualisieren" on public.archiv;
 create policy "archiv aktualisieren"
-on public.archiv for update
+on public.archiv for update to authenticated
 using (true)
 with check (true);
 
 drop policy if exists "archiv loeschen" on public.archiv;
 create policy "archiv loeschen"
-on public.archiv for delete
+on public.archiv for delete to authenticated
 using (true);
 
 -- Privater Storage-Bucket für die tatsächlichen PDF-Dateien.
@@ -49,21 +49,21 @@ on conflict (id) do nothing;
 
 drop policy if exists "berichte lesen" on storage.objects;
 create policy "berichte lesen"
-on storage.objects for select
+on storage.objects for select to authenticated
 using (bucket_id = 'berichte');
 
 drop policy if exists "berichte hochladen" on storage.objects;
 create policy "berichte hochladen"
-on storage.objects for insert
+on storage.objects for insert to authenticated
 with check (bucket_id = 'berichte');
 
 drop policy if exists "berichte aktualisieren" on storage.objects;
 create policy "berichte aktualisieren"
-on storage.objects for update
+on storage.objects for update to authenticated
 using (bucket_id = 'berichte')
 with check (bucket_id = 'berichte');
 
 drop policy if exists "berichte loeschen" on storage.objects;
 create policy "berichte loeschen"
-on storage.objects for delete
+on storage.objects for delete to authenticated
 using (bucket_id = 'berichte');
