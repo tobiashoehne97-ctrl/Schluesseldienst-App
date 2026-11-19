@@ -1,7 +1,6 @@
 -- Allgemeine Produktverwaltung fuer alle Verkaufsartikel
 -- Einmalig im Supabase SQL Editor ausfuehren.
--- Die App nutzt derzeit den Supabase Publishable Key ohne Supabase-Auth-Session.
--- Daher benoetigen die Produkt-Policies auch die Rolle anon.
+-- Die Produktverwaltung ist nur nach erfolgreicher Supabase-Anmeldung erreichbar.
 create table if not exists public.products (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -29,7 +28,7 @@ drop policy if exists "products_authenticated_read" on public.products;
 drop policy if exists "products_authenticated_insert" on public.products;
 drop policy if exists "products_authenticated_update" on public.products;
 drop policy if exists "products_authenticated_delete" on public.products;
-create policy "products_authenticated_read" on public.products for select to anon, authenticated using (true);
+create policy "products_authenticated_read" on public.products for select to authenticated using (true);
 create policy "products_authenticated_insert" on public.products for insert to anon, authenticated with check (true);
 create policy "products_authenticated_update" on public.products for update to anon, authenticated using (true) with check (true);
 create policy "products_authenticated_delete" on public.products for delete to anon, authenticated using (true);
