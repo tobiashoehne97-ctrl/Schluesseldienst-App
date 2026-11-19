@@ -47,13 +47,12 @@ alter table public.mitarbeiter enable row level security;
 alter table public.kalender_eintraege enable row level security;
 alter table public.arbeitszeiten enable row level security;
 
--- Phase 1: Zugriff für die veröffentlichte App.
--- Vor dem produktiven Mehrbenutzerbetrieb ersetzen wir dies durch echte Benutzeranmeldung.
+-- Zugriff ausschliesslich fuer angemeldete Mitarbeiter.
 drop policy if exists "phase1 public mitarbeiter" on public.mitarbeiter;
-create policy "phase1 public mitarbeiter" on public.mitarbeiter for all using (true) with check (true);
+create policy "phase1 public mitarbeiter" on public.mitarbeiter for all to authenticated using (true) with check (true);
 
 drop policy if exists "phase1 public kalender" on public.kalender_eintraege;
-create policy "phase1 public kalender" on public.kalender_eintraege for all using (true) with check (true);
+create policy "phase1 public kalender" on public.kalender_eintraege for all to authenticated using (true) with check (true);
 
 drop policy if exists "phase1 public arbeitszeiten" on public.arbeitszeiten;
-create policy "phase1 public arbeitszeiten" on public.arbeitszeiten for all using (true) with check (true);
+create policy "phase1 public arbeitszeiten" on public.arbeitszeiten for all to authenticated using (true) with check (true);
