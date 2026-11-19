@@ -13,13 +13,13 @@ create table if not exists public.produkte (
 alter table public.produkte enable row level security;
 
 drop policy if exists "produkte lesen" on public.produkte;
-create policy "produkte lesen" on public.produkte for select using (true);
+create policy "produkte lesen" on public.produkte for select to authenticated using (true);
 
 drop policy if exists "produkte schreiben" on public.produkte;
-create policy "produkte schreiben" on public.produkte for insert with check (true);
+create policy "produkte schreiben" on public.produkte for insert to authenticated with check (true);
 
 drop policy if exists "produkte aktualisieren" on public.produkte;
-create policy "produkte aktualisieren" on public.produkte for update using (true) with check (true);
+create policy "produkte aktualisieren" on public.produkte for update to authenticated using (true) with check (true);
 
 drop policy if exists "produkte loeschen" on public.produkte;
-create policy "produkte loeschen" on public.produkte for delete using (true);
+create policy "produkte loeschen" on public.produkte for delete to authenticated using (true);
