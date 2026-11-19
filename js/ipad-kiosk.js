@@ -11,9 +11,10 @@
     el.id="ipadKiosk";el.className="ipad-kiosk";
     el.innerHTML='<div class="ipad-kiosk-stage" id="ipadKioskStage"><div class="ipad-kiosk-brand">SCHLÜSSELDIENST HÖHNE</div><div class="ipad-kiosk-empty"><div class="ipad-kiosk-mark">🔐</div><h1>Willkommen bei Schlüsseldienst Höhne</h1><p>Unsere Sicherheitslösungen für Zuhause und Unternehmen</p><span>Berühren zum Starten</span></div><button class="ipad-kiosk-touch" id="ipadKioskTouch" aria-label="Präsentation öffnen"></button><div class="ipad-kiosk-footer">Berühren Sie das Display für eine persönliche Beratung</div></div><div class="ipad-kiosk-confirm hidden" id="ipadKioskConfirm"><div class="ipad-kiosk-dialog"><div class="ipad-kiosk-mark">🔐</div><h2>TV-Modus beenden?</h2><p>Möchten Sie die Präsentation verlassen und den Beratungsmodus öffnen?</p><div class="ipad-kiosk-actions"><button type="button" class="ipad-kiosk-secondary" id="ipadKioskNo">Nein, weiter ansehen</button><button type="button" class="ipad-kiosk-primary" id="ipadKioskYes">Ja, Beratung öffnen</button></div></div></div>';
     document.body.appendChild(el);
-    document.getElementById("ipadKioskTouch").addEventListener("click",()=>document.getElementById("ipadKioskConfirm").classList.remove("hidden"));
+    document.getElementById("ipadKioskTouch").addEventListener("click",()=>{stop();el.classList.add("hidden");document.body.classList.remove("ipad-kiosk-active");if(typeof go==="function")go("tresore");});
     document.getElementById("ipadKioskNo").addEventListener("click",()=>document.getElementById("ipadKioskConfirm").classList.add("hidden"));
-    document.getElementById("ipadKioskYes").addEventListener("click",()=>{stop();el.classList.add("hidden");document.body.classList.remove("ipad-kiosk-active");if(typeof go==="function")go("tresore");});
+    document.getElementById("ipadKioskYes").addEventListener("click",()=>document.getElementById("ipadKioskConfirm").classList.add("hidden"));
+    addReturnControls();
   }
   function stop(){if(timer){clearTimeout(timer);timer=null;}}
   function showSlide(){
