@@ -13,7 +13,7 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body || "{}");
     const supplied = String(body.pin || "");
-    if (!/^\d{4,8}$/.test(supplied)) {
+    if (!/^\d{6,8}$/.test(supplied)) {
       return { statusCode: 401, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "PIN ist falsch." }) };
     }
 
