@@ -16,6 +16,45 @@
     document.getElementById("ipadKioskYes").addEventListener("click",()=>document.getElementById("ipadKioskConfirm").classList.add("hidden"));
     addReturnControls();
   }
+  function addReturnControls(){
+    if(!kioskEnabled || document.getElementById("ipadKioskReturn"))return;
+    const btn=document.createElement("button");
+    btn.id="ipadKioskReturn";btn.className="ipad-kiosk-return";btn.type="button";
+    btn.textContent="📺 Zur Präsentation";
+    btn.addEventListener("click",openPinDialog);
+    document.body.appendChild(btn);
+
+    const modal=document.createElement("div");
+    modal.id="ipadKioskPinDialog";modal.className="ipad-kiosk-pin hidden";
+    modal.innerHTML='<div class="ipad-kiosk-dialog"><div class="ipad-kiosk-mark">🔒</div><h2>Beratungsmodus beenden</h2><p>Bitte Mitarbeiter-PIN eingeben, um zur Präsentation zurückzukehren.</p><form id="ipadKioskPinForm"><input id="ipadKioskPinInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="Mitarbeiter-PIN" aria-label="Mitarbeiter-PIN"><div class="ipad-kiosk-pin-error" id="ipadKioskPinError" role="alert"></div><div class="ipad-kiosk-actions"><button type="button" class="ipad-kiosk-secondary" id="ipadKioskPinCancel">Abbrechen</button><button type="submit" class="ipad-kiosk-primary" id="ipadKioskPinSubmit">Bestätigen</button></div></form></div>';
+    document.body.appendChild(modal);
+    document.getElementById("ipadKioskPinCancel").addEventListener("click",closePinDialog);
+    document.getElementById("ipadKioskPinForm").addEventListener("submit",verifyPin);
+  }
+  function openPinDialog(){
+    const modal=document.getElementById("ipadKioskPinDialog");
+    if(!modal)return;
+    document.getElementById("ipadKioskPinInput").value="";
+    document.getElementById("ipadKioskPinError").textContent="";
+    modal.classList.remove("hidden");
+    setTimeout(()=>document.getElementById("ipadKioskPinInput").focus(),50);
+  }
+  function closePinDialog(){document.getElementById("ipadKioskPinDialog")?.classList.add("hidden");}
+  async function verifyPin(event){
+    event.preventDefault();
+    const input=document.getElementById("ipadKioskPinInput");
+    const error=document.getElementById("ipadKioskPinError");
+    const submit=document.getElementById("ipadKioskPinSubmit");
+    submit.disabled=true;submit.textContent="Prüfe …";error.textContent="";
+    try{
+      const response=await fetch("/.netlify/functions/verify-kiosk-pin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pin:input.value})});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||"PIN konnte nicht geprüft werden.");
+      closePinDialog();
+      start();
+    }catch(e){error.textContent=e.message||"PIN ist falsch.";input.value="";input.focus();}
+    finally{submit.disabled=false;submit.textContent="Bestätigen";}
+  }
   function stop(){if(timer){clearTimeout(timer);timer=null;}}
   function showSlide(){
     const stage=document.getElementById("ipadKioskStage");if(!stage)return;
