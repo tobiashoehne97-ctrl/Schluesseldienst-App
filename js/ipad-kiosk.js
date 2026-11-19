@@ -20,7 +20,7 @@
     const stage=document.getElementById("ipadKioskStage");if(!stage)return;
     if(!slides.length){stage.querySelector(".ipad-kiosk-empty")?.classList.remove("hidden");return;}
     const slide=slides[current%slides.length];const media=slide.media_type==="video"
-      ?'<video class="ipad-kiosk-media" autoplay muted playsinline loop><source src="'+esc(slide.media_url)+'"></video>'
+      ?'<video class="ipad-kiosk-media" autoplay muted playsinline><source src="'+esc(slide.media_url)+'"></video>'
       :'<img class="ipad-kiosk-media" src="'+esc(slide.media_url)+'" alt="'+esc(slide.title)+'">';
     stage.querySelector(".ipad-kiosk-content")?.remove();
     const content=document.createElement("div");content.className="ipad-kiosk-content";
