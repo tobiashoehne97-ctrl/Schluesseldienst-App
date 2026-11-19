@@ -33,7 +33,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 })();
 (function loadCalendarModalFix(){
   const s=document.createElement("script");
-  s.src="js/kalender-modal-open-fix-v1.js?v=20260914-5";
+  s.src="js/kalender-modal-open-fix-v1.js?v=20261119-6";
   s.onload=()=>console.log("Kalender Modal Open Fix geladen");
   s.onerror=()=>console.warn("Kalender Modal Open Fix konnte nicht geladen werden.");
   document.head.appendChild(s);
