@@ -27,7 +27,7 @@ function restoreAppTheme() {
 function go(id) {
   restoreAppTheme();
 
-  ["menu","to","rb","an","archiv","auftraege","zeit","kunden","kalender","notdienst","produkte","mitarbeiter","stunden","tresore"].forEach(x => {
+  ["start","menu","to","rb","an","archiv","auftraege","zeit","kunden","kalender","notdienst","produkte","mitarbeiter","stunden","tresore"].forEach(x => {
     const el = document.getElementById(x);
     if (el) {
       el.classList.add("hidden");
@@ -43,7 +43,7 @@ function go(id) {
   }
 
   document.querySelectorAll(".desktop-nav-tile").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.nav === (targetId === "menu" ? "kalender" : targetId));
+    btn.classList.toggle("active", btn.dataset.nav === targetId);
   });
 
   if (targetId === "menu") {
