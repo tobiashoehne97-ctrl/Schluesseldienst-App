@@ -494,3 +494,18 @@
 .dash-shop-tobias .dash-shop-date:before{background:#287fcb;box-shadow:0 0 0 3px rgba(40,127,203,.13)}
 .dash-shop-christian .dash-shop-date:before{background:#16a36a;box-shadow:0 0 0 3px rgba(22,163,106,.13)}
 .dash-shop-other .dash-shop-date:before{background:#8b72c7}
+
+
+/* Wochenkalender: Farben folgen zuverlässig dem Hell-/Dunkelmodus */
+html[data-theme="light"]{
+  --kal-week-card-bg:#ffffff;
+  --kal-week-card-border:#d9e5f0;
+  --kal-week-today-border:#3b91d5;
+  --kal-week-track-bg:#e8eef5;
+}
+html[data-theme="dark"]{
+  --kal-week-card-bg:#102a40;
+  --kal-week-card-border:#254b6a;
+  --kal-week-today-border:#3b82c4;
+  --kal-week-track-bg:#0a1c2b;
+}
