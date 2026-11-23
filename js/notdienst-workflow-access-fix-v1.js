@@ -16,6 +16,12 @@
     const e=entry(id);
     if(!e)return;
     const status=e.status||'notdienst';
+    const times=(()=>{try{return JSON.parse(localStorage.getItem('schluesseldienst-notdienst-zeiten-v5')||'{}')[id]||{}}catch(err){return {}}})();
+    if(times.angekommen||times.vor_ort||times.arbeitStart||status==='vor_ort'||status==='arbeit'){
+      if(typeof window.openNdWork==='function')window.openNdWork(id);
+      else if(typeof window.ndArrived==='function')window.ndArrived(id);
+      return;
+    }
 
     if(status==='unterwegs'){
       if(typeof window.startNotdienstWorkflow==='function'){
@@ -63,7 +69,8 @@
       const b=document.createElement('button');
       b.className='btnP nd-open-workflow-btn';
       b.type='button';
-      b.textContent='▶ Einsatz öffnen';
+      const times=(()=>{try{return JSON.parse(localStorage.getItem('schluesseldienst-notdienst-zeiten-v5')||'{}')[id]||{}}catch(err){return {}}})();
+      b.textContent=(times.angekommen||times.vor_ort||times.arbeitStart||e.status==='vor_ort'||e.status==='arbeit')?'▶ Einsatz fortsetzen':(e.status==='unterwegs'?'▶ Fahrt fortsetzen':'▶ Einsatz starten');
       b.setAttribute('onclick',`window.openNotdienstWorkflow('${esc(id)}')`);
       actions.insertBefore(b,actions.firstChild);
       card.dataset.ndAccessFix='1';

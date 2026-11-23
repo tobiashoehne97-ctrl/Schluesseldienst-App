@@ -29,7 +29,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 (function loadNotdienstModules(){
   const s=document.createElement("script");
   s.src="js/notdienst-workflow.js?v=20260913-10";
-  s.onload=()=>{const p=document.createElement("script");p.src="js/notdienst-preise-v2.js?v=20260913-3";p.onload=()=>{const c=document.createElement("script");c.src="js/notdienst-katalog-v2.js?v=20260913-3";c.onload=()=>{const r=document.createElement("script");r.src="js/notdienst-report-fix-v2.js?v=20260913-2";r.onload=()=>{const w=document.createElement("script");w.src="js/notdienst-workflow-fix-v2.js?v=20260913-2";w.onload=()=>{const st=document.createElement("script");st.src="js/notdienst-start-fix-v1.js?v=20260913-1";st.onload=()=>{const a=document.createElement("script");a.src="js/notdienst-workflow-access-fix-v1.js?v=20260913-1";a.onload=()=>{const z=document.createElement("script");z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";z.onload=()=>{const sf=document.createElement("script");sf.src="js/notdienst-save-fix-v3.js?v=20260913-3";document.head.appendChild(sf)};document.head.appendChild(z)};document.head.appendChild(a)};document.head.appendChild(st)};document.head.appendChild(w)};document.head.appendChild(r)};document.head.appendChild(c)};document.head.appendChild(p)};document.head.appendChild(s);
+  s.onload=()=>{const p=document.createElement("script");p.src="js/notdienst-preise-v2.js?v=20260913-3";p.onload=()=>{const c=document.createElement("script");c.src="js/notdienst-katalog-v2.js?v=20260913-3";c.onload=()=>{const r=document.createElement("script");r.src="js/notdienst-report-fix-v2.js?v=20260913-2";r.onload=()=>{const w=document.createElement("script");w.src="js/notdienst-workflow-fix-v2.js?v=20260913-2";w.onload=()=>{const st=document.createElement("script");st.src="js/notdienst-start-fix-v1.js?v=20261123-2";st.onload=()=>{const a=document.createElement("script");a.src="js/notdienst-workflow-access-fix-v1.js?v=20261123-2";a.onload=()=>{const z=document.createElement("script");z.src="js/notdienst-stability-fix-v1.js?v=20260913-1";z.onload=()=>{const sf=document.createElement("script");sf.src="js/notdienst-save-fix-v3.js?v=20260913-3";document.head.appendChild(sf)};document.head.appendChild(z)};document.head.appendChild(a)};document.head.appendChild(st)};document.head.appendChild(w)};document.head.appendChild(r)};document.head.appendChild(c)};document.head.appendChild(p)};document.head.appendChild(s);
 })();
 (function loadCalendarModalFix(){
   const s=document.createElement("script");
@@ -46,3 +46,19 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   document.head.appendChild(s);
 })();
 console.log("Application started v22");
+(function loadAussendienstFixes(){
+  // Reihenfolge ist wichtig: Der Folgetermin-Workflow erweitert die
+  // Zeiterfassung und muss deshalb erst danach geladen werden.
+  const zeit=document.createElement("script");
+  zeit.src="js/aussendienst-zeit-fix-v1.js?v=20261123-3";
+  zeit.onload=()=>{
+    console.log("Außendienst-Zeiterfassung geladen");
+    const folge=document.createElement("script");
+    folge.src="js/aussendienst-folgetermin-v1.js?v=20261123-5";
+    folge.onload=()=>{console.log("Außendienst-Folgetermin-Workflow geladen");const edit=document.createElement("script");edit.src="js/aussendienst-nachbearbeitung-v1.js?v=20261123-6";edit.onload=()=>{console.log("Außendienst-Nachbearbeitung geladen");const ui=document.createElement("script");ui.src="js/aussendienst-abschluss-ui-v1.js?v=20261123-2";ui.onload=()=>{console.log("Außendienst-Abschluss-UI geladen");const mobileNav=document.createElement("script");mobileNav.src="js/mobile-main-navigation-v1.js?v=20261123-6";mobileNav.onload=()=>console.log("Mobile Navigation geladen");mobileNav.onerror=()=>console.warn("Mobile Navigation konnte nicht geladen werden.");document.head.appendChild(mobileNav);};ui.onerror=()=>console.warn("Außendienst-Abschluss-UI konnte nicht geladen werden.");document.head.appendChild(ui);};edit.onerror=()=>console.warn("Außendienst-Nachbearbeitung konnte nicht geladen werden.");document.head.appendChild(edit);};
+    folge.onerror=()=>console.warn("Außendienst-Folgetermin-Workflow konnte nicht geladen werden.");
+    document.head.appendChild(folge);
+  };
+  zeit.onerror=()=>console.warn("Außendienst-Zeiterfassung konnte nicht geladen werden.");
+  document.head.appendChild(zeit);
+})();

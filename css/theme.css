@@ -173,3 +173,26 @@ html[data-theme="light"] .desktop-week-day{min-height:320px}
 .quick-start-note{display:flex;gap:12px;margin-top:22px;padding:14px 16px;border-radius:12px;background:rgba(47,120,189,.07);border:1px solid var(--app-border);color:var(--app-muted);font-size:12px;line-height:1.5}
 .quick-start-note strong{color:var(--app-text);white-space:nowrap}
 @media(max-width:760px){.quick-start-header{align-items:flex-start;flex-direction:column}.quick-start-grid{grid-template-columns:1fr}.quick-start-card{padding:15px}}
+
+
+/* Mobile: Theme-Umschaltung als eigene Kachel am Ende der Startseite. */
+.theme-home-tile{display:none;align-items:center;align-items:center;justify-content:space-between;gap:16px;margin:28px 0 8px;padding:17px 18px;border:1px solid var(--app-border);border-radius:16px;background:var(--app-surface);color:var(--app-text);box-shadow:0 5px 16px rgba(10,30,55,.06)}
+.theme-home-copy{display:flex;align-items:center;gap:13px;min-width:0}
+.theme-home-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:rgba(47,120,189,.13);font-size:25px;color:var(--app-accent)}
+.theme-home-copy strong{display:block;font-size:14px;color:var(--app-text)}
+.theme-home-copy small{display:block;margin-top:4px;font-size:12px;line-height:1.4;color:var(--app-muted)}
+.theme-home-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:9px 14px;border:1px solid var(--app-border);border-radius:11px;background:var(--app-panel);color:var(--app-text);font:700 13px system-ui,sans-serif;white-space:nowrap}
+@media(max-width:760px){
+  #hdr #themeToggle{display:none!important}
+  .theme-home-tile{display:flex;margin-top:30px;margin-bottom:20px;padding:16px}
+  .theme-home-button{min-width:116px}
+}
+
+/* Notdienst-Erfassung als zentriertes Popup statt Formular im Seitenfluss. */
+#notdienstForm.nd-form-modal-open{position:fixed!important;inset:0!important;z-index:100500!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;box-sizing:border-box!important;background:rgba(3,12,26,.78)!important;backdrop-filter:blur(6px);overflow:hidden!important}
+#notdienstForm.nd-form-modal-open .notdienst-form-card{width:min(680px,100%)!important;max-width:680px!important;max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;margin:0!important;box-sizing:border-box!important;border-radius:20px!important;box-shadow:0 24px 80px rgba(0,0,0,.45)!important}
+#notdienstForm.nd-form-modal-open .notdienst-form-top{position:sticky;top:-1px;z-index:2;background:inherit}
+@media(max-width:760px){
+  #notdienstForm.nd-form-modal-open{padding:12px!important}
+  #notdienstForm.nd-form-modal-open .notdienst-form-card{width:100%!important;max-height:calc(100dvh - 24px)!important;border-radius:18px!important;padding:18px!important}
+}

@@ -61,8 +61,12 @@
   function openExisting(id){
     const e=entries().find(x=>String(x.id)===String(id));if(!e)return;
     const status=e.status||'notdienst';
-    if(status==='vor_ort' || status==='arbeit'){
+    const t=read(KEY,{})[id]||{};
+    // Sobald Ankunft oder Arbeitsbeginn dokumentiert ist, direkt in die
+    // gespeicherte Arbeitsmaske zurückkehren – niemals Fahrt neu starten.
+    if(t.angekommen||t.vor_ort||t.arbeitStart||status==='vor_ort'||status==='arbeit'){
       if(typeof window.openNdWork==='function')window.openNdWork(id);
+      else if(typeof window.ndArrived==='function')window.ndArrived(id);
       return;
     }
     if(status==='unterwegs'){
@@ -72,6 +76,7 @@
     if(typeof window.startNotdienstWorkflow==='function')window.startNotdienstWorkflow(id,false);
   }
   window.openExistingNotdienst=openExisting;
+  window.resumeNotdienstWorkflow=openExisting;
 
   /* Vor-Ort-Status soll nicht mehr den Regiebericht öffnen, sondern die laufende Arbeitsmaske. */
   const originalStatus=window.updateNotdienstStatus;
@@ -96,7 +101,9 @@
           const e=active[i];if(!e)return;
           const actions=card.querySelector('.notdienst-card-actions');if(!actions)return;
           if(actions.querySelector('.nd-open-existing'))return;
-          const b=document.createElement('button');b.type='button';b.className='btnP nd-open-existing';b.textContent=e.status==='unterwegs'?'▶ Einsatz öffnen':'▶ Einsatz öffnen';b.onclick=()=>openExisting(e.id);actions.prepend(b);
+          const t=read(KEY,{})[e.id]||{};
+          const isWorkStarted=!!(t.angekommen||t.vor_ort||t.arbeitStart||e.status==='vor_ort'||e.status==='arbeit');
+          const b=document.createElement('button');b.type='button';b.className='btnP nd-open-existing';b.textContent=isWorkStarted?'▶ Einsatz fortsetzen':(e.status==='unterwegs'?'▶ Fahrt fortsetzen':'▶ Einsatz starten');b.onclick=()=>openExisting(e.id);actions.prepend(b);
         });
       },0);
       return result;
