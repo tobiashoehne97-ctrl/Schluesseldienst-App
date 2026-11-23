@@ -111,3 +111,33 @@ html[data-theme="light"] .notdienst-form-card,html[data-theme="light"] .notdiens
  html[data-theme="light"] #hdr{padding:8px 12px!important}
  html[data-theme="light"] .desktop-week-day{box-shadow:none!important}
 }
+
+/* ===== Calendar polish, iteration 2 ===== */
+.desktop-dashboard-top{align-items:center;margin-bottom:20px}
+.desktop-dashboard-title{letter-spacing:-.035em}
+.desktop-week-grid{gap:12px}
+.desktop-week-day{min-height:390px;border-radius:15px;padding:14px;box-shadow:0 5px 18px rgba(2,12,28,.10)}
+.desktop-week-day-head{padding-bottom:12px}
+.desktop-week-day-head strong{letter-spacing:-.02em}
+.week-entry{padding:10px;border-radius:11px}
+.week-entry strong{font-size:12px}
+.week-empty{font-size:11px;line-height:1.4}
+.week-add{transition:transform .16s ease,box-shadow .16s ease}
+.desktop-week-day:hover .week-add{transform:scale(1.06)}
+html[data-theme="light"] .desktop-week-day{min-height:390px;background:linear-gradient(180deg,#fff 0%,#fcfdff 100%)!important;box-shadow:0 3px 12px rgba(28,53,80,.045)!important}
+html[data-theme="light"] .desktop-week-day.today{background:linear-gradient(180deg,#f3f8fe 0%,#fff 72%)!important}
+html[data-theme="light"] .desktop-week-day-head span{color:#5f83a5!important}
+html[data-theme="light"] .week-empty{color:#8a9bad!important}
+html[data-theme="light"] .week-entry{background:#f1f6fb!important;border-color:#e1eaf3!important;box-shadow:0 1px 2px rgba(20,45,70,.025)}
+html[data-theme="light"] .week-entry strong{color:#2b4057!important}
+html[data-theme="light"] .week-entry small{color:#71869d!important}
+html[data-theme="light"] .desktop-dashboard-top .dashboard-subtitle{color:#647a92!important}
+html[data-theme="light"] .week-actions .btnS{background:#fff!important;border-color:#d9e3ed!important;color:#38536f!important;box-shadow:0 2px 5px rgba(20,45,70,.035)}
+html[data-theme="light"] .week-actions .btnS:hover{background:#f4f8fc!important;border-color:#a9c5df!important}
+html[data-theme="light"] .week-actions .btnP{box-shadow:0 4px 10px rgba(37,104,168,.18)}
+html[data-theme="light"] #hdr{box-shadow:0 2px 10px rgba(25,50,75,.045)!important}
+html[data-theme="light"] .desktop-sidebar-title{color:#7b8da1!important}
+html[data-theme="light"] .desktop-nav-tile small{color:#70849a!important}
+html[data-theme="light"] .desktop-nav-tile.active{box-shadow:inset 3px 0 #2f78bd,0 3px 10px rgba(25,70,110,.045)!important}
+html[data-theme="light"] .dashboard-eyebrow{color:#477da9!important}
+#themeToggle{min-width:72px;justify-content:center}
