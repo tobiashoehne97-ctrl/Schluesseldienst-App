@@ -75,8 +75,10 @@
       arbeitszeit_minuten:totalMinutes(sessions)
     };
     window.activeServiceReport=next;
-    await window.updateServiceEntry({status:"offen",regiebericht:next});
+    // Die erste Besuchszeit ist bereits in einsaetze[] berechnet; die normale
+    // Einzeleinsatz-Zeitlogik darf diese Werte nicht erneut überschreiben.
     window.__aussendienstZeitTracking=null;
+    await window.updateServiceEntry({status:"offen",regiebericht:next});
     window.__followupActive=false;
     window.__followupBaseline=null;
     window.activeServiceStartedAt=null;
@@ -148,6 +150,9 @@
         r.folge_termin_notwendig=false;
         r.folge_baseline=null;
         next.regiebericht=r;
+        // Einsatzabschnitte sind vollständig berechnet; keine nachgelagerte
+        // Einzelzeitberechnung über den letzten Besuch laufen lassen.
+        window.__aussendienstZeitTracking=null;
       }
       return oldUpdate(next);
     };
