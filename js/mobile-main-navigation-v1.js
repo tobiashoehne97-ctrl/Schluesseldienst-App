@@ -40,7 +40,7 @@
       #hdr #logoFallback{font-size:14px!important}
       #hdr>div:first-child>div:last-child{display:none!important}
       #hdr>label{display:none!important}
-      #hdr #themeToggle{flex:0 0 46px!important;width:46px!important;height:44px!important;min-width:46px!important;padding:6px!important;border-radius:12px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+      #hdr #themeToggle{display:none!important}
       #hdr #themeToggle .theme-label{display:none!important}
       #mobileNavBar{display:block;padding:10px 14px 12px;background:linear-gradient(90deg,#07152a,#0e2040);border-bottom:1px solid rgba(59,110,165,.4)}
       #mobileNavOpen{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 16px;border-radius:12px;border:1px solid #477cad;background:linear-gradient(135deg,#2563a8,#174779);color:#fff;font-size:15px;font-weight:800;box-shadow:0 5px 14px #0003}
