@@ -111,10 +111,11 @@
           '<div><b>Fahrzeit:</b><br>'+Number(r.fahrzeit_minuten||0)+' Minuten</div>'+
           '<div><b>Arbeitszeit vor Ort:</b><br>'+Number(r.arbeitszeit_vor_ort_minuten||0)+' Minuten</div>'+
           '<div><b>Gesamtzeit:</b><br>'+total+' Minuten</div>';
-        html=html.replace(/<div><b>Arbeitszeit:<\\/b><br>\\d+ Minuten<\\/div>/,replacement);
+        const old='<div><b>Arbeitszeit:</b><br>'+Number(r.arbeitszeit_minuten||0)+' Minuten</div>';
+        html=html.replace(old,replacement);
       }else{
-        html=html.replace(/<div><b>Arbeitszeit:<\\/b><br>(\\d+) Minuten<\\/div>/,
-          '<div><b>Arbeitszeit gesamt:</b><br>$1 Minuten</div>');
+        const old='<div><b>Arbeitszeit:</b><br>'+Number(r.arbeitszeit_minuten||0)+' Minuten</div>';
+        html=html.replace(old,'<div><b>Arbeitszeit gesamt:</b><br>'+Number(r.arbeitszeit_minuten||0)+' Minuten</div>');
       }
       return html;
     };
