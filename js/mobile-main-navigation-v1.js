@@ -70,7 +70,7 @@
     const since=document.getElementById("mobileHomeClockSince");
     const button=document.getElementById("mobileHomeClockButton");
     if(!state||!total||!since||!button) return;
-    const data=window.AppData;
+    const data=typeof AppData!=="undefined"?AppData:null;
     const work=data&&data.arbeitszeit?data.arbeitszeit:{};
     const running=!!(work.eingestempelt&&work.start);
     let minutes=typeof window.getTodayWorkMinutes==="function"?window.getTodayWorkMinutes():0;
