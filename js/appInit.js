@@ -46,3 +46,10 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   document.head.appendChild(s);
 })();
 console.log("Application started v22");
+(function loadAussendienstZeitFix(){
+  const s=document.createElement("script");
+  s.src="js/aussendienst-zeit-fix-v1.js?v=20261123-1";
+  s.onload=()=>console.log("Außendienst-Zeiterfassung geladen");
+  s.onerror=()=>console.warn("Außendienst-Zeiterfassung konnte nicht geladen werden.");
+  document.head.appendChild(s);
+})();
