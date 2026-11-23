@@ -45,9 +45,20 @@ async function loadKalenderFromSupabase(){
     return false;
   }
   ensureKalenderData();
-  AppData.kalender.eintraege=(data||[]).map(normalizeKalenderEntry);
+
+  // Lokale Notfalleinsätze dürfen beim erfolgreichen Supabase-Reload
+  // nicht verschwinden. Sie entstehen z. B. wenn beim Anlegen kurzzeitig
+  // keine bestätigte Datenbankverbindung verfügbar war.
+  const localEntries=(AppData.kalender.eintraege||[])
+    .filter(e=>String(e.id||"").startsWith("LOCAL-") && e.typ==="notdienst");
+  const remoteEntries=(data||[]).map(normalizeKalenderEntry);
+  const remoteIds=new Set(remoteEntries.map(e=>String(e.id)));
+  const preservedLocal=localEntries.filter(e=>!remoteIds.has(String(e.id)));
+  AppData.kalender.eintraege=[...remoteEntries,...preservedLocal];
+
   renderKalender();
   renderKalenderWeek();
+  if(typeof window.renderNotdienst==="function")window.renderNotdienst();
   return true;
 }
 
