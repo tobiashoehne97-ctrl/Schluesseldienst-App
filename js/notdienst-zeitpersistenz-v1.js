@@ -40,12 +40,12 @@
     const current = supplied || all[String(id)] || {};
     all[String(id)] = current;
     writeAll(all);
+    const entry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === String(id));
+    if(entry) entry.zeitprotokoll = current;
     if(!isRemote(id)) return {local:true};
     const {error} = await window.supabaseClient.from("kalender_eintraege")
       .update({zeitprotokoll:current}).eq("id",id);
     if(error) throw error;
-    const entry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === String(id));
-    if(entry) entry.zeitprotokoll = current;
     return {local:false};
   }
 
@@ -57,6 +57,8 @@
       if(remote && Object.keys(remote).length){
         const merged = {...local, ...remote};
         const all = readAll(); all[String(id)] = merged; writeAll(all);
+        const entry = (window.AppData?.kalender?.eintraege || []).find(e => String(e.id) === String(id));
+        if(entry) entry.zeitprotokoll = merged;
         return merged;
       }
       if(Object.keys(local).length) await persist(id, local); // vorhandene Browserdaten einmalig übernehmen
@@ -223,6 +225,22 @@
       const result = await originalOpenWorkflow.call(this,id,...args);
       setTimeout(()=>attachEditor(id),0);
       return result;
+    };
+  }
+
+
+  // Zeitpunkte auch im Kunden-Regiebericht und in der PDF-Ausgabe ausweisen.
+  const originalBuildReport = window.buildRegieberichtHtml;
+  if(typeof originalBuildReport === "function"){
+    window.buildRegieberichtHtml = function(entry,...args){
+      const html = originalBuildReport.call(this,entry,...args);
+      const times = entry?.zeitprotokoll || localFor(entry?.id);
+      const rows = FIELDS.filter(([key])=>times[key]).map(([key,label]) =>
+        "<div><b>"+esc(label)+":</b><br>"+esc(new Date(times[key]).toLocaleString("de-DE",{dateStyle:"short",timeStyle:"short"}))+"</div>"
+      ).join("");
+      if(!rows) return html;
+      const block = '<section><h3>Zeitprotokoll</h3><div class="rb-grid">'+rows+'</div></section>';
+      return html.replace('<section><h3>Vorgefunden</h3>',block+'<section><h3>Vorgefunden</h3>');
     };
   }
 
