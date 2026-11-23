@@ -35,14 +35,25 @@ function normalizeKalenderEntry(row){
 
 async function loadKalenderFromSupabase(){
   if(!window.supabaseReady || !window.supabaseClient) return false;
-  const {data,error}=await window.supabaseClient
-    .from("kalender_eintraege")
-    .select("*")
-    .order("datum",{ascending:true})
-    .order("von",{ascending:true});
-  if(error){
-    console.error("Kalender laden fehlgeschlagen:",error);
-    return false;
+  // Supabase liefert standardmäßig höchstens 1.000 Zeilen pro Anfrage.
+  // Bei umfangreicher Kalenderhistorie würden neuere Einträge sonst beim
+  // vollständigen Laden fehlen. Deshalb alle Seiten stabil nach ID laden.
+  const pageSize=1000;
+  const data=[];
+  for(let offset=0;;offset+=pageSize){
+    const {data:page,error}=await window.supabaseClient
+      .from("kalender_eintraege")
+      .select("*")
+      .order("datum",{ascending:true})
+      .order("von",{ascending:true})
+      .order("id",{ascending:true})
+      .range(offset,offset+pageSize-1);
+    if(error){
+      console.error("Kalender laden fehlgeschlagen:",error);
+      return false;
+    }
+    data.push(...(page||[]));
+    if(!page||page.length<pageSize)break;
   }
   ensureKalenderData();
 
@@ -51,7 +62,7 @@ async function loadKalenderFromSupabase(){
   // keine bestätigte Datenbankverbindung verfügbar war.
   const localEntries=(AppData.kalender.eintraege||[])
     .filter(e=>String(e.id||"").startsWith("LOCAL-") && e.typ==="notdienst");
-  const remoteEntries=(data||[]).map(normalizeKalenderEntry);
+  const remoteEntries=data.map(normalizeKalenderEntry);
   const remoteIds=new Set(remoteEntries.map(e=>String(e.id)));
   const preservedLocal=localEntries.filter(e=>!remoteIds.has(String(e.id)));
   AppData.kalender.eintraege=[...remoteEntries,...preservedLocal];
