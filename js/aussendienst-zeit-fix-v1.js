@@ -57,6 +57,8 @@
 
   if(typeof originalStart==="function" && typeof originalReport==="function"){
     window.startServiceProcess=function(id){
+      const entry=(typeof AppData!=="undefined" ? AppData.kalender?.eintraege||[] : []).find(e=>String(e.id)===String(id));
+      if(entry?.typ==="notdienst") return originalStart(id);
       window[trackingKey]={id:String(id),startedAt:new Date().toISOString(),arrivalAt:null};
       originalStart(id);
       // Der Beginn ist mit dem ersten Klick gesetzt. Kein zusätzlicher
@@ -140,7 +142,7 @@
   const tracking=()=>window.__aussendienstZeitTracking;
   const getEntry=(id)=>{
     const key=id ?? tracking()?.id ?? window.activeServiceId;
-    return (window.AppData?.kalender?.eintraege||[]).find(e=>String(e.id)===String(key));
+    return (typeof AppData!=="undefined" ? (AppData.kalender?.eintraege||[]) : []).find(e=>String(e.id)===String(key));
   };
   let saveTimer=null;
   let saveQueue=Promise.resolve();
@@ -171,7 +173,7 @@
     };
     if(t?.arrivalAt) report.ankunft=t.arrivalAt;
 
-    saveQueue=saveQueue.then(()=>window.updateServiceEntry({status:"in_arbeit",regiebericht:report}))
+    saveQueue=saveQueue.then(()=>window.updateServiceEntry({regiebericht:report}))
       .catch(err=>console.error("Außendienst-Entwurf konnte nicht gespeichert werden:",err));
     window.activeServiceReport=report;
     return saveQueue;
@@ -206,6 +208,7 @@
   if(typeof previousStart==="function"){
     window.startServiceProcess=function(id){
       const entry=getEntry(id);
+      if(entry?.typ==="notdienst") return previousStart(id);
       const saved=entry?.regiebericht||{};
       const resume=!!saved.in_bearbeitung && !!saved.gestartet;
       window.__aussendienstResumeDraft=resume?saved:null;
@@ -266,8 +269,9 @@
   const previousDetails=window.openKalenderEntryDetails;
   if(typeof previousDetails==="function"){
     window.openKalenderEntryDetails=function(id){
-      previousDetails(id);
       const entry=getEntry(id);
+      previousDetails(id);
+      if(entry?.typ==="notdienst") return;
       if(entry?.regiebericht?.in_bearbeitung){
         const buttons=[...document.querySelectorAll("#kal_modal_content button")];
         const startButton=buttons.find(b=>(b.getAttribute("onclick")||"").includes("startServiceProcess"));
