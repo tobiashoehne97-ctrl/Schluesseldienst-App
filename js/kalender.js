@@ -1106,6 +1106,7 @@ async function updateServiceEntry(changes){
   renderKalenderWeek();
 }
 
+window.updateServiceEntry=updateServiceEntry;
 window.startServiceProcess=startServiceProcess;
 window.startNavigation=startNavigation;
 window.openServiceReportStep=openServiceReportStep;
