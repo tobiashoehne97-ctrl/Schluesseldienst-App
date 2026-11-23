@@ -298,3 +298,66 @@ function initDashboard() {
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initDashboard);
 else initDashboard();
+
+
+/* Dashboard-Startseite: Termine und Geschäftsverfügbarkeiten */
+function dashboardDateLabel(iso) {
+  if (!iso) return "";
+  const d = new Date(iso + "T12:00:00");
+  const today = dashboardIsoDate(new Date());
+  const tomorrowDate = new Date(); tomorrowDate.setDate(tomorrowDate.getDate()+1);
+  const tomorrow = dashboardIsoDate(tomorrowDate);
+  const day = iso === today ? "Heute" : iso === tomorrow ? "Morgen" : d.toLocaleDateString("de-DE",{weekday:"short"});
+  return day + " · " + d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
+}
+function dashboardRenderAppointments() {
+  const list = document.getElementById("dashboardAppointments");
+  if (!list) return;
+  const now = new Date();
+  const entries = (AppData?.kalender?.eintraege || []).filter(e => e && e.typ !== "verfuegbarkeit" && e.typ !== "geschaeft" && e.datum)
+    .filter(e => new Date(e.datum + "T" + String(e.von || "00:00").slice(0,5) + ":00") >= new Date(now.getTime()-30*60000) && e.status !== "erledigt")
+    .sort((a,b) => (a.datum+" "+(a.von||"")).localeCompare(b.datum+" "+(b.von||"")));
+  const upcoming = entries.slice(0,6);
+  if (!upcoming.length) { list.innerHTML = '<div class="dash-empty">Aktuell sind keine weiteren Termine geplant.</div>'; return; }
+  list.innerHTML = upcoming.map(item => '<button class="dash-appointment" type="button" data-entry="'+dashboardEscape(item.id)+'"><span class="dash-appointment-date">'+dashboardEscape(dashboardDateLabel(item.datum))+'<strong>'+dashboardEscape(item.von||"–")+'</strong></span><span class="dash-appointment-info"><strong>'+dashboardEscape(item.titel||"Termin")+'</strong><small>'+dashboardEscape([item.vorname,item.nachname].filter(Boolean).join(" ")||item.beschreibung||"Geplanter Termin")+'</small></span><span class="dash-chevron">›</span></button>').join("");
+  list.querySelectorAll("[data-entry]").forEach(btn=>btn.addEventListener("click",()=>{if(typeof openKalenderEntryDetails==="function")openKalenderEntryDetails(btn.dataset.entry)}));
+}
+function dashboardRenderShopAvailability() {
+  const list = document.getElementById("dashboardShopAvailability");
+  if (!list) return;
+  const today = dashboardIsoDate(new Date());
+  const end = new Date(); end.setDate(end.getDate()+7);
+  const endIso = dashboardIsoDate(end);
+  const entries = (AppData?.kalender?.eintraege || []).filter(e => e && e.typ === "verfuegbarkeit" && e.datum >= today && e.datum <= endIso)
+    .sort((a,b)=>(a.datum+" "+(a.von||"")).localeCompare(b.datum+" "+(b.von||"")));
+  if (!entries.length) {
+    list.innerHTML = '<div class="dash-empty">Noch keine Geschäftsverfügbarkeiten eingetragen.<br><small>Über Einsatzplanung → Neuer Eintrag → Verfügbarkeit kannst du Zeiten für Tobias und Christian hinterlegen.</small></div>';
+    return;
+  }
+  list.innerHTML = entries.map(e => {
+    const person = String(e.mitarbeiter || "Mitarbeiter");
+    const key = /tobias/i.test(person) ? "tobias" : /christian/i.test(person) ? "christian" : "other";
+    return '<div class="dash-shop-slot dash-shop-'+key+'"><span class="dash-shop-person-dot"></span><div class="dash-shop-date">'+dashboardEscape(dashboardDateLabel(e.datum))+'</div><div class="dash-shop-person"><strong>'+dashboardEscape(person)+'</strong><small>Im Geschäft verfügbar</small></div><div class="dash-shop-time">'+dashboardEscape(String(e.von||"").slice(0,5))+' – '+dashboardEscape(String(e.bis||"offen").slice(0,5)||"offen")+'</div></div>';
+  }).join("");
+}
+function dashboardEscape(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function updateDashboard() {
+  updateArbeitszeitStatistik();
+  const work = AppData?.arbeitszeit || {};
+  const status = document.getElementById("dashboardWorkStatus");
+  if (status) status.textContent = work.eingestempelt ? "Arbeitszeit läuft" : "Heute erfasst";
+  const date = document.getElementById("dashboardDate");
+  if (date) date.textContent = new Date().toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  dashboardRenderAppointments();
+  dashboardRenderShopAvailability();
+  if (typeof renderSharedTasks === "function") renderSharedTasks();
+}
+function initDashboardWeek() { updateDashboard(); }
+function renderDashboardWeek() { updateDashboard(); }
+function initDashboard() {
+  updateDashboard();
+  if (dashboardArbeitszeitTimer) clearInterval(dashboardArbeitszeitTimer);
+  dashboardArbeitszeitTimer = setInterval(updateDashboard, 30000);
+}

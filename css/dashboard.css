@@ -427,3 +427,129 @@
   .notdienst-actions{flex-direction:column-reverse}
   .notdienst-actions button{width:100%}
 }
+
+
+/* DASHBOARD-HOME – Tagesübersicht */
+.dash-home{width:100%;max-width:1500px;margin:0 auto 24px;padding:4px 0 24px;color:var(--text,#203650)}
+.dash-welcome{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:4px 0 18px}
+.dash-welcome h2{margin:0 0 4px;font-size:30px;line-height:1.15;font-weight:850;color:var(--text,#203650)}
+.dash-welcome .dashboard-eyebrow{margin-bottom:7px}
+.dash-welcome .dashboard-subtitle{margin:0;color:var(--muted,#7890a8)}
+.dash-stats{display:grid;grid-template-columns:minmax(220px,.62fr) minmax(480px,1.8fr);gap:14px;margin:0 0 16px;align-items:stretch}
+.dash-stat,.dash-panel{min-width:0;background:var(--surface,#fff);border:1px solid var(--border,#dce6f0);border-radius:17px;box-shadow:0 7px 22px rgba(22,48,77,.07)}
+.dash-stat{padding:18px 20px;display:flex;flex-direction:column;justify-content:center;gap:7px;min-height:150px}
+.dash-stat>span{font-size:20px}
+.dash-stat>small,.dash-panel-head p{font-size:12px;font-weight:700;color:var(--muted,#7890a8);letter-spacing:.04em}
+.dash-stat>strong{font-size:27px;line-height:1.15;font-weight:850;color:var(--text,#203650)}
+.dash-stat>em{font-size:12px;font-style:normal;color:#26966a}
+.dash-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.95fr);gap:14px;align-items:start}
+.dash-panel{padding:18px 20px;min-height:190px}
+.dash-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.dash-panel-head h3{margin:0 0 3px;font-size:17px;font-weight:800;color:var(--text,#203650)}
+.dash-panel-head p{margin:0;font-weight:500;letter-spacing:0}
+.dash-link{border:0;background:transparent;color:#287dbb;font-size:12px;font-weight:800;cursor:pointer;padding:5px 0;white-space:nowrap}
+.dash-list{display:flex;flex-direction:column;gap:0;min-width:0}
+.dash-appointment{width:100%;display:grid;grid-template-columns:92px minmax(0,1fr) 18px;align-items:center;gap:12px;padding:11px 2px;border:0;border-top:1px solid var(--border,#e5edf4);background:transparent;text-align:left;color:var(--text,#203650);cursor:pointer}
+.dash-appointment:hover{background:var(--surface-soft,#f4f8fc)}
+.dash-appointment-date{display:flex;flex-direction:column;gap:3px;color:#397eaf;font-size:11px;font-weight:750}
+.dash-appointment-date strong{font-size:14px}
+.dash-appointment-info{min-width:0;display:flex;flex-direction:column;gap:3px}
+.dash-appointment-info strong{font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.dash-appointment-info small{font-size:11px;color:var(--muted,#8295a8);overflow:hidden;text-overflow:ellipsis}
+.dash-chevron{font-size:21px;color:#8aa4bc}
+.dash-empty,.dash-next-empty{padding:18px 4px;color:var(--muted,#8295a8);font-size:12px;line-height:1.55}
+.dash-count{padding:5px 10px;border-radius:999px;background:#fff1d8;color:#a56b12;font-size:11px;font-weight:800;white-space:nowrap}
+.dash-task-form{display:grid;gap:7px;padding:10px;border-radius:12px;background:var(--surface-soft,#f4f8fc);border:1px solid var(--border,#e2eaf2);margin-bottom:10px}
+.dash-task-form>input,.dash-task-fields input,.dash-task-fields select{min-width:0;width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--border,#d5e0eb);border-radius:8px;background:var(--surface,#fff);color:var(--text,#203650);font:inherit;font-size:12px}
+.dash-task-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:7px}
+.dash-task-fields button{white-space:nowrap}
+.dash-shop-slot{display:grid;grid-template-columns:105px minmax(120px,1fr) auto;gap:10px;align-items:center;padding:12px 2px;border-top:1px solid var(--border,#e5edf4)}
+.dash-shop-date{font-size:12px;font-weight:800;color:#397eaf}
+.dash-shop-person strong,.dash-shop-person small{display:block}
+.dash-shop-person strong{font-size:13px;color:var(--text,#203650)}
+.dash-shop-person small{font-size:11px;color:var(--muted,#8295a8);margin-top:3px}
+.dash-shop-time{font-size:13px;font-weight:800;color:#21835f;background:#eaf7f0;border:1px solid #d2eddd;padding:7px 10px;border-radius:8px;white-space:nowrap}
+@media(max-width:1000px){.dash-stats{grid-template-columns:1fr 1.6fr}.dash-columns{grid-template-columns:1fr}}
+@media(max-width:700px){.dash-welcome{align-items:flex-start;flex-direction:column}.dash-welcome .btnS{width:100%}.dash-welcome h2{font-size:25px}.dash-stats{grid-template-columns:1fr}.dash-task-fields{grid-template-columns:1fr}.dash-shop-slot{grid-template-columns:1fr auto;gap:4px}.dash-shop-date{grid-column:1/-1}.dash-shop-time{grid-column:2;grid-row:2}.dash-shop-person{grid-column:1;grid-row:2}}
+
+
+/* Mitarbeiterfarben und Aufgabenfristen */
+.dash-shop-slot{position:relative;padding-left:14px}
+.dash-shop-person-dot{position:absolute;left:0;top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%)}
+.dash-shop-tobias .dash-shop-person-dot{background:#287fcb;box-shadow:0 0 0 3px rgba(40,127,203,.13)}
+.dash-shop-christian .dash-shop-person-dot{background:#16a36a;box-shadow:0 0 0 3px rgba(22,163,106,.13)}
+.dash-shop-other .dash-shop-person-dot{background:#8b72c7}
+.dash-shop-tobias .dash-shop-time{background:#eaf3fc;border-color:#cfe2f6;color:#246ba8}
+.dash-shop-christian .dash-shop-time{background:#eaf7f0;border-color:#ccebd9;color:#16794d}
+.dash-task-overdue{background:#fff5f4!important;border-color:#f1c4c0!important;border-radius:9px;padding:9px 8px!important;margin:3px 0}
+.dash-task-overdue .dash-task-main strong,.dash-task-overdue .dash-task-main small{color:#a52d25}
+.dash-task-overdue .dash-task-main small{font-weight:800}
+
+
+/* Fix: Mitarbeiterpunkt darf den Datums-Text nicht überlagern */
+.dash-shop-slot{padding-left:2px!important}
+.dash-shop-person-dot{display:none!important}
+.dash-shop-date{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.dash-shop-date:before{content:"";display:inline-block;flex:0 0 7px;width:7px;height:7px;border-radius:50%}
+.dash-shop-tobias .dash-shop-date:before{background:#287fcb;box-shadow:0 0 0 3px rgba(40,127,203,.13)}
+.dash-shop-christian .dash-shop-date:before{background:#16a36a;box-shadow:0 0 0 3px rgba(22,163,106,.13)}
+.dash-shop-other .dash-shop-date:before{background:#8b72c7}
+
+
+/* Wochenkalender: Farben folgen zuverlässig dem Hell-/Dunkelmodus */
+html[data-theme="light"]{
+  --kal-week-card-bg:#ffffff;
+  --kal-week-card-border:#d9e5f0;
+  --kal-week-today-border:#3b91d5;
+  --kal-week-track-bg:#e8eef5;
+}
+html[data-theme="dark"]{
+  --kal-week-card-bg:#102a40;
+  --kal-week-card-border:#254b6a;
+  --kal-week-today-border:#3b82c4;
+  --kal-week-track-bg:#0a1c2b;
+}
+
+
+/* Sidebar: einheitliche, hochwertige Linien-Icons */
+.desktop-nav-tile{
+  grid-template-columns:42px minmax(0,1fr);
+  column-gap:11px;
+  padding:11px 12px;
+  border-radius:13px;
+}
+.desktop-nav-tile>.nav-icon{
+  grid-row:1/3;
+  width:38px;
+  height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:11px;
+  background:var(--nav-icon-bg,rgba(59,130,196,.13));
+  color:var(--nav-icon-color,#438bc7);
+  transition:transform .18s ease,background .18s ease,color .18s ease;
+}
+.desktop-nav-tile>.nav-icon svg{
+  width:21px;
+  height:21px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.desktop-nav-tile:hover>.nav-icon{transform:scale(1.07)}
+.desktop-nav-tile.active>.nav-icon{background:var(--nav-icon-active-bg,rgba(59,130,196,.2));color:var(--nav-icon-active,#287fc5)}
+.nav-icon-menu{--nav-icon-color:#438bc7;--nav-icon-bg:rgba(59,130,196,.12)}
+.nav-icon-kalender{--nav-icon-color:#347fc2;--nav-icon-bg:rgba(52,127,194,.13)}
+.nav-icon-notdienst{--nav-icon-color:#d58a32;--nav-icon-bg:rgba(213,138,50,.14)}
+.nav-icon-produkte{--nav-icon-color:#b88442;--nav-icon-bg:rgba(184,132,66,.14)}
+.nav-icon-mitarbeiter{--nav-icon-color:#8b75c7;--nav-icon-bg:rgba(139,117,199,.14)}
+.nav-icon-zeit{--nav-icon-color:#269b85;--nav-icon-bg:rgba(38,155,133,.14)}
+.nav-icon-archiv{--nav-icon-color:#6485a8;--nav-icon-bg:rgba(100,133,168,.14)}
+.nav-icon-tresore{--nav-icon-color:#b58b37;--nav-icon-bg:rgba(181,139,55,.15)}
+html[data-theme="light"] .desktop-nav-tile{color:#203650}
+html[data-theme="light"] .desktop-nav-tile small{color:#7890a8}
+html[data-theme="dark"] .desktop-nav-tile{color:#dcecff}
+html[data-theme="dark"] .desktop-nav-tile small{color:#8eabc7}

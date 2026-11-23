@@ -323,12 +323,13 @@ function renderKalenderWeek(){
       const workEntries=allEntries.filter(e=>e.typ!=="verfuegbarkeit" && e.typ!=="geschaeft");
 
       const dayCard=document.createElement("div");
-      dayCard.style.cssText="cursor:pointer;padding:12px;border-radius:10px;background:#102a40;border:1px solid "+(iso===today?"#3b82c4":"#254b6a")+";min-height:112px;position:relative;overflow:hidden";
+      dayCard.className="kal-week-day-card"+(iso===today?" is-today":"");
+      dayCard.style.cssText="cursor:pointer;padding:12px;border-radius:10px;background:var(--kal-week-card-bg);border:1px solid "+(iso===today?"var(--kal-week-today-border)":"var(--kal-week-card-border)")+";color:var(--text);min-height:112px;position:relative;overflow:hidden";
 
       // Zeitachse der Verfügbarkeit: 09:00–17:00 = komplette Tagesbreite.
       if(availability.length){
         const track=document.createElement("div");
-        track.style.cssText="position:absolute;left:12px;right:12px;bottom:10px;height:7px;background:#0a1c2b;border-radius:999px;overflow:hidden;border:1px solid #23405a";
+        track.style.cssText="position:absolute;left:12px;right:12px;bottom:10px;height:7px;background:var(--kal-week-track-bg);border-radius:999px;overflow:hidden;border:1px solid var(--kal-week-card-border)";
 
         availability.forEach((entry,i)=>{
           const toMinutes=(value)=>{
@@ -361,7 +362,7 @@ function renderKalenderWeek(){
       };
 
       const heading=document.createElement("div");
-      heading.style.cssText="font-weight:800;font-size:14px;padding-right:36px";
+      heading.style.cssText="font-weight:800;font-size:14px;padding-right:36px;color:var(--text)";
       heading.textContent=name;
 
       const dateLine=document.createElement("div");
@@ -369,7 +370,7 @@ function renderKalenderWeek(){
       dateLine.textContent=date.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
 
       const info=document.createElement("div");
-      info.style.cssText="margin-top:15px;font-size:13px;color:"+(workEntries.length?"#d9eafa":"#71869b");
+      info.style.cssText="margin-top:15px;font-size:13px;color:"+(workEntries.length?"var(--text)":"var(--muted)");
       info.textContent=workEntries.length
         ? "📌 "+workEntries.length+" "+(workEntries.length===1?"Termin":"Termine")
         : (availability.length ? "🟢 "+availability.map(e=>e.mitarbeiter||"Verfügbar").join(" · ") : (businessEntries.length ? "Geschäftsplanung hinterlegt" : "Keine Termine"));

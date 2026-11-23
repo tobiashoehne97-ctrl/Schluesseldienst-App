@@ -1,0 +1,175 @@
+/* Theme layer: shared light/dark appearance. Functional styles remain in their module files. */
+:root{color-scheme:dark;--app-bg:#0b1d38;--app-surface:#10243d;--app-panel:#142d49;--app-border:#294967;--app-text:#e8f0f8;--app-muted:#8eb9de;--app-accent:#2f78bd}
+html[data-theme="light"]{color-scheme:light;--app-bg:#edf2f7;--app-surface:#ffffff;--app-panel:#f7f9fc;--app-border:#d7e0eb;--app-text:#172b45;--app-muted:#647a92;--app-accent:#2568a8}
+html[data-theme="light"],html[data-theme="light"] body{background:#edf2f7!important;color:#172b45!important}
+html[data-theme="light"] body{background:linear-gradient(160deg,#f5f7fa 0%,#eaf0f6 100%)!important}
+html[data-theme="light"] #hdr{background:#fff!important;border-bottom:1px solid #d9e2ec!important;box-shadow:0 2px 10px #17324d0b}
+html[data-theme="light"] #hdr>div:first-child>div:last-child{color:#172b45}
+html[data-theme="light"] #hdr>div:first-child>div:last-child div:first-child{color:#172b45!important}
+html[data-theme="light"] #hdr>div:first-child>div:last-child div:last-child{color:#647a92!important}
+html[data-theme="light"] #logoFallback{color:#172b45!important}
+html[data-theme="light"] #desktopSidebar{background:#f8fafc!important;border-right:1px solid #dce4ed!important}
+html[data-theme="light"] .desktop-sidebar-title{color:#71849a!important}
+html[data-theme="light"] .desktop-nav-tile{background:#fff!important;border-color:#e0e7ef!important;color:#263b53!important;box-shadow:0 2px 8px #1b36500a}
+html[data-theme="light"] .desktop-nav-tile strong{color:#263b53!important}
+html[data-theme="light"] .desktop-nav-tile small{color:#71849a!important}
+html[data-theme="light"] .desktop-nav-tile.active{background:#e8f2fc!important;border-color:#6ca2d4!important;box-shadow:inset 3px 0 #2f78bd}
+html[data-theme="light"] #main{color:#20364e!important}
+html[data-theme="light"] h1,html[data-theme="light"] h2,html[data-theme="light"] h3,html[data-theme="light"] strong{color:inherit}
+html[data-theme="light"] .desktop-dashboard-title,html[data-theme="light"] .notdienst-header h2,html[data-theme="light"] .notdienst-empty h3{color:#172b45!important}
+html[data-theme="light"] .dashboard-subtitle,html[data-theme="light"] .notdienst-header p,html[data-theme="light"] .notdienst-empty p{color:#647a92!important}
+html[data-theme="light"] .card,html[data-theme="light"] .desktop-day-card,html[data-theme="light"] .notdienst-empty,html[data-theme="light"] .notdienst-form-card{background:#fff!important;border-color:#dce5ef!important;box-shadow:0 5px 18px #1836530a}
+html[data-theme="light"] .desktop-day-card{background:#fff!important}
+html[data-theme="light"] .desktop-day-card strong,html[data-theme="light"] .desktop-day-card h3{color:#243a52!important}
+html[data-theme="light"] .desktop-day-card small,html[data-theme="light"] .desktop-day-card p{color:#70839a!important}
+html[data-theme="light"] .sec,html[data-theme="light"] .dashboard-eyebrow{color:#3978ad!important}
+html[data-theme="light"] .lbl{color:#586f87!important}
+html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{background:#fff!important;border-color:#cbd7e4!important;color:#20364e!important}
+html[data-theme="light"] input::placeholder,html[data-theme="light"] textarea::placeholder{color:#93a2b2!important}
+html[data-theme="light"] select option{background:#fff;color:#20364e}
+html[data-theme="light"] .btnS{background:#f0f4f8!important;border-color:#d4dee9!important;color:#34516e!important}
+html[data-theme="light"] .btnP{background:linear-gradient(135deg,#2568a8,#3986c7)!important;color:#fff!important}
+html[data-theme="light"] .notdienst-type{background:#f7f9fc!important;border-color:#d8e2ec!important;color:#344b63!important}
+html[data-theme="light"] .notdienst-type.active{background:#fff0e9!important;border-color:#e8794b!important;color:#8b3b20!important}
+html[data-theme="light"] .notdienst-calendar-option{background:#f2f7fc!important;border-color:#d8e4ef!important}
+html[data-theme="light"] .notdienst-calendar-option strong{color:#263b53!important}
+html[data-theme="light"] .notdienst-calendar-option small{color:#647a92!important}
+html[data-theme="light"] .pm-wrap,html[data-theme="light"] .tresor-wrap{color:#20364e!important}
+html[data-theme="light"] .pm-header h1,html[data-theme="light"] .pm-editor-head h2,html[data-theme="light"] .tresor-head h1,html[data-theme="light"] .tresor-home-intro h2{color:#172b45!important}
+html[data-theme="light"] .pm-header p,html[data-theme="light"] .pm-hint,html[data-theme="light"] .pm-eyebrow,html[data-theme="light"] .pm-toolbar span,html[data-theme="light"] .pm-form-grid label,html[data-theme="light"] .pm-info-field>label:first-child{color:#647a92!important}
+html[data-theme="light"] .pm-toolbar,html[data-theme="light"] .pm-editor,html[data-theme="light"] .pm-table-wrap,html[data-theme="light"] .tresor-panel,html[data-theme="light"] .tresor-card,html[data-theme="light"] .tresor-empty{background:#fff!important;border-color:#dce5ef!important;color:#20364e!important}
+html[data-theme="light"] .pm-table th,html[data-theme="light"] .tresor-table th{color:#526b84!important;background:#f5f8fb}
+html[data-theme="light"] .pm-table td,html[data-theme="light"] .tresor-table td{color:#30465e!important;border-color:#e5ebf2!important}
+html[data-theme="light"] .pm-product-cell small,html[data-theme="light"] .pm-empty,html[data-theme="light"] .pm-section-title,html[data-theme="light"] .tresor-muted,html[data-theme="light"] .tresor-field label{color:#647a92!important}
+html[data-theme="light"] .pm-empty strong,html[data-theme="light"] .tresor-card h3,html[data-theme="light"] .tresor-card .price{color:#172b45!important}
+html[data-theme="light"] .pm-calc,html[data-theme="light"] .tresor-calc-preview{background:#f2f6fa!important;border-color:#d7e2ed!important;color:#435a72!important}
+html[data-theme="light"] .pm-calc strong,html[data-theme="light"] .tresor-calc-price{color:#172b45!important}
+html[data-theme="light"] .tresor-series-card,html[data-theme="light"] .tresor-home-card,html[data-theme="light"] .tresor-filter-tile{background:#fff!important;border-color:#dce5ef!important;color:#20364e!important}
+html[data-theme="light"] .tresor-series-name,html[data-theme="light"] .tresor-home-card strong,html[data-theme="light"] .tresor-filter-tile>strong{color:#20364e!important}
+html[data-theme="light"] .tresor-series-count,html[data-theme="light"] .tresor-series-arrow,html[data-theme="light"] .tresor-home-card small,html[data-theme="light"] .tresor-filter-tile>span,html[data-theme="light"] .tresor-filter-tile>small{color:#647a92!important}
+html[data-theme="light"] .tresor-filter-dialog,html[data-theme="light"] .tresor-filter-modal{background:#fff!important;color:#20364e!important}
+html[data-theme="light"] .tresor-filter-dialog-head strong{color:#172b45!important}
+html[data-theme="light"] .tresor-filter-option{background:#f5f8fb!important;border-color:#dce5ef!important;color:#30465e!important}
+html[data-theme="light"] .tresor-product-search-result{background:#f7f9fc!important;border-color:#dce5ef!important;color:#20364e!important}
+html[data-theme="light"] .tresor-product-search-result small{color:#647a92!important}
+html[data-theme="light"] .mobile-employee-select,html[data-theme="light"] .mobile-employee-choice,html[data-theme="light"] .mobile-app-tile{background:#fff!important;border-color:#dce5ef!important;color:#20364e!important}
+html[data-theme="light"] .mobile-employee-select h2,html[data-theme="light"] .mobile-employee-choice strong,html[data-theme="light"] .mobile-app-tile strong{color:#20364e!important}
+html[data-theme="light"] .mobile-employee-select p,html[data-theme="light"] .mobile-employee-choice small,html[data-theme="light"] .mobile-app-tile small{color:#647a92!important}
+#themeToggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:7px 12px;border:1px solid rgba(100,150,190,.35);border-radius:9px;background:rgba(255,255,255,.08);color:#d9e9f7;font:600 12px inherit;cursor:pointer;white-space:nowrap}
+#themeToggle:hover{border-color:#6da6d8}
+html[data-theme="light"] #themeToggle{background:#f1f5f9;color:#30465e;border-color:#d5e0eb}
+@media(max-width:760px){#themeToggle{padding:7px 9px;font-size:12px}#themeToggle .theme-label{display:none}}
+
+/* ===== Refined shared visual system ===== */
+:root{--ui-radius:14px;--ui-shadow:0 8px 24px rgba(20,45,75,.08)}
+#themeToggle{font:600 12px/1.2 system-ui,sans-serif;transition:background .18s,border-color .18s,transform .18s}
+#themeToggle:active{transform:scale(.97)}
+.desktop-nav-tile,.card,.pm-editor,.pm-toolbar,.tresor-panel,.tresor-card{transition:background-color .18s,border-color .18s,box-shadow .18s}
+html[data-theme="light"] body{background:linear-gradient(145deg,#f7f9fc 0%,#edf2f7 100%)!important;color:#263b53!important}
+html[data-theme="light"] #hdr{min-height:66px;padding:10px 20px!important;color:#20364e!important}
+html[data-theme="light"] #hdr *{color:inherit}
+html[data-theme="light"] #hdr>div:first-child>div:last-child div:last-child{color:#71849a!important}
+html[data-theme="light"] #hdr #themeToggle{color:#34516e!important}
+html[data-theme="light"] #desktopSidebar{background:#f8fafc!important;box-shadow:4px 0 18px rgba(28,52,78,.035)}
+html[data-theme="light"] .desktop-nav-tile{min-height:68px;border-radius:12px;background:#fff!important}
+html[data-theme="light"] .desktop-nav-tile.active{background:#eaf3fc!important;border-color:#8db7df!important}
+html[data-theme="light"] #main{color:#263b53!important}
+html[data-theme="light"] .desktop-dashboard-title{color:#172b45!important;letter-spacing:-.025em}
+html[data-theme="light"] .dashboard-eyebrow{color:#3978ad!important}
+html[data-theme="light"] .week-actions strong{background:#fff!important;border:1px solid #dce5ef!important;color:#344b63!important;box-shadow:0 2px 7px rgba(25,50,75,.04)}
+html[data-theme="light"] .desktop-week-day{background:#fff!important;border:1px solid #dce5ef!important;color:#263b53!important;box-shadow:0 5px 16px rgba(25,50,75,.055)}
+html[data-theme="light"] .desktop-week-day:hover{border-color:#8bb7df!important;box-shadow:0 10px 24px rgba(25,70,110,.10)}
+html[data-theme="light"] .desktop-week-day.today{background:linear-gradient(180deg,#f4f9ff,#fff)!important;border:1.5px solid #4e91c9!important;box-shadow:inset 0 0 0 1px rgba(78,145,201,.12),0 5px 16px rgba(25,50,75,.055)}
+html[data-theme="light"] .desktop-week-day-head{border-bottom-color:#e8eef5!important}
+html[data-theme="light"] .desktop-week-day-head span{color:#6485a4!important}
+html[data-theme="light"] .desktop-week-day-head strong{color:#1e344c!important}
+html[data-theme="light"] .week-entry{background:#f1f6fb!important;border-color:#e1eaf3!important}
+html[data-theme="light"] .week-entry strong{color:#263e57!important}
+html[data-theme="light"] .week-entry small{color:#7189a2!important}
+html[data-theme="light"] .week-empty{color:#91a0b0!important}
+html[data-theme="light"] .week-more{color:#3978ad!important}
+html[data-theme="light"] .week-add{background:#2f78bd!important;box-shadow:0 3px 9px rgba(47,120,189,.22)}
+html[data-theme="light"] .week-availability-track{background:#e8eef4!important;border-color:#d7e1eb!important}
+html[data-theme="light"] .week-availability-names{color:#347c59!important}
+html[data-theme="light"] .dashboard-card,html[data-theme="light"] .dashboard-quick,html[data-theme="light"] .dashboard-header{background:#fff!important;border-color:#dce5ef!important;box-shadow:var(--ui-shadow)}
+html[data-theme="light"] .dashboard-title,html[data-theme="light"] .dashboard-value,html[data-theme="light"] .dashboard-action{color:#20364e!important}
+html[data-theme="light"] .dashboard-label,html[data-theme="light"] .dashboard-section-title{color:#6485a4!important}
+html[data-theme="light"] .dashboard-action{background:#f8fafc!important;border-color:#e0e8f0!important}
+html[data-theme="light"] .modal-box,html[data-theme="light"] .pdf-shell{background:#fff!important;color:#20364e!important;border-color:#dce5ef!important}
+html[data-theme="light"] .modal-hd,html[data-theme="light"] .pdf-toolbar{background:#f5f8fb!important;border-color:#dce5ef!important}
+html[data-theme="light"] .pdf-toolbar #pdfNr,html[data-theme="light"] .pdf-document-name{color:#20364e!important}
+html[data-theme="light"] .pdf-actions{background:#fff!important;border-color:#dce5ef!important}
+html[data-theme="light"] .pdf-action-title{color:#3978ad!important}
+html[data-theme="light"] .pdf-hint{color:#647a92!important}
+html[data-theme="light"] .pm-editor,html[data-theme="light"] .pm-toolbar,html[data-theme="light"] .pm-table-wrap,html[data-theme="light"] .tresor-panel,html[data-theme="light"] .tresor-card,html[data-theme="light"] .tresor-empty{box-shadow:0 5px 18px rgba(25,50,75,.05)!important}
+html[data-theme="light"] .pm-form-grid input,html[data-theme="light"] .pm-form-grid select,html[data-theme="light"] .pm-form-grid textarea{background:#fff!important;color:#20364e!important}
+html[data-theme="light"] .pm-calc{background:#f4f7fa!important}
+html[data-theme="light"] .pm-status.on{background:#e5f5ec!important;color:#237348!important}
+html[data-theme="light"] .pm-status.off{background:#fff0ed!important;color:#a34436!important}
+html[data-theme="light"] .notdienst-form-card,html[data-theme="light"] .notdienst-empty{box-shadow:0 5px 18px rgba(25,50,75,.05)!important}
+@media(max-width:760px){
+ html[data-theme="light"] #hdr{padding:8px 12px!important}
+ html[data-theme="light"] .desktop-week-day{box-shadow:none!important}
+}
+
+/* ===== Calendar polish, iteration 2 ===== */
+.desktop-dashboard-top{align-items:center;margin-bottom:20px}
+.desktop-dashboard-title{letter-spacing:-.035em}
+.desktop-week-grid{gap:12px}
+.desktop-week-day{min-height:390px;border-radius:15px;padding:14px;box-shadow:0 5px 18px rgba(2,12,28,.10)}
+.desktop-week-day-head{padding-bottom:12px}
+.desktop-week-day-head strong{letter-spacing:-.02em}
+.week-entry{padding:10px;border-radius:11px}
+.week-entry strong{font-size:12px}
+.week-empty{font-size:11px;line-height:1.4}
+.week-add{transition:transform .16s ease,box-shadow .16s ease}
+.desktop-week-day:hover .week-add{transform:scale(1.06)}
+html[data-theme="light"] .desktop-week-day{min-height:390px;background:linear-gradient(180deg,#fff 0%,#fcfdff 100%)!important;box-shadow:0 3px 12px rgba(28,53,80,.045)!important}
+html[data-theme="light"] .desktop-week-day.today{background:linear-gradient(180deg,#f3f8fe 0%,#fff 72%)!important}
+html[data-theme="light"] .desktop-week-day-head span{color:#5f83a5!important}
+html[data-theme="light"] .week-empty{color:#8a9bad!important}
+html[data-theme="light"] .week-entry{background:#f1f6fb!important;border-color:#e1eaf3!important;box-shadow:0 1px 2px rgba(20,45,70,.025)}
+html[data-theme="light"] .week-entry strong{color:#2b4057!important}
+html[data-theme="light"] .week-entry small{color:#71869d!important}
+html[data-theme="light"] .desktop-dashboard-top .dashboard-subtitle{color:#647a92!important}
+html[data-theme="light"] .week-actions .btnS{background:#fff!important;border-color:#d9e3ed!important;color:#38536f!important;box-shadow:0 2px 5px rgba(20,45,70,.035)}
+html[data-theme="light"] .week-actions .btnS:hover{background:#f4f8fc!important;border-color:#a9c5df!important}
+html[data-theme="light"] .week-actions .btnP{box-shadow:0 4px 10px rgba(37,104,168,.18)}
+html[data-theme="light"] #hdr{box-shadow:0 2px 10px rgba(25,50,75,.045)!important}
+html[data-theme="light"] .desktop-sidebar-title{color:#7b8da1!important}
+html[data-theme="light"] .desktop-nav-tile small{color:#70849a!important}
+html[data-theme="light"] .desktop-nav-tile.active{box-shadow:inset 3px 0 #2f78bd,0 3px 10px rgba(25,70,110,.045)!important}
+html[data-theme="light"] .dashboard-eyebrow{color:#477da9!important}
+#themeToggle{min-width:72px;justify-content:center}
+
+/* ===== Compact weekly calendar layout ===== */
+.desktop-week-day{min-height:320px}
+html[data-theme="light"] .desktop-week-day{min-height:320px}
+.desktop-week-day-body{padding:12px 0}
+.week-empty{font-size:11px;letter-spacing:.005em}
+.desktop-week-day-head{padding-bottom:10px}
+.desktop-week-day-head strong{font-size:19px}
+@media(min-width:1200px){
+  .desktop-week-day{min-height:320px}
+  html[data-theme="light"] .desktop-week-day{min-height:320px}
+}
+@media(max-width:1100px){
+  .desktop-week-day{min-height:280px}
+  html[data-theme="light"] .desktop-week-day{min-height:280px}
+}
+
+/* Optional quick-access page */
+.quick-start-page{max-width:1180px;margin:0 auto}
+.quick-start-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:28px}
+.quick-start-date{padding:10px 14px;border-radius:11px;background:var(--app-surface);border:1px solid var(--app-border);color:var(--app-muted);font-size:13px;font-weight:650}
+.quick-start-section-title{font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--app-muted);margin:0 0 12px}
+.quick-start-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.quick-start-card{display:grid;grid-template-columns:44px 1fr 20px;align-items:center;gap:14px;text-align:left;padding:18px;border-radius:15px;background:var(--app-surface);border:1px solid var(--app-border);color:var(--app-text);box-shadow:0 4px 14px rgba(20,45,75,.045);transition:transform .16s,border-color .16s,box-shadow .16s}
+.quick-start-card:hover{transform:translateY(-2px);border-color:#6ca2d4;box-shadow:0 9px 22px rgba(20,45,75,.09)}
+.quick-start-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:rgba(47,120,189,.12);font-size:22px}
+.quick-start-card strong{display:block;font-size:14px;color:var(--app-text);margin-bottom:4px}
+.quick-start-card small{display:block;color:var(--app-muted);font-size:12px;line-height:1.4}
+.quick-start-card b{font-size:24px;color:var(--app-muted);font-weight:500}
+.quick-start-note{display:flex;gap:12px;margin-top:22px;padding:14px 16px;border-radius:12px;background:rgba(47,120,189,.07);border:1px solid var(--app-border);color:var(--app-muted);font-size:12px;line-height:1.5}
+.quick-start-note strong{color:var(--app-text);white-space:nowrap}
+@media(max-width:760px){.quick-start-header{align-items:flex-start;flex-direction:column}.quick-start-grid{grid-template-columns:1fr}.quick-start-card{padding:15px}}
