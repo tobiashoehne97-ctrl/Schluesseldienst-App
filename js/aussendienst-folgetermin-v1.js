@@ -141,8 +141,8 @@
         const tracking=window.__aussendienstZeitTracking||{};
         const started=tracking.startedAt||r.gestartet||window.activeServiceStartedAt;
         const ended=r.beendet||new Date().toISOString();
-        const sessions=(r.einsaetze||[]).slice();
-        const baseline=window.__followupBaseline||r.folge_baseline||null;
+        const sessions=((r.einsaetze&&r.einsaetze.length)?r.einsaetze:(entry.regiebericht?.einsaetze||[])).slice();
+        const baseline=window.__followupBaseline||r.folge_baseline||entry.regiebericht?.folge_baseline||null;
         sessions.push(makeSession(r,started,tracking.arrivalAt||r.ankunft||null,ended,baseline,sessions.length+1));
         r.einsaetze=sessions;
         r.gesamtzeit_minuten=totalMinutes(sessions);
