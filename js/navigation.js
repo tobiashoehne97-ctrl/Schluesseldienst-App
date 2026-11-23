@@ -35,7 +35,8 @@ function go(id) {
     }
   });
 
-  const targetId = id || "menu";
+  // Die Startseite ist das Dashboard (id="menu"); "start" bleibt als Alias kompatibel.
+  const targetId = (!id || id === "start") ? "menu" : id;
   const target = document.getElementById(targetId);
   if (target) {
     target.classList.remove("hidden");
