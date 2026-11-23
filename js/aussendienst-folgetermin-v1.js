@@ -157,7 +157,7 @@
     window.updateServiceEntry=async function(changes){
       const next={...(changes||{})},r=next.regiebericht;
       const id=window.activeServiceId,entry=getEntry(id);
-      if(r?.abgeschlossen===true && entry?.typ==="termin" && ((r.einsaetze||[]).length || window.__followupActive)){
+      if(!window.__editingCompletedService && r?.abgeschlossen===true && entry?.typ==="termin" && ((r.einsaetze||[]).length || window.__followupActive)){
         const tracking=window.__aussendienstZeitTracking||{};
         const started=tracking.startedAt||r.gestartet||window.activeServiceStartedAt;
         const ended=r.beendet||new Date().toISOString();
