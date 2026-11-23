@@ -1,3 +1,4 @@
+/* Netlify branch-deploy trigger after enabling design-test. */
 (function(){
   const KEY = "schluesseldienst-theme";
   function applyTheme(theme){
