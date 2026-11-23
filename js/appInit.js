@@ -55,7 +55,7 @@ console.log("Application started v22");
     console.log("Außendienst-Zeiterfassung geladen");
     const folge=document.createElement("script");
     folge.src="js/aussendienst-folgetermin-v1.js?v=20261123-5";
-    folge.onload=()=>{console.log("Außendienst-Folgetermin-Workflow geladen");const edit=document.createElement("script");edit.src="js/aussendienst-nachbearbeitung-v1.js?v=20261123-1";edit.onload=()=>console.log("Außendienst-Nachbearbeitung geladen");edit.onerror=()=>console.warn("Außendienst-Nachbearbeitung konnte nicht geladen werden.");document.head.appendChild(edit);};
+    folge.onload=()=>{console.log("Außendienst-Folgetermin-Workflow geladen");const edit=document.createElement("script");edit.src="js/aussendienst-nachbearbeitung-v1.js?v=20261123-2";edit.onload=()=>console.log("Außendienst-Nachbearbeitung geladen");edit.onerror=()=>console.warn("Außendienst-Nachbearbeitung konnte nicht geladen werden.");document.head.appendChild(edit);};
     folge.onerror=()=>console.warn("Außendienst-Folgetermin-Workflow konnte nicht geladen werden.");
     document.head.appendChild(folge);
   };
