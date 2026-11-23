@@ -131,3 +131,150 @@
 
   console.log("Außendienst-Zeiterfassung geladen");
 })();
+
+/* Außendienst: Entwurf automatisch speichern und später fortsetzen. */
+(function(){
+  if(window.__aussendienstDraftFixInstalled) return;
+  window.__aussendienstDraftFixInstalled=true;
+
+  const tracking=()=>window.__aussendienstZeitTracking;
+  const getEntry=(id)=>{
+    const key=id ?? tracking()?.id ?? window.activeServiceId;
+    return (window.AppData?.kalender?.eintraege||[]).find(e=>String(e.id)===String(key));
+  };
+  let saveTimer=null;
+  let saveQueue=Promise.resolve();
+
+  function queueDraftSave(){
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(()=>{ saveDraft(); },450);
+  }
+
+  function saveDraft(){
+    const id=tracking()?.id ?? window.activeServiceId;
+    const entry=getEntry(id);
+    if(!entry || !id || typeof window.updateServiceEntry!=="function") return saveQueue;
+    const vor=document.getElementById("service_vorgefunden");
+    const gemacht=document.getElementById("service_gemacht");
+    // Nur aus dem Berichtsschritt heraus automatisch speichern.
+    if(!vor && !gemacht) return saveQueue;
+
+    const old=entry.regiebericht||{};
+    const t=tracking();
+    const report={
+      ...old,
+      vorgefunden:vor ? vor.value : (old.vorgefunden||""),
+      gemacht:gemacht ? gemacht.value : (old.gemacht||""),
+      material:window.activeServiceMaterials || old.material || [],
+      gestartet:old.gestartet || t?.startedAt || window.activeServiceStartedAt || new Date().toISOString(),
+      in_bearbeitung:true
+    };
+    if(t?.arrivalAt) report.ankunft=t.arrivalAt;
+
+    saveQueue=saveQueue.then(()=>window.updateServiceEntry({status:"in_arbeit",regiebericht:report}))
+      .catch(err=>console.error("Außendienst-Entwurf konnte nicht gespeichert werden:",err));
+    window.activeServiceReport=report;
+    return saveQueue;
+  }
+
+  const previousReport=window.openServiceReportStep;
+  if(typeof previousReport==="function"){
+    window.openServiceReportStep=function(){
+      previousReport();
+      const entry=getEntry();
+      const saved=window.__aussendienstResumeDraft || entry?.regiebericht || {};
+      const vor=document.getElementById("service_vorgefunden");
+      const gemacht=document.getElementById("service_gemacht");
+      if(vor) vor.value=saved.vorgefunden||"";
+      if(gemacht) gemacht.value=saved.gemacht||"";
+      window.activeServiceMaterials=Array.isArray(saved.material)?saved.material.map(m=>({...m})):[];
+      if(typeof window.renderServiceMaterials==="function") window.renderServiceMaterials();
+      [vor,gemacht].forEach(el=>el?.addEventListener("input",queueDraftSave));
+      window.activeServiceReport={...saved,material:window.activeServiceMaterials};
+      window.__aussendienstResumeDraft=null;
+      if(saved.ankunft && tracking()){
+        tracking().arrivalAt=saved.ankunft;
+        const btn=document.getElementById("service_arrival_button");
+        const status=document.getElementById("service_arrival_status");
+        if(btn){btn.disabled=true;btn.textContent="✓ Ankunft erfasst";}
+        if(status)status.textContent="Ankunft: "+new Date(saved.ankunft).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr · Fahrtzeit wird separat ausgewiesen.";
+      }
+    };
+  }
+
+  const previousStart=window.startServiceProcess;
+  if(typeof previousStart==="function"){
+    window.startServiceProcess=function(id){
+      const entry=getEntry(id);
+      const saved=entry?.regiebericht||{};
+      const resume=!!saved.in_bearbeitung && !!saved.gestartet;
+      window.__aussendienstResumeDraft=resume?saved:null;
+      previousStart(id);
+      if(resume){
+        window.activeServiceStartedAt=saved.gestartet;
+        if(tracking()){
+          tracking().startedAt=saved.gestartet;
+          tracking().arrivalAt=saved.ankunft||null;
+        }
+      }
+      // Status und Startzeit bereits beim Start sichern, nicht erst beim Abschluss.
+      queueMicrotask(()=>saveDraft());
+    };
+  }
+
+  const previousAdd=window.addServiceMaterial;
+  if(typeof previousAdd==="function"){
+    window.addServiceMaterial=function(){
+      const result=previousAdd();
+      saveDraft();
+      return result;
+    };
+  }
+  const previousRemove=window.removeServiceMaterial;
+  if(typeof previousRemove==="function"){
+    window.removeServiceMaterial=function(index){
+      const result=previousRemove(index);
+      saveDraft();
+      return result;
+    };
+  }
+
+  const previousClose=window.closeServiceModal;
+  if(typeof previousClose==="function"){
+    window.closeServiceModal=function(){
+      if(document.getElementById("service_vorgefunden") || document.getElementById("service_gemacht")){
+        clearTimeout(saveTimer);
+        // Den Speichervorgang sofort anstoßen, bevor das Formular entfernt wird.
+        saveDraft();
+      }
+      return previousClose();
+    };
+  }
+
+  const previousUpdate=window.updateServiceEntry;
+  if(typeof previousUpdate==="function"){
+    window.updateServiceEntry=async function(changes){
+      const next={...(changes||{})};
+      if(next.regiebericht && (next.regiebericht.abgeschlossen===true ||
+          (next.status==="offen" && next.regiebericht.abgeschlossen===false))){
+        next.regiebericht={...next.regiebericht,in_bearbeitung:false};
+      }
+      return previousUpdate(next);
+    };
+  }
+
+  const previousDetails=window.openKalenderEntryDetails;
+  if(typeof previousDetails==="function"){
+    window.openKalenderEntryDetails=function(id){
+      previousDetails(id);
+      const entry=getEntry(id);
+      if(entry?.regiebericht?.in_bearbeitung){
+        const buttons=[...document.querySelectorAll("#kal_modal_content button")];
+        const startButton=buttons.find(b=>(b.getAttribute("onclick")||"").includes("startServiceProcess"));
+        if(startButton) startButton.textContent="▶️ Einsatz fortsetzen";
+      }
+    };
+  }
+
+  console.log("Außendienst-Entwürfe werden automatisch gespeichert");
+})();
