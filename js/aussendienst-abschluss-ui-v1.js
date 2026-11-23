@@ -21,21 +21,19 @@
   `;
   document.head.appendChild(style);
 
+  const originalCompletionStep=window.openServiceCompletionStep;
   window.openServiceCompletionStep=function(){
-    window.activeServiceReport={
-      vorgefunden:document.getElementById("service_vorgefunden")?.value||"",
-      gemacht:document.getElementById("service_gemacht")?.value||"",
-      material:window.activeServiceMaterials||[],
-      fotos:(window.activeServicePhotos||[]).map(f=>f.name)
-    };
-    openServiceModal("✅ Einsatz abschließen",
+    // Die Originalfunktion sammelt auch Fotos und Materialien aus dem aktiven Formular.
+    if(typeof originalCompletionStep==="function") originalCompletionStep.apply(this,arguments);
+    const content=document.getElementById("service_modal_content");
+    if(!content)return;
+    content.innerHTML=
       '<div style="font-size:17px;font-weight:800;margin-bottom:4px">Wie soll dieser Einsatz weitergeführt werden?</div>'+
       '<div style="font-size:13px;color:#a9c5df">Bitte eine der beiden Möglichkeiten auswählen.</div>'+
       '<div class="service-choice-grid">'+
         '<button type="button" class="btnP service-choice service-choice--complete" onclick="openServicePaymentStep()"><span class="choice-icon">✓</span><span class="choice-copy"><span class="choice-title">Einsatz abschließen</span><span class="choice-sub">Arbeiten sind erledigt</span></span></button>'+
         '<button type="button" class="btnS service-choice service-choice--followup" onclick="markServiceFollowUp()"><span class="choice-icon">↻</span><span class="choice-copy"><span class="choice-title">Als Folgetermin speichern</span><span class="choice-sub">Weitere Arbeiten erforderlich</span></span></button>'+
-      '</div>'
-    );
+      '</div>';
   };
 
   window.openServicePaymentStep=function(){
