@@ -46,20 +46,21 @@
       '<div class="sec">Interner Hinweis für die Rechnungsstellung</div>'+
       '<textarea id="completed_invoice_note" style="width:100%;min-height:85px" placeholder="z. B. Kunde wünscht Rechnung per E-Mail, Restarbeiten gesondert berechnen ...">'+esc(r.rechnungshinweis||"")+'</textarea>'+
       '<div style="font-size:11px;color:#9ebbd4;margin-top:6px">Dieser Hinweis ist intern und wird nicht auf den Kunden-Regiebericht gedruckt.</div>'+
-      '<div style="display:flex;gap:8px;margin-top:18px"><button class="btnS" style="flex:1;padding:12px" onclick="closeServiceModal()">Abbrechen</button><button class="btnP" style="flex:1;padding:12px" onclick="saveCompletedServiceEdits('+JSON.stringify(String(id))+')">💾 Änderungen speichern</button></div>';
+      '<div style="display:flex;gap:8px;margin-top:18px"><button class="btnS" style="flex:1;padding:12px" onclick="closeServiceModal()">Abbrechen</button><button class="btnP" style="flex:1;padding:12px" onclick="saveCompletedServiceEdits('+JSON.stringify(String(id))+',false)">💾 Änderungen speichern</button></div>'+
+      '<button type="button" class="btnS" style="width:100%;padding:12px;margin-top:9px;border:1px solid #d97706;color:#fbbf24" onclick="saveCompletedServiceEdits('+JSON.stringify(String(id))+',true)">↻ Als nicht abschließbar markieren – Folgetermin erforderlich</button>';
     window.activeServiceId=String(id);
     window.__aussendienstZeitTracking=null;
     window.openServiceModal("✏️ Einsatz nachbearbeiten",html);
   };
 
-  window.saveCompletedServiceEdits=async function(id){
+  window.saveCompletedServiceEdits=async function(id,markFollowup=false){
     const entry=findEntry(id);
     if(!isCompleted(entry))return alert("Der Einsatz wurde nicht gefunden oder ist nicht mehr abgeschlossen.");
-    const original=entry.regiebericht||{};
-    const report={...original};
+    const button=[...document.querySelectorAll("#service_modal_content button")].find(b=>b.textContent.includes(markFollowup?"Als nicht abschließbar":"Änderungen speichern"));
+    if(button){button.disabled=true;button.textContent="⏳ Speichere ...";}
+    const report={...(entry.regiebericht||{})};
     if(Array.isArray(report.einsaetze)&&report.einsaetze.length){
-      report.einsaetze=report.einsaetze.map((s,i)=>({
-        ...s,
+      report.einsaetze=report.einsaetze.map((s,i)=>({...s,
         vorgefunden:document.getElementById("completed_vor_"+i)?.value||"",
         gemacht:document.getElementById("completed_gemacht_"+i)?.value||""
       }));
@@ -79,23 +80,65 @@
     report.rechnungshinweis=document.getElementById("completed_invoice_note")?.value.trim()||"";
     report.nachbearbeitet_am=new Date().toISOString();
     report.nachbearbeitet_von=window.currentEmployee||"";
-    // Das bestehende Abschlusskennzeichen und sämtliche Zeitfelder bleiben erhalten.
-    window.__aussendienstZeitTracking=null;
-    window.__editingCompletedService=true;
+    let status=entry.status;
+    if(markFollowup){
+      if(!Array.isArray(report.einsaetze)||!report.einsaetze.length){
+        report.einsaetze=[{
+          nummer:1,gestartet:report.gestartet||null,ankunft:report.ankunft||null,beendet:report.beendet||null,
+          fahrzeit_minuten:report.fahrzeit_minuten??null,
+          arbeitszeit_vor_ort_minuten:report.arbeitszeit_vor_ort_minuten??null,
+          arbeitszeit_minuten:Number(report.arbeitszeit_minuten||report.gesamtzeit_minuten||0),
+          vorgefunden:report.vorgefunden||"",gemacht:report.gemacht||"",
+          material:materials.map(m=>({...m})),fotos:(report.fotos||[]).slice()
+        }];
+      }else{
+        const last=report.einsaetze[report.einsaetze.length-1];
+        last.material=materials.map(m=>({...m}));
+      }
+      report.vorgefunden="";
+      report.gemacht="";
+      report.material=[];
+      report.fotos=[];
+      report.folge_termin_notwendig=true;
+      report.abgeschlossen=false;
+      report.in_bearbeitung=false;
+      report.folge_baseline=null;
+      report.gestartet=null;report.ankunft=null;report.beendet=null;
+      report.fahrzeit_minuten=null;report.arbeitszeit_vor_ort_minuten=null;
+      report.arbeitszeit_minuten=report.einsaetze.reduce((sum,s)=>sum+(Number(s.arbeitszeit_minuten)||0),0);
+      report.gesamtzeit_minuten=report.arbeitszeit_minuten;
+      status="offen";
+    }
     try{
-      await window.updateServiceEntry({status:entry.status,regiebericht:report});
+      if(window.supabaseReady && window.supabaseClient && !String(id).startsWith("LOCAL-")){
+        const {data,error}=await window.supabaseClient.from("kalender_eintraege")
+          .update({status,regiebericht:report}).eq("id",id).select("*").maybeSingle();
+        if(error)throw error;
+        if(!data)throw new Error("Supabase hat den Eintrag nicht bestätigt. Bitte erneut versuchen.");
+        const normalized=typeof normalizeKalenderEntry==="function"?normalizeKalenderEntry(data):data;
+        const idx=entries().findIndex(e=>String(e.id)===String(id));
+        if(idx>=0)AppData.kalender.eintraege[idx]=normalized;
+      }else{
+        const idx=entries().findIndex(e=>String(e.id)===String(id));
+        if(idx<0)throw new Error("Der Kalendereintrag wurde lokal nicht gefunden.");
+        AppData.kalender.eintraege[idx]={...entry,status,regiebericht:report};
+        if(typeof saveAppData==="function")saveAppData();
+      }
     }catch(err){
       console.error("Nachbearbeitung fehlgeschlagen:",err);
       alert("Die Änderungen konnten nicht gespeichert werden: "+(err.message||err));
+      if(button){button.disabled=false;button.textContent=markFollowup?"↻ Als nicht abschließbar markieren – Folgetermin erforderlich":"💾 Änderungen speichern";}
       return;
-    }finally{
-      window.__editingCompletedService=false;
     }
+    window.__aussendienstZeitTracking=null;
+    window.__editingCompletedService=false;
     window.closeServiceModal();
     if(typeof renderKalender==="function")renderKalender();
     if(typeof renderKalenderWeek==="function")renderKalenderWeek();
     window.openKalenderEntryDetails?.(id);
-    alert("Die Änderungen am abgeschlossenen Einsatz wurden gespeichert.");
+    alert(markFollowup
+      ?"Der Einsatz wurde wieder geöffnet und als Folgetermin erforderlich markiert. Die bisherigen Angaben und Zeiten bleiben erhalten."
+      :"Die Änderungen am abgeschlossenen Einsatz wurden gespeichert.");
   };
 
   const originalDetails=window.openKalenderEntryDetails;
