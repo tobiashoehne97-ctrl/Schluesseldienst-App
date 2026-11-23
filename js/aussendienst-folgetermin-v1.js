@@ -134,6 +134,19 @@
         const content=document.getElementById("service_modal_content");
         if(content && !document.getElementById("followup-history"))content.insertAdjacentHTML("afterbegin",history);
       }
+      // Die beiden Textfelder sind immer dem gerade laufenden Besuch zugeordnet.
+      const visitNumber=(r.einsaetze||[]).length+1;
+      const content=document.getElementById("service_modal_content");
+      if(content){
+        [...content.querySelectorAll(".sec")].forEach(label=>{
+          if(label.textContent.includes("Was wurde vorgefunden?"))label.textContent="Einsatz "+visitNumber+" – Vorgefunden";
+          if(label.textContent.includes("Was wurde gemacht?"))label.textContent="Einsatz "+visitNumber+" – Durchgeführte Arbeiten";
+        });
+        const vor=document.getElementById("service_vorgefunden");
+        const gemacht=document.getElementById("service_gemacht");
+        if(vor)vor.placeholder="Was wurde bei Einsatz "+visitNumber+" vorgefunden?";
+        if(gemacht)gemacht.placeholder="Welche Arbeiten wurden bei Einsatz "+visitNumber+" durchgeführt?";
+      }
       return result;
     };
   }
