@@ -334,7 +334,11 @@ function dashboardRenderShopAvailability() {
     list.innerHTML = '<div class="dash-empty">Noch keine Geschäftsverfügbarkeiten eingetragen.<br><small>Über Einsatzplanung → Neuer Eintrag → Verfügbarkeit kannst du Zeiten für Tobias und Christian hinterlegen.</small></div>';
     return;
   }
-  list.innerHTML = entries.map(e => '<div class="dash-shop-slot"><div class="dash-shop-date">'+dashboardEscape(dashboardDateLabel(e.datum))+'</div><div class="dash-shop-person"><strong>'+dashboardEscape(e.mitarbeiter||"Mitarbeiter")+'</strong><small>Im Geschäft verfügbar</small></div><div class="dash-shop-time">'+dashboardEscape(String(e.von||"").slice(0,5))+' – '+dashboardEscape(String(e.bis||"offen").slice(0,5)||"offen")+'</div></div>').join("");
+  list.innerHTML = entries.map(e => {
+    const person = String(e.mitarbeiter || "Mitarbeiter");
+    const key = /tobias/i.test(person) ? "tobias" : /christian/i.test(person) ? "christian" : "other";
+    return '<div class="dash-shop-slot dash-shop-'+key+'"><span class="dash-shop-person-dot"></span><div class="dash-shop-date">'+dashboardEscape(dashboardDateLabel(e.datum))+'</div><div class="dash-shop-person"><strong>'+dashboardEscape(person)+'</strong><small>Im Geschäft verfügbar</small></div><div class="dash-shop-time">'+dashboardEscape(String(e.von||"").slice(0,5))+' – '+dashboardEscape(String(e.bis||"offen").slice(0,5)||"offen")+'</div></div>';
+  }).join("");
 }
 function dashboardEscape(value) {
   return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
