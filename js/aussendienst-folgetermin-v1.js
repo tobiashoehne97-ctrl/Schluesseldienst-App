@@ -35,9 +35,9 @@
       fahrzeit_minuten:fahr,
       arbeitszeit_vor_ort_minuten:arrival?onsite:null,
       arbeitszeit_minuten:onsite,
-      vorgefunden:baseline?deltaText(report.vorgefunden,baseline.vorgefunden):String(report.vorgefunden||""),
-      gemacht:baseline?deltaText(report.gemacht,baseline.gemacht):String(report.gemacht||""),
-      material:baseline?materialDelta(report.material,baseline.material):(report.material||[]).map(x=>({...x})),
+      vorgefunden:String(report.vorgefunden||""),
+      gemacht:String(report.gemacht||""),
+      material:(report.material||[]).map(x=>({...x})),
       fotos:(report.fotos||[]).slice()
     };
   }
@@ -62,6 +62,12 @@
     const next={
       ...old,
       ...current,
+      // Die aktuellen Eingaben sind als eigener Einsatzabschnitt gesichert.
+      // Für den nächsten Besuch startet das Formular mit leeren Feldern.
+      vorgefunden:"",
+      gemacht:"",
+      material:[],
+      fotos:[],
       einsaetze:sessions,
       folge_termin_notwendig:true,
       abgeschlossen:false,
@@ -122,8 +128,9 @@
           '<div style="font-weight:800;margin-bottom:8px">↻ Bisherige Einsatzabschnitte</div>'+
           sessions.map(s=>'<div style="padding:8px 0;border-top:1px solid #345574;font-size:12px"><b>Einsatz '+s.nummer+' · '+dateText((s.gestartet||"").slice(0,10))+'</b><br>Beginn '+time(s.gestartet)+' · Ende '+time(s.beendet)+' · '+(Number(s.arbeitszeit_minuten)||0)+' Min.'+
           (s.ankunft?' · Fahrt '+(Number(s.fahrzeit_minuten)||0)+' Min.':'')+
-          (s.gemacht?'<div style="margin-top:4px;color:#c5d9eb">'+esc(s.gemacht).replace(/\n/g,"<br>")+'</div>':"")+'</div>').join("")+
-          '<div style="font-size:12px;color:#b8d5ee;margin-top:8px">Die bisherigen Angaben stehen weiterhin in den Feldern darunter. Ergänze dort die neuen Arbeiten und Materialien.</div></div>';
+          (s.vorgefunden?'<div style="margin-top:6px"><b>Vorgefunden:</b><br>'+esc(s.vorgefunden).replace(/\n/g,"<br>")+'</div>':"")+
+          (s.gemacht?'<div style="margin-top:6px;color:#c5d9eb"><b>Durchgeführte Arbeiten:</b><br>'+esc(s.gemacht).replace(/\n/g,"<br>")+'</div>':"")+'</div>').join("")+
+          '<div style="font-size:12px;color:#b8d5ee;margin-top:8px">Die bisherigen Einsatzabschnitte bleiben unverändert. Erfasse unten ausschließlich die Arbeiten dieses Besuchs.</div></div>';
         const content=document.getElementById("service_modal_content");
         if(content && !document.getElementById("followup-history"))content.insertAdjacentHTML("afterbegin",history);
       }
@@ -145,6 +152,10 @@
         const baseline=window.__followupBaseline||r.folge_baseline||entry.regiebericht?.folge_baseline||null;
         sessions.push(makeSession(r,started,tracking.arrivalAt||r.ankunft||null,ended,baseline,sessions.length+1));
         r.einsaetze=sessions;
+        // Gemeinsamer Bericht: Arbeiten und Material aller Besuche zusammenführen.
+        r.vorgefunden=sessions.map(s=>"Einsatz "+s.nummer+":\n"+(s.vorgefunden||"—")).join("\n\n");
+        r.gemacht=sessions.map(s=>"Einsatz "+s.nummer+":\n"+(s.gemacht||"—")).join("\n\n");
+        r.material=sessions.flatMap(s=>(s.material||[]).map(m=>({...m})));
         r.gesamtzeit_minuten=totalMinutes(sessions);
         r.arbeitszeit_minuten=totalMinutes(sessions);
         r.folge_termin_notwendig=false;
@@ -167,17 +178,23 @@
       if(!sessions.length)return html;
       const rows=sessions.map(s=>'<tr><td>Einsatz '+Number(s.nummer||0)+'</td><td>'+dateText((s.gestartet||"").slice(0,10))+'</td><td>'+time(s.gestartet)+' – '+time(s.beendet)+'</td><td class="num">'+(Number(s.arbeitszeit_minuten)||0)+' Min.</td><td class="num">'+(s.ankunft?(Number(s.fahrzeit_minuten)||0)+' Min.':"—")+'</td></tr>').join("");
       const section='<section><h3>Einsatzverlauf und Arbeitszeiten</h3><table><thead><tr><th>Abschnitt</th><th>Datum</th><th>Uhrzeit</th><th class="num">Arbeitszeit</th><th class="num">Fahrtzeit</th></tr></thead><tbody>'+rows+'</tbody></table><div style="text-align:right;font-weight:700;margin-top:6px">Gesamtarbeitszeit: '+totalMinutes(sessions)+' Minuten</div></section>';
-      return html.replace('<section><h3>Vorgefunden</h3>',section+'<section><h3>Vorgefunden</h3>');
+      const workSections=sessions.map(s=>'<section><h3>Einsatz '+Number(s.nummer||0)+' · '+dateText((s.gestartet||"").slice(0,10))+'</h3>'+
+        '<div class="rb-text"><b>Vorgefunden:</b><br>'+esc(s.vorgefunden||"Keine Angaben") .replace(/\n/g,"<br>")+'</div>'+
+        '<div class="rb-text" style="margin-top:3mm"><b>Durchgeführte Arbeiten:</b><br>'+esc(s.gemacht||"Keine Angaben").replace(/\n/g,"<br>")+'</div></section>').join("");
+      html=html.replace(/<section><h3>Vorgefunden<\/h3>[\s\S]*?<\/section>\s*<section><h3>Durchgeführte Arbeiten<\/h3>[\s\S]*?<\/section>/,workSections);
+      return html.replace('<section><h3>Verwendetes Material</h3>',section+'<section><h3>Verwendetes Material</h3>');
     };
   }
 
   // Offenen Auftrag direkt im Detail öffnen und ein neues Datum auswählen.
-  async function moveFollowupDate(id,date){
+  async function moveFollowupDate(id,date,von,bis){
     const entry=getEntry(id);
     if(!isFollowup(entry) || !date)return alert("Dieser Auftrag ist kein offener Folgetermin.");
+    if(!von || !bis)return alert("Bitte Datum sowie Beginn und Ende des Folgetermins eingeben.");
+    if(bis<=von)return alert("Die Endzeit muss nach der Beginnzeit liegen.");
     try{
       if(window.supabaseReady && window.supabaseClient && !String(id).startsWith("LOCAL-")){
-        const {data,error}=await window.supabaseClient.from("kalender_eintraege").update({datum:date}).eq("id",id).select("*").maybeSingle();
+        const {data,error}=await window.supabaseClient.from("kalender_eintraege").update({datum:date,von,bis}).eq("id",id).select("*").maybeSingle();
         if(error)throw error;
         if(data){
           const normalized=typeof normalizeKalenderEntry==="function"?normalizeKalenderEntry(data):data;
@@ -185,13 +202,13 @@
           if(i>=0)AppData.kalender.eintraege[i]=normalized;
         }
       }else{
-        entry.datum=date;
+        entry.datum=date;entry.von=von;entry.bis=bis;
         if(typeof saveAppData==="function")saveAppData();
       }
       if(typeof renderKalender==="function")renderKalender();
       if(typeof renderKalenderWeek==="function")renderKalenderWeek();
       window.closeKalenderModal?.();
-      alert("Folgetermin wurde auf den "+dateText(date)+" verschoben.");
+      alert("Folgetermin wurde auf den "+dateText(date)+" von "+von+" bis "+bis+" Uhr verschoben.");
     }catch(err){
       console.error("Folgetermin verschieben fehlgeschlagen:",err);
       alert("Der Folgetermin konnte nicht verschoben werden: "+(err.message||err));
@@ -205,8 +222,10 @@
       alert("Es gibt derzeit keine offenen Folgetermine.");
       return;
     }
-    const html='<div style="font-size:13px;color:#a9c5df;margin-bottom:12px">Wähle den offenen Auftrag aus, der auf '+dateText(date)+' verschoben werden soll.</div>'+
-      pending.map(e=>'<button type="button" class="btnS" data-followup-id="'+esc(e.id)+'" style="display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px" onclick="moveFollowupDate(this.dataset.followupId,\''+esc(date)+'\')"><b>'+esc(e.titel)+'</b><br><span style="font-size:12px">Bisher: '+dateText(e.datum)+' · '+esc([e.vorname,e.nachname].filter(Boolean).join(" "))+'</span></button>').join("");
+    const html='<div style="font-size:13px;color:#a9c5df;margin-bottom:12px">Lege den ausgewählten Auftrag auf '+dateText(date)+' und gib die geplante Uhrzeit an.</div>'+
+      '<label style="display:block;font-size:12px;margin-bottom:5px">Von</label><input id="followup_day_von" type="time" value="09:00" style="width:100%;padding:11px;margin-bottom:9px">'+
+      '<label style="display:block;font-size:12px;margin-bottom:5px">Bis</label><input id="followup_day_bis" type="time" value="10:00" style="width:100%;padding:11px;margin-bottom:12px">'+
+      pending.map(e=>'<button type="button" class="btnS" style="display:block;width:100%;text-align:left;padding:12px;margin-bottom:8px" onclick="moveFollowupDate(\''+esc(e.id)+'\',\''+esc(date)+'\',document.getElementById(\'followup_day_von\').value,document.getElementById(\'followup_day_bis\').value)"><b>'+esc(e.titel)+'</b><br><span style="font-size:12px">Bisher: '+dateText(e.datum)+' · '+esc([e.vorname,e.nachname].filter(Boolean).join(" "))+'</span></button>').join("");
     openKalenderModal("↻ Folgetermin auf diesen Tag legen",html);
   }
   window.openFollowupMoveList=openFollowupMoveList;
@@ -244,7 +263,11 @@
       }
       const panel=document.createElement("div");
       panel.style.cssText="margin-top:14px;padding:12px;border:1px solid #345574;border-radius:10px;background:#102a43";
-      panel.innerHTML='<div style="font-weight:800;margin-bottom:8px">📅 Folgetermin planen</div><label style="display:block;font-size:12px;margin-bottom:6px">Neues Einsatzdatum</label><input id="followup_new_date" type="date" value="'+esc(entry.datum)+'" style="width:100%;padding:11px;border-radius:7px;margin-bottom:9px"><button class="btnS" style="width:100%;padding:11px" onclick="moveFollowupDate(\''+esc(entry.id)+'\',document.getElementById(\'followup_new_date\').value)">Datum übernehmen</button><div style="font-size:11px;color:#a9c5df;margin-top:7px">Der ursprüngliche Einsatztag und alle bisherigen Angaben bleiben im gemeinsamen Regiebericht dokumentiert.</div>';
+      panel.innerHTML='<div style="font-weight:800;margin-bottom:8px">📅 Folgetermin planen</div>'+
+        '<label style="display:block;font-size:12px;margin-bottom:6px">Neues Einsatzdatum</label><input id="followup_new_date" type="date" value="'+esc(entry.datum)+'" style="width:100%;padding:11px;border-radius:7px;margin-bottom:9px">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label style="display:block;font-size:12px;margin-bottom:5px">Von</label><input id="followup_new_von" type="time" value="'+esc(entry.von||"09:00")+'" style="width:100%;padding:11px;border-radius:7px"></div><div><label style="display:block;font-size:12px;margin-bottom:5px">Bis</label><input id="followup_new_bis" type="time" value="'+esc(entry.bis||"10:00")+'" style="width:100%;padding:11px;border-radius:7px"></div></div>'+
+        '<button class="btnS" style="width:100%;padding:11px;margin-top:10px" onclick="moveFollowupDate(\''+esc(entry.id)+'\',document.getElementById(\'followup_new_date\').value,document.getElementById(\'followup_new_von\').value,document.getElementById(\'followup_new_bis\').value)">Termin übernehmen</button>'+
+        '<div style="font-size:11px;color:#a9c5df;margin-top:7px">Der ursprüngliche Einsatztag und alle bisherigen Angaben bleiben im gemeinsamen Regiebericht dokumentiert.</div>';
       content.appendChild(panel);
       return result;
     };
