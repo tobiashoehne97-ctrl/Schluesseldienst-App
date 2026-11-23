@@ -5,7 +5,20 @@ function rows(){['rb','an'].forEach(m=>document.querySelectorAll(`#${m}_pos .zbl
 function pdfHook(){if(typeof window.genPDF!=='function'||window.genPDF.__ndFix)return;let base=window.genPDF;function f(type){if(type==='rb'){let id=window.__nd2Id,d=R(D,{})[id]||{},bem=document.getElementById('rb_bem'),parts=[];if(bem&&bem.value)parts.push(bem.value);if(d.vorgefunden)parts.push('Vorgefunden: '+d.vorgefunden);if(d.durchgefuehrt)parts.push('Durchgeführt: '+d.durchgefuehrt);if(d.gesamt!==undefined)parts.push('Zu zahlender Betrag: '+N(d.gesamt).toFixed(2)+' €');if(d.zahlungsart)parts.push('Zahlungsart: '+d.zahlungsart);if(bem)bem.value=parts.join('\n\n');let fw=document.getElementById('rb_fw');if(!fw){fw=document.createElement('div');fw.id='rb_fw';fw.style.display='none';document.body.appendChild(fw)}fw.innerHTML='';(d.fotos||[]).forEach(src=>{let im=document.createElement('img');im.src=src;im._d=src;fw.appendChild(im)});try{if(typeof sigs!=='undefined')sigs['rb_sd']=d.unterschrift||''}catch(e){}}return base.apply(this,arguments)}f.__ndFix=true;window.genPDF=f}
 
 /* Vor-Ort-Schritt: Material exakt als normale Position mit Artikel, Menge und Preis */
-function materialRow(m){return `<div class="nd-wf-mat-row"><input class="nd-wf-mat-name" placeholder="Material / Artikel" value="${X(m.name||'')}"><input class="nd-wf-mat-qty" type="number" min="0" step="1" inputmode="numeric" value="${N(m.menge)||1}"><input class="nd-wf-mat-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Preis €" value="${m.preis!==undefined?N(m.preis).toFixed(2):''}"><button type="button" class="nd-wf-mat-del" onclick="this.parentNode.remove()">✕</button></div>`}
+function materialRow(m){
+ const products=window.nd2Products||[];
+ const selected=String(m.productId||'');
+ const options=products.map(p=>'<option value="'+X(p.id)+'" '+(String(p.id)===selected?'selected':'')+'>'+X(p.name)+(p.article_number?' · '+X(p.article_number):'')+' – '+N(p.preis).toFixed(2).replace('.',',')+' €</option>').join('');
+ return '<div class="nd-wf-mat-row"><select class="nd-wf-mat-product" aria-label="Produkt auswählen" onchange="window.ndWfSelectProduct(this)"><option value="">Produkt aus Produktverwaltung auswählen …</option>'+options+'<option value="__custom__" '+(m.custom?'selected':'')+'>Sonstiges / Freitext</option></select><input class="nd-wf-mat-name" placeholder="Material / Artikel" value="'+X(m.name||'')+'" '+(m.productId&&!m.custom?'readonly':'')+'><input class="nd-wf-mat-qty" type="number" min="0" step="1" inputmode="numeric" value="'+(N(m.menge)||1)+'"><input class="nd-wf-mat-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Preis €" value="'+(m.preis!==undefined?N(m.preis).toFixed(2):'')+'"><button type="button" class="nd-wf-mat-del" onclick="this.parentNode.remove()">✕</button></div>';
+}
+window.ndWfSelectProduct=function(select){
+ const row=select.closest('.nd-wf-mat-row');if(!row)return;
+ const p=(window.nd2Products||[]).find(x=>String(x.id)===String(select.value));
+ const name=row.querySelector('.nd-wf-mat-name'),price=row.querySelector('.nd-wf-mat-price');
+ if(select.value==='__custom__'){name.readOnly=false;name.value='';price.value='';return}
+ if(!p){name.readOnly=false;name.value='';price.value='';return}
+ name.value=p.name||'';name.readOnly=true;price.value=N(p.preis).toFixed(2);
+};
 function installMaterialWorkflow(){
  if(window.__ndReportMaterialFix)return;window.__ndReportMaterialFix=true;
  if(!document.getElementById('ndReportMaterialStyle')){let s=document.createElement('style');s.id='ndReportMaterialStyle';s.textContent=`#ndWfMaterialRows .nd-wf-mat-row{display:grid;grid-template-columns:minmax(0,1fr) 78px 105px 42px;gap:8px;margin:8px 0}#ndWfMaterialRows input{width:100%;box-sizing:border-box;background:#17374f;border:1px solid #315a7c;color:#eef5ff;border-radius:10px;padding:11px;font-size:15px}#ndWfMaterialRows button{border:1px solid #315a7c;background:#17374f;color:#eef5ff;border-radius:10px;font-size:18px}@media(max-width:600px){#ndWfMaterialRows .nd-wf-mat-row{grid-template-columns:minmax(0,1fr) 65px 88px 38px}}`;document.head.appendChild(s)}
@@ -28,7 +41,7 @@ function installMaterialWorkflow(){
  const oldContinue=window.ndContinueToClose;
  window.ndContinueToClose=function(id){
   const key='schluesseldienst-notdienst-zeiten-v5',all=R(key,{}),t=all[id]||{};t.vorgefunden=document.getElementById('ndWfVorgefunden')?.value.trim()||'';t.durchgefuehrt=document.getElementById('ndWfDurchgefuehrt')?.value.trim()||'';all[id]=t;localStorage.setItem(key,JSON.stringify(all));
-  const store=R(D,{}),rows=[...document.querySelectorAll('#ndWfMaterialRows .nd-wf-mat-row')];store[id]=store[id]||{};store[id].material=rows.map(r=>({name:r.querySelector('.nd-wf-mat-name')?.value.trim()||'',menge:N(r.querySelector('.nd-wf-mat-qty')?.value)||1,preis:N(r.querySelector('.nd-wf-mat-price')?.value)})).filter(x=>x.name||x.preis);localStorage.setItem(D,JSON.stringify(store));
+  const store=R(D,{}),rows=[...document.querySelectorAll('#ndWfMaterialRows .nd-wf-mat-row')];store[id]=store[id]||{};store[id].material=rows.map(r=>{const productId=r.querySelector('.nd-wf-mat-product')?.value||'',p=(window.nd2Products||[]).find(x=>String(x.id)===String(productId));return {productId:productId&&productId!=='__custom__'?productId:null,article_number:p?.article_number||null,name:r.querySelector('.nd-wf-mat-name')?.value.trim()||p?.name||'',menge:N(r.querySelector('.nd-wf-mat-qty')?.value)||1,preis:N(r.querySelector('.nd-wf-mat-price')?.value),custom:productId==='__custom__'}}).filter(x=>x.name||x.preis);localStorage.setItem(D,JSON.stringify(store));
   if(typeof oldContinue==='function')return oldContinue(id);
  };
 }
