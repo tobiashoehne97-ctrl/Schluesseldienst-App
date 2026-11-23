@@ -55,7 +55,7 @@ console.log("Application started v22");
     console.log("Außendienst-Zeiterfassung geladen");
     const folge=document.createElement("script");
     folge.src="js/aussendienst-folgetermin-v1.js?v=20261123-5";
-    folge.onload=()=>{console.log("Außendienst-Folgetermin-Workflow geladen");const edit=document.createElement("script");edit.src="js/aussendienst-nachbearbeitung-v1.js?v=20261123-6";edit.onload=()=>{console.log("Außendienst-Nachbearbeitung geladen");const ui=document.createElement("script");ui.src="js/aussendienst-abschluss-ui-v1.js?v=20261123-1";ui.onload=()=>console.log("Außendienst-Abschluss-UI geladen");ui.onerror=()=>console.warn("Außendienst-Abschluss-UI konnte nicht geladen werden.");document.head.appendChild(ui);};edit.onerror=()=>console.warn("Außendienst-Nachbearbeitung konnte nicht geladen werden.");document.head.appendChild(edit);};
+    folge.onload=()=>{console.log("Außendienst-Folgetermin-Workflow geladen");const edit=document.createElement("script");edit.src="js/aussendienst-nachbearbeitung-v1.js?v=20261123-6";edit.onload=()=>{console.log("Außendienst-Nachbearbeitung geladen");const ui=document.createElement("script");ui.src="js/aussendienst-abschluss-ui-v1.js?v=20261123-2";ui.onload=()=>console.log("Außendienst-Abschluss-UI geladen");ui.onerror=()=>console.warn("Außendienst-Abschluss-UI konnte nicht geladen werden.");document.head.appendChild(ui);};edit.onerror=()=>console.warn("Außendienst-Nachbearbeitung konnte nicht geladen werden.");document.head.appendChild(edit);};
     folge.onerror=()=>console.warn("Außendienst-Folgetermin-Workflow konnte nicht geladen werden.");
     document.head.appendChild(folge);
   };
