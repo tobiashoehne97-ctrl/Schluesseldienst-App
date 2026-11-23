@@ -276,5 +276,15 @@
     };
   }
 
+
+  const previousArrival=window.captureServiceArrival;
+  if(typeof previousArrival==="function"){
+    window.captureServiceArrival=function(){
+      const result=previousArrival();
+      saveDraft();
+      return result;
+    };
+  }
+
   console.log("Außendienst-Entwürfe werden automatisch gespeichert");
 })();
