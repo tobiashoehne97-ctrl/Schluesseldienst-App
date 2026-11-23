@@ -201,6 +201,12 @@
   if(typeof originalFinish === "function"){
     window.ndFinish = async function(id,...args){
       const result = await originalFinish.call(this,id,...args);
+      const all = readAll();
+      const times = {...(all[String(id)] || {})};
+      if(!times.arbeitEnde) times.arbeitEnde = new Date().toISOString();
+      if(!times.ende) times.ende = times.arbeitEnde;
+      all[String(id)] = times;
+      writeAll(all);
       await safePersist(id);
       return result;
     };
