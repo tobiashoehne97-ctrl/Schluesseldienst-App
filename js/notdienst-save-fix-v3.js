@@ -87,6 +87,20 @@
           throw new Error('Der Einsatz wurde beim Speichern zurückgemeldet, ist aber anschließend nicht mehr aus der Datenbank abrufbar. Bitte die SELECT-Richtlinie der Tabelle kalender_eintraege prüfen. Das Formular bleibt geöffnet.');
         }
         created=normalizeKalenderEntryForNotdienst(verify.data);
+
+        // Zusätzlich denselben vollständigen Listenabruf ausführen, den die
+        // App nach einem Neuladen verwendet. Der Einsatz gilt erst als
+        // erfolgreich gespeichert, wenn er auch dort enthalten ist.
+        if(typeof window.loadKalenderFromSupabase!=='function'){
+          throw new Error('Der Einsatz wurde gespeichert, aber die Kalender-Ladefunktion ist nicht verfügbar. Bitte App-Version prüfen.');
+        }
+        const listLoaded=await window.loadKalenderFromSupabase();
+        const listed=(window.AppData?.kalender?.eintraege||[])
+          .find(e=>String(e.id)===String(created.id));
+        if(!listLoaded || !listed || listed.typ!=='notdienst'){
+          throw new Error('Der Einsatz wurde angelegt, erscheint aber nicht im vollständigen Kalenderabruf. Bitte Supabase-Berechtigungen und Datenbankregeln für kalender_eintraege prüfen. Das Formular bleibt geöffnet.');
+        }
+        created=listed;
       }else{
         created={...entry,id:'LOCAL-'+Date.now()};
       }
