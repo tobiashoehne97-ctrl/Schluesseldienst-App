@@ -471,3 +471,16 @@
 .dash-shop-time{font-size:13px;font-weight:800;color:#21835f;background:#eaf7f0;border:1px solid #d2eddd;padding:7px 10px;border-radius:8px;white-space:nowrap}
 @media(max-width:1000px){.dash-stats{grid-template-columns:1fr 1.6fr}.dash-columns{grid-template-columns:1fr}}
 @media(max-width:700px){.dash-welcome{align-items:flex-start;flex-direction:column}.dash-welcome .btnS{width:100%}.dash-welcome h2{font-size:25px}.dash-stats{grid-template-columns:1fr}.dash-task-fields{grid-template-columns:1fr}.dash-shop-slot{grid-template-columns:1fr auto;gap:4px}.dash-shop-date{grid-column:1/-1}.dash-shop-time{grid-column:2;grid-row:2}.dash-shop-person{grid-column:1;grid-row:2}}
+
+
+/* Mitarbeiterfarben und Aufgabenfristen */
+.dash-shop-slot{position:relative;padding-left:14px}
+.dash-shop-person-dot{position:absolute;left:0;top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%)}
+.dash-shop-tobias .dash-shop-person-dot{background:#287fcb;box-shadow:0 0 0 3px rgba(40,127,203,.13)}
+.dash-shop-christian .dash-shop-person-dot{background:#16a36a;box-shadow:0 0 0 3px rgba(22,163,106,.13)}
+.dash-shop-other .dash-shop-person-dot{background:#8b72c7}
+.dash-shop-tobias .dash-shop-time{background:#eaf3fc;border-color:#cfe2f6;color:#246ba8}
+.dash-shop-christian .dash-shop-time{background:#eaf7f0;border-color:#ccebd9;color:#16794d}
+.dash-task-overdue{background:#fff5f4!important;border-color:#f1c4c0!important;border-radius:9px;padding:9px 8px!important;margin:3px 0}
+.dash-task-overdue .dash-task-main strong,.dash-task-overdue .dash-task-main small{color:#a52d25}
+.dash-task-overdue .dash-task-main small{font-weight:800}
