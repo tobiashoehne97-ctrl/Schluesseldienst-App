@@ -176,7 +176,7 @@ html[data-theme="light"] .desktop-week-day{min-height:320px}
 
 
 /* Mobile: Theme-Umschaltung als eigene Kachel am Ende der Startseite. */
-.theme-home-tile{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:28px 0 8px;padding:17px 18px;border:1px solid var(--app-border);border-radius:16px;background:var(--app-surface);color:var(--app-text);box-shadow:0 5px 16px rgba(10,30,55,.06)}
+.theme-home-tile{display:none;align-items:center;align-items:center;justify-content:space-between;gap:16px;margin:28px 0 8px;padding:17px 18px;border:1px solid var(--app-border);border-radius:16px;background:var(--app-surface);color:var(--app-text);box-shadow:0 5px 16px rgba(10,30,55,.06)}
 .theme-home-copy{display:flex;align-items:center;gap:13px;min-width:0}
 .theme-home-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:rgba(47,120,189,.13);font-size:25px;color:var(--app-accent)}
 .theme-home-copy strong{display:block;font-size:14px;color:var(--app-text)}
@@ -184,7 +184,7 @@ html[data-theme="light"] .desktop-week-day{min-height:320px}
 .theme-home-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:9px 14px;border:1px solid var(--app-border);border-radius:11px;background:var(--app-panel);color:var(--app-text);font:700 13px system-ui,sans-serif;white-space:nowrap}
 @media(max-width:760px){
   #hdr #themeToggle{display:none!important}
-  .theme-home-tile{margin-top:30px;margin-bottom:20px;padding:16px}
+  .theme-home-tile{display:flex;margin-top:30px;margin-bottom:20px;padding:16px}
   .theme-home-button{min-width:116px}
 }
 
