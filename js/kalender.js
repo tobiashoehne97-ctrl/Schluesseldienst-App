@@ -612,6 +612,19 @@ let activeServiceId=null;
 let activeServiceStartedAt=null;
 let activeServicePhotos=[];
 
+// Die Außendienst-Erweiterungen greifen über window auf den aktiven Auftrag zu.
+// Getter/Setter halten diese Schnittstelle mit den lokalen Variablen synchron.
+Object.defineProperty(window,"activeServiceId",{
+  configurable:true,
+  get(){return activeServiceId;},
+  set(value){activeServiceId=value;}
+});
+Object.defineProperty(window,"activeServiceStartedAt",{
+  configurable:true,
+  get(){return activeServiceStartedAt;},
+  set(value){activeServiceStartedAt=value;}
+});
+
 function openServiceModal(title,content){
   const modal=document.getElementById("serviceModal");
   modal?.classList.remove("service-report-modal");
