@@ -21,6 +21,7 @@
     #mobileNavTiles .desktop-nav-tile>span{grid-row:1/3}
     #mobileHomeTimeClock{display:none}
     @media(max-width:760px){
+      #menu > .dash-welcome{display:none!important}
       #mobileHomeTimeClock{display:block;margin:0 0 16px;padding:18px;border-radius:16px;background:linear-gradient(135deg,rgba(37,99,168,.28),rgba(255,255,255,.06));border:1px solid rgba(75,143,203,.45);box-shadow:0 10px 24px #0002}
       #mobileHomeTimeClock .home-clock-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
       #mobileHomeTimeClock .home-clock-label{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8ebce3}
@@ -47,11 +48,9 @@
     const card=document.createElement("section");
     card.id="mobileHomeTimeClock";
     card.innerHTML='<div class="home-clock-top"><span class="home-clock-label">Arbeitszeiterfassung</span><span class="home-clock-state" id="mobileHomeClockState">Nicht eingestempelt</span></div><div class="home-clock-time" id="mobileHomeClockTotal">0 h 00 min</div><div class="home-clock-since" id="mobileHomeClockSince">Arbeitszeit heute</div><button type="button" class="home-clock-button" id="mobileHomeClockButton">⏱ Einstempeln</button>';
-    const columns=home.querySelector(".dash-columns");
-    const stats=home.querySelector(".dash-stats");
-    if(columns) home.insertBefore(card,columns);
-    else if(stats) stats.insertAdjacentElement("afterend",card);
-    else home.appendChild(card);
+    // Mobile: Stempeluhr als allerersten Inhalt der Startseite platzieren.
+    // Der Begrüßungsblock mit Tagesüberschrift, Datum und Termin-Button wird mobil ausgeblendet.
+    home.insertBefore(card,home.firstChild);
 
     document.getElementById("mobileHomeClockButton").addEventListener("click",()=>{
       if(typeof window.toggleStempel!=="function") return;
