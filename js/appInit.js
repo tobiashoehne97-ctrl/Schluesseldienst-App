@@ -46,17 +46,19 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
   document.head.appendChild(s);
 })();
 console.log("Application started v22");
-(function loadAussendienstZeitFix(){
-  const s=document.createElement("script");
-  s.src="js/aussendienst-zeit-fix-v1.js?v=20261123-3";
-  s.onload=()=>console.log("Außendienst-Zeiterfassung geladen");
-  s.onerror=()=>console.warn("Außendienst-Zeiterfassung konnte nicht geladen werden.");
-  document.head.appendChild(s);
-})();
-(function loadAussendienstFolgeterminFix(){
-  const s=document.createElement("script");
-  s.src="js/aussendienst-folgetermin-v1.js?v=20261123-3";
-  s.onload=()=>console.log("Außendienst-Folgetermin-Workflow geladen");
-  s.onerror=()=>console.warn("Außendienst-Folgetermin-Workflow konnte nicht geladen werden.");
-  document.head.appendChild(s);
+(function loadAussendienstFixes(){
+  // Reihenfolge ist wichtig: Der Folgetermin-Workflow erweitert die
+  // Zeiterfassung und muss deshalb erst danach geladen werden.
+  const zeit=document.createElement("script");
+  zeit.src="js/aussendienst-zeit-fix-v1.js?v=20261123-3";
+  zeit.onload=()=>{
+    console.log("Außendienst-Zeiterfassung geladen");
+    const folge=document.createElement("script");
+    folge.src="js/aussendienst-folgetermin-v1.js?v=20261123-3";
+    folge.onload=()=>console.log("Außendienst-Folgetermin-Workflow geladen");
+    folge.onerror=()=>console.warn("Außendienst-Folgetermin-Workflow konnte nicht geladen werden.");
+    document.head.appendChild(folge);
+  };
+  zeit.onerror=()=>console.warn("Außendienst-Zeiterfassung konnte nicht geladen werden.");
+  document.head.appendChild(zeit);
 })();
