@@ -55,7 +55,7 @@ console.log("Application started v22");
 })();
 (function loadAussendienstFolgeterminFix(){
   const s=document.createElement("script");
-  s.src="js/aussendienst-folgetermin-v1.js?v=20261123-1";
+  s.src="js/aussendienst-folgetermin-v1.js?v=20261123-3";
   s.onload=()=>console.log("Außendienst-Folgetermin-Workflow geladen");
   s.onerror=()=>console.warn("Außendienst-Folgetermin-Workflow konnte nicht geladen werden.");
   document.head.appendChild(s);
