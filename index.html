@@ -102,7 +102,7 @@
 <div class="modal" id="pdfMod" style="padding:18px"><div class="pdf-shell" style="width:calc(100vw - 24px);max-width:1600px;height:calc(100vh - 24px);max-height:none"><div class="pdf-toolbar"><button class="btnS" style="padding:8px 14px;font-size:13px" onclick="document.getElementById('pdfMod').classList.remove('open')">← Zurück</button><span id="pdfNr">PDF</span><button class="btnP pdf-open-btn" onclick="openPdfNative()">↗ PDF öffnen / speichern</button></div><div class="pdf-layout"><div class="pdf-preview-area"><div id="pdfPreviewEmpty" class="pdf-preview-empty"><div style="font-size:56px">📄</div><strong id="pdfPreviewName">PDF wird erstellt...</strong></div><iframe id="pdfFrame" title="PDF Vorschau"></iframe></div><aside class="pdf-actions"><div class="pdf-action-title">📄 Dokument</div><div class="pdf-document-name" id="pdfPreviewNameSide">PDF</div><button class="btnP" style="width:100%;padding:13px;font-size:15px" onclick="openPdfNative()">↗ PDF öffnen & speichern</button><div class="pdf-hint">Am PC wird der Bericht direkt groß angezeigt. Am Handy kannst du ihn über den Button im Browser bzw. in deiner PDF-App öffnen.</div><div class="pdf-divider"></div><div class="pdf-action-title">📧 Per E-Mail versenden</div><input id="mailEm" type="email" placeholder="E-Mail Kunde" style="padding:11px 13px;font-size:15px"><button class="btnP" style="width:100%;padding:13px;font-size:15px" onclick="doMail(false)">Kunde + Büro</button><button class="btnS" style="width:100%;padding:13px;font-size:15px" onclick="doMail(true)">🏢 Nur Büro</button><div id="mailOk" class="hidden success">✓ Versand ausgelöst</div><div class="pdf-divider"></div><button class="btnS" style="width:100%;padding:13px;font-size:14px" onclick="naechsterAuftrag()">🗑 Formular leeren & nächsten Auftrag starten</button></aside></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js?v=20261124-2"></script>
-<script src="js/data.js"></script>
+<script src="js/data.js?v=20261124-1"></script>
 <script src="js/storage.js"></script>
 <script src="js/eventBus.js"></script>
 <script src="js/kunden.js"></script>
@@ -116,7 +116,7 @@
 <script src="js/notdienst.js?v=20261123-5"></script>
 <script src="js/tresorberater.js?v=30"></script>
 <script src="js/produktverwaltung.js?v=13"></script>
-<script src="js/appInit.js?v=20261124-40"></script>
+<script src="js/appInit.js?v=20261124-41"></script>
 <script src="js/material-produkt-sync.js?v=20261124-1"></script>
 <script src="js/theme.js?v=20261123-2"></script>
 </body>
