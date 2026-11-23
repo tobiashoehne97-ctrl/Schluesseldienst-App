@@ -54,7 +54,7 @@ console.log("Application started v22");
   zeit.onload=()=>{
     console.log("Außendienst-Zeiterfassung geladen");
     const folge=document.createElement("script");
-    folge.src="js/aussendienst-folgetermin-v1.js?v=20261123-4";
+    folge.src="js/aussendienst-folgetermin-v1.js?v=20261123-5";
     folge.onload=()=>console.log("Außendienst-Folgetermin-Workflow geladen");
     folge.onerror=()=>console.warn("Außendienst-Folgetermin-Workflow konnte nicht geladen werden.");
     document.head.appendChild(folge);
