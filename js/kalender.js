@@ -166,6 +166,7 @@ function renderKalender(){
 
   const datum=document.getElementById("kal_filter_datum")?.value||"";
   const entries=[...AppData.kalender.eintraege]
+    .filter(e=>e.typ!=="notdienst")
     .filter(e=>!datum||e.datum===datum)
     .sort((a,b)=>(a.datum+(a.von||"")).localeCompare(b.datum+(b.von||"")));
 
@@ -317,7 +318,7 @@ function renderKalenderWeek(){
       const date=new Date(startDate);
       date.setDate(startDate.getDate()+index);
       const iso=isoDateLocal(date);
-      const allEntries=(AppData.kalender.eintraege||[]).filter(e=>e.datum===iso);
+      const allEntries=(AppData.kalender.eintraege||[]).filter(e=>e.datum===iso && e.typ!=="notdienst");
       const availability=allEntries.filter(e=>e.typ==="verfuegbarkeit");
       const businessEntries=allEntries.filter(e=>e.typ==="geschaeft");
       const workEntries=allEntries.filter(e=>e.typ!=="verfuegbarkeit" && e.typ!=="geschaeft");
@@ -475,7 +476,7 @@ function openKalenderCreate(date){
 function openKalenderDay(date){
   ensureKalenderData();
   const entries=(AppData.kalender.eintraege||[])
-    .filter(entry=>entry.datum===date)
+    .filter(entry=>entry.datum===date && entry.typ!=="notdienst")
     .sort((a,b)=>(a.von||"").localeCompare(b.von||""));
 
   const dateText=new Date(date+"T12:00:00").toLocaleDateString("de-DE",{
