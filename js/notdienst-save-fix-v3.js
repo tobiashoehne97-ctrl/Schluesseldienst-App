@@ -11,6 +11,16 @@
   const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
   const timeNow=()=>{const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
   const get=id=>document.getElementById(id);
+  function normalizeKalenderEntryForNotdienst(row){
+    return {
+      ...row,
+      id:row.id,
+      von:row.von?String(row.von).slice(0,5):'',
+      bis:row.bis?String(row.bis).slice(0,5):'',
+      typ:row.typ||'notdienst',
+      status:row.status||'notdienst'
+    };
+  }
 
   async function saveDirect(startNavigation=false){
     const datum=get('nd_datum')?.value||today();
@@ -51,9 +61,19 @@
     try{
       let created;
       if(window.supabaseReady&&window.supabaseClient){
-        const {data,error}=await window.supabaseClient.from('kalender_eintraege').insert(entry).select().single();
+        const {data,error}=await window.supabaseClient
+          .from('kalender_eintraege')
+          .insert(entry)
+          .select('*')
+          .single();
         if(error)throw error;
-        created=data||entry;
+        // Ein erfolgreicher Insert ohne zurückgelieferte ID ist keine
+        // bestätigte Speicherung. Sonst würde der Einsatz nur temporär
+        // angezeigt und beim nächsten Reload aus der Datenbank fehlen.
+        if(!data || !data.id){
+          throw new Error('Die Datenbank hat den Einsatz nicht mit einer gültigen ID bestätigt. Bitte Datenbank-Berechtigungen (INSERT/SELECT) prüfen. Der Einsatz wurde nicht als gespeichert markiert.');
+        }
+        created=normalizeKalenderEntryForNotdienst(data);
       }else{
         created={...entry,id:'LOCAL-'+Date.now()};
       }
@@ -70,10 +90,9 @@
       if(typeof window.renderDashboardWeek==='function')window.renderDashboardWeek();
       if(typeof window.renderNotdienst==='function')window.renderNotdienst();
 
-      get('notdienstForm')?.classList.add('hidden');
-      get('notdienstStart')?.classList.remove('hidden');
-
       if(normalerTermin){
+        get('notdienstForm')?.classList.add('hidden');
+        get('notdienstStart')?.classList.remove('hidden');
         alert('Termin wurde gespeichert.');
         return created;
       }
@@ -81,12 +100,28 @@
       if(startNavigation){
         created.status='unterwegs';
         if(window.supabaseReady&&window.supabaseClient&&!String(created.id).startsWith('LOCAL-')){
-          const {error}=await window.supabaseClient.from('kalender_eintraege').update({status:'unterwegs'}).eq('id',created.id);
+          const {data,error}=await window.supabaseClient
+            .from('kalender_eintraege')
+            .update({status:'unterwegs'})
+            .eq('id',created.id)
+            .select('id,status')
+            .single();
           if(error)throw error;
-        }else if(typeof window.saveAppData==='function')window.saveAppData();
+          if(!data || String(data.id)!==String(created.id) || data.status!=='unterwegs'){
+            throw new Error('Der Startstatus „unterwegs“ wurde von der Datenbank nicht bestätigt.');
+          }
+          created.status='unterwegs';
+        }else if(typeof window.saveAppData==='function'){
+          created.status='unterwegs';
+          window.saveAppData();
+        }
+        get('notdienstForm')?.classList.add('hidden');
+        get('notdienstStart')?.classList.remove('hidden');
         if(typeof window.renderNotdienst==='function')window.renderNotdienst();
         if(typeof window.startNotdienstWorkflow==='function')window.startNotdienstWorkflow(created.id,false);
       }else{
+        get('notdienstForm')?.classList.add('hidden');
+        get('notdienstStart')?.classList.remove('hidden');
         alert('Notfalleinsatz wurde gespeichert.');
       }
       return created;
