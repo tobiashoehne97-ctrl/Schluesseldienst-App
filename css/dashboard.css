@@ -484,3 +484,13 @@
 .dash-task-overdue{background:#fff5f4!important;border-color:#f1c4c0!important;border-radius:9px;padding:9px 8px!important;margin:3px 0}
 .dash-task-overdue .dash-task-main strong,.dash-task-overdue .dash-task-main small{color:#a52d25}
 .dash-task-overdue .dash-task-main small{font-weight:800}
+
+
+/* Fix: Mitarbeiterpunkt darf den Datums-Text nicht überlagern */
+.dash-shop-slot{padding-left:2px!important}
+.dash-shop-person-dot{display:none!important}
+.dash-shop-date{display:flex;align-items:center;gap:7px;white-space:nowrap}
+.dash-shop-date:before{content:"";display:inline-block;flex:0 0 7px;width:7px;height:7px;border-radius:50%}
+.dash-shop-tobias .dash-shop-date:before{background:#287fcb;box-shadow:0 0 0 3px rgba(40,127,203,.13)}
+.dash-shop-christian .dash-shop-date:before{background:#16a36a;box-shadow:0 0 0 3px rgba(22,163,106,.13)}
+.dash-shop-other .dash-shop-date:before{background:#8b72c7}
