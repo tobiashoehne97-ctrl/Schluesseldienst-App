@@ -30,9 +30,11 @@ function renderSharedTasks() {
     return;
   }
   list.innerHTML = open.map(t => {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const overdue = !!t.faellig_am && new Date(t.faellig_am+"T00:00:00") < today;
     const due = t.faellig_am ? new Date(t.faellig_am+"T12:00:00").toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"}) : "Ohne Termin";
     const owner = t.zustaendig || "Nicht zugewiesen";
-    return '<div class="dash-task" data-task="'+dashboardEscape(t.id)+'"><input type="checkbox" aria-label="Aufgabe erledigen"><div class="dash-task-main"><strong>'+dashboardEscape(t.titel)+'</strong><small>'+dashboardEscape(owner)+' · '+dashboardEscape(due)+(t.erstellt_von?' · von '+dashboardEscape(t.erstellt_von):'')+'</small></div><button class="dash-task-delete" type="button" aria-label="Aufgabe löschen" title="Aufgabe löschen">×</button></div>';
+    return '<div class="dash-task'+(overdue?' dash-task-overdue':'')+'" data-task="'+dashboardEscape(t.id)+'"><input type="checkbox" aria-label="Aufgabe erledigen"><div class="dash-task-main"><strong>'+dashboardEscape(t.titel)+'</strong><small>'+dashboardEscape(owner)+' · '+dashboardEscape(due)+(overdue?' · ÜBERFÄLLIG':'')+(t.erstellt_von?' · von '+dashboardEscape(t.erstellt_von):'')+'</small></div><button class="dash-task-delete" type="button" aria-label="Aufgabe löschen" title="Aufgabe löschen">×</button></div>';
   }).join("");
   list.querySelectorAll(".dash-task").forEach(row => {
     const id = row.dataset.task;
