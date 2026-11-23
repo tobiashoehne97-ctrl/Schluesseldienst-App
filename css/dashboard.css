@@ -509,3 +509,47 @@ html[data-theme="dark"]{
   --kal-week-today-border:#3b82c4;
   --kal-week-track-bg:#0a1c2b;
 }
+
+
+/* Sidebar: einheitliche, hochwertige Linien-Icons */
+.desktop-nav-tile{
+  grid-template-columns:42px minmax(0,1fr);
+  column-gap:11px;
+  padding:11px 12px;
+  border-radius:13px;
+}
+.desktop-nav-tile>.nav-icon{
+  grid-row:1/3;
+  width:38px;
+  height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:11px;
+  background:var(--nav-icon-bg,rgba(59,130,196,.13));
+  color:var(--nav-icon-color,#438bc7);
+  transition:transform .18s ease,background .18s ease,color .18s ease;
+}
+.desktop-nav-tile>.nav-icon svg{
+  width:21px;
+  height:21px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.desktop-nav-tile:hover>.nav-icon{transform:scale(1.07)}
+.desktop-nav-tile.active>.nav-icon{background:var(--nav-icon-active-bg,rgba(59,130,196,.2));color:var(--nav-icon-active,#287fc5)}
+.nav-icon-menu{--nav-icon-color:#438bc7;--nav-icon-bg:rgba(59,130,196,.12)}
+.nav-icon-kalender{--nav-icon-color:#347fc2;--nav-icon-bg:rgba(52,127,194,.13)}
+.nav-icon-notdienst{--nav-icon-color:#d58a32;--nav-icon-bg:rgba(213,138,50,.14)}
+.nav-icon-produkte{--nav-icon-color:#b88442;--nav-icon-bg:rgba(184,132,66,.14)}
+.nav-icon-mitarbeiter{--nav-icon-color:#8b75c7;--nav-icon-bg:rgba(139,117,199,.14)}
+.nav-icon-zeit{--nav-icon-color:#269b85;--nav-icon-bg:rgba(38,155,133,.14)}
+.nav-icon-archiv{--nav-icon-color:#6485a8;--nav-icon-bg:rgba(100,133,168,.14)}
+.nav-icon-tresore{--nav-icon-color:#b58b37;--nav-icon-bg:rgba(181,139,55,.15)}
+html[data-theme="light"] .desktop-nav-tile{color:#203650}
+html[data-theme="light"] .desktop-nav-tile small{color:#7890a8}
+html[data-theme="dark"] .desktop-nav-tile{color:#dcecff}
+html[data-theme="dark"] .desktop-nav-tile small{color:#8eabc7}
