@@ -62,8 +62,15 @@
     picker.innerHTML='<label style="display:block;margin-bottom:5px">Produkt aus Produktverwaltung</label><input id="ndV2MaterialProduct" type="search" placeholder="Produktname oder Artikelnummer suchen …" style="width:100%;box-sizing:border-box">';
     host.insertBefore(picker,amount.parentElement||amount);
     const search=picker.querySelector("input");
+    const activeId=window.__ndV2CurrentEntryId;
+    if(activeId){
+      try{
+        const saved=JSON.parse(localStorage.getItem("schluesseldienst-notdienst-abrechnung-v2")||"{}")[activeId]?.materialProdukt;
+        if(saved?.name)search.value=saved.name;
+      }catch(e){}
+    }
     bindName(search,amount,async p=>{
-      const qty=Math.max(1,Number(document.getElementById("ndV2MaterialQty")?.value)||1);
+      const qty=1;
       amount.value=(Number(p.sale_price_gross||0)*qty).toFixed(2);
       amount.dispatchEvent(new Event("input",{bubbles:true}));
       const id=window.__ndV2CurrentEntryId;
