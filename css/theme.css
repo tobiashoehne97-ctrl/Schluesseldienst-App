@@ -141,3 +141,19 @@ html[data-theme="light"] .desktop-nav-tile small{color:#70849a!important}
 html[data-theme="light"] .desktop-nav-tile.active{box-shadow:inset 3px 0 #2f78bd,0 3px 10px rgba(25,70,110,.045)!important}
 html[data-theme="light"] .dashboard-eyebrow{color:#477da9!important}
 #themeToggle{min-width:72px;justify-content:center}
+
+/* ===== Compact weekly calendar layout ===== */
+.desktop-week-day{min-height:320px}
+html[data-theme="light"] .desktop-week-day{min-height:320px}
+.desktop-week-day-body{padding:12px 0}
+.week-empty{font-size:11px;letter-spacing:.005em}
+.desktop-week-day-head{padding-bottom:10px}
+.desktop-week-day-head strong{font-size:19px}
+@media(min-width:1200px){
+  .desktop-week-day{min-height:320px}
+  html[data-theme="light"] .desktop-week-day{min-height:320px}
+}
+@media(max-width:1100px){
+  .desktop-week-day{min-height:280px}
+  html[data-theme="light"] .desktop-week-day{min-height:280px}
+}
