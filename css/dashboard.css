@@ -427,3 +427,47 @@
   .notdienst-actions{flex-direction:column-reverse}
   .notdienst-actions button{width:100%}
 }
+
+
+/* DASHBOARD-HOME – Tagesübersicht */
+.dash-home{width:100%;max-width:1500px;margin:0 auto 24px;padding:4px 0 24px;color:var(--text,#203650)}
+.dash-welcome{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:4px 0 18px}
+.dash-welcome h2{margin:0 0 4px;font-size:30px;line-height:1.15;font-weight:850;color:var(--text,#203650)}
+.dash-welcome .dashboard-eyebrow{margin-bottom:7px}
+.dash-welcome .dashboard-subtitle{margin:0;color:var(--muted,#7890a8)}
+.dash-stats{display:grid;grid-template-columns:minmax(220px,.62fr) minmax(480px,1.8fr);gap:14px;margin:0 0 16px;align-items:stretch}
+.dash-stat,.dash-panel{min-width:0;background:var(--surface,#fff);border:1px solid var(--border,#dce6f0);border-radius:17px;box-shadow:0 7px 22px rgba(22,48,77,.07)}
+.dash-stat{padding:18px 20px;display:flex;flex-direction:column;justify-content:center;gap:7px;min-height:150px}
+.dash-stat>span{font-size:20px}
+.dash-stat>small,.dash-panel-head p{font-size:12px;font-weight:700;color:var(--muted,#7890a8);letter-spacing:.04em}
+.dash-stat>strong{font-size:27px;line-height:1.15;font-weight:850;color:var(--text,#203650)}
+.dash-stat>em{font-size:12px;font-style:normal;color:#26966a}
+.dash-columns{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.95fr);gap:14px;align-items:start}
+.dash-panel{padding:18px 20px;min-height:190px}
+.dash-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.dash-panel-head h3{margin:0 0 3px;font-size:17px;font-weight:800;color:var(--text,#203650)}
+.dash-panel-head p{margin:0;font-weight:500;letter-spacing:0}
+.dash-link{border:0;background:transparent;color:#287dbb;font-size:12px;font-weight:800;cursor:pointer;padding:5px 0;white-space:nowrap}
+.dash-list{display:flex;flex-direction:column;gap:0;min-width:0}
+.dash-appointment{width:100%;display:grid;grid-template-columns:92px minmax(0,1fr) 18px;align-items:center;gap:12px;padding:11px 2px;border:0;border-top:1px solid var(--border,#e5edf4);background:transparent;text-align:left;color:var(--text,#203650);cursor:pointer}
+.dash-appointment:hover{background:var(--surface-soft,#f4f8fc)}
+.dash-appointment-date{display:flex;flex-direction:column;gap:3px;color:#397eaf;font-size:11px;font-weight:750}
+.dash-appointment-date strong{font-size:14px}
+.dash-appointment-info{min-width:0;display:flex;flex-direction:column;gap:3px}
+.dash-appointment-info strong{font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.dash-appointment-info small{font-size:11px;color:var(--muted,#8295a8);overflow:hidden;text-overflow:ellipsis}
+.dash-chevron{font-size:21px;color:#8aa4bc}
+.dash-empty,.dash-next-empty{padding:18px 4px;color:var(--muted,#8295a8);font-size:12px;line-height:1.55}
+.dash-count{padding:5px 10px;border-radius:999px;background:#fff1d8;color:#a56b12;font-size:11px;font-weight:800;white-space:nowrap}
+.dash-task-form{display:grid;gap:7px;padding:10px;border-radius:12px;background:var(--surface-soft,#f4f8fc);border:1px solid var(--border,#e2eaf2);margin-bottom:10px}
+.dash-task-form>input,.dash-task-fields input,.dash-task-fields select{min-width:0;width:100%;box-sizing:border-box;padding:9px 11px;border:1px solid var(--border,#d5e0eb);border-radius:8px;background:var(--surface,#fff);color:var(--text,#203650);font:inherit;font-size:12px}
+.dash-task-fields{display:grid;grid-template-columns:1fr 1fr auto;gap:7px}
+.dash-task-fields button{white-space:nowrap}
+.dash-shop-slot{display:grid;grid-template-columns:105px minmax(120px,1fr) auto;gap:10px;align-items:center;padding:12px 2px;border-top:1px solid var(--border,#e5edf4)}
+.dash-shop-date{font-size:12px;font-weight:800;color:#397eaf}
+.dash-shop-person strong,.dash-shop-person small{display:block}
+.dash-shop-person strong{font-size:13px;color:var(--text,#203650)}
+.dash-shop-person small{font-size:11px;color:var(--muted,#8295a8);margin-top:3px}
+.dash-shop-time{font-size:13px;font-weight:800;color:#21835f;background:#eaf7f0;border:1px solid #d2eddd;padding:7px 10px;border-radius:8px;white-space:nowrap}
+@media(max-width:1000px){.dash-stats{grid-template-columns:1fr 1.6fr}.dash-columns{grid-template-columns:1fr}}
+@media(max-width:700px){.dash-welcome{align-items:flex-start;flex-direction:column}.dash-welcome .btnS{width:100%}.dash-welcome h2{font-size:25px}.dash-stats{grid-template-columns:1fr}.dash-task-fields{grid-template-columns:1fr}.dash-shop-slot{grid-template-columns:1fr auto;gap:4px}.dash-shop-date{grid-column:1/-1}.dash-shop-time{grid-column:2;grid-row:2}.dash-shop-person{grid-column:1;grid-row:2}}
