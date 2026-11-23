@@ -46,8 +46,19 @@
   function style(){if(document.getElementById('ndV2Style'))return;const s=document.createElement('style');s.id='ndV2Style';s.textContent=`.nd-price-v2{margin:18px 0}.ndv2-head{display:flex;justify-content:space-between;gap:16px;align-items:center}.ndv2-head strong{display:block;font-size:18px}.ndv2-head span{display:block;color:#7fa4c8;font-size:12px;margin-top:4px}.ndv2-settings{margin-top:16px;border-top:1px solid rgba(59,110,165,.35);padding-top:16px}.ndv2-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.ndv2-grid label{font-size:11px;color:#8fb8d8;font-weight:800}.ndv2-grid input{display:block;width:100%;box-sizing:border-box;margin-top:5px}.ndv2-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}.ndv2-summary{background:#173e5a;border:1px solid #39749b;border-radius:16px;padding:15px;margin:16px 0}.ndv2-summary .total{font-size:32px;font-weight:900;margin-top:4px}.ndv2-breakdown{font-size:12px;color:#9ec0d9;line-height:1.7;margin-top:8px}.ndv2-alert{background:#5a4017;border:1px solid #98712c;color:#ffe4a6;border-radius:12px;padding:10px;font-size:12px;margin:10px 0}@media(max-width:700px){.ndv2-head{align-items:flex-start;flex-direction:column}.ndv2-grid{grid-template-columns:1fr 1fr}.ndv2-actions{flex-direction:column}.ndv2-actions button{width:100%}}@media(max-width:480px){.ndv2-grid{grid-template-columns:1fr}}
 `;document.head.appendChild(s)}
   function cleanupOld(){document.getElementById('ndPriceWrap')?.remove()}
-  let baseRender=null;
-  function hookRender(){if(typeof window.renderNotdienst!=='function'||window.renderNotdienst===baseRender)return;if(!baseRender)baseRender=window.renderNotdienst;window.renderNotdienst=function(){const r=baseRender.apply(this,arguments);cleanupOld();renderSettings();return r}}
+  let wrappedRender=null;
+  function hookRender(){
+    const current=window.renderNotdienst;
+    if(typeof current!=='function'||current===wrappedRender)return;
+    const previous=current;
+    wrappedRender=function(){
+      const result=previous.apply(this,arguments);
+      cleanupOld();
+      renderSettings();
+      return result;
+    };
+    window.renderNotdienst=wrappedRender;
+  }
   function saveWorkflow(id){const t=read(WF_KEY,{})[id]||{};saveData(id,t)}
   function renderCloseV2(id){
     const e=getEntry(id);if(!e)return;const t=read(WF_KEY,{})[id]||{},d=getData(id),c=calc(e,d);
