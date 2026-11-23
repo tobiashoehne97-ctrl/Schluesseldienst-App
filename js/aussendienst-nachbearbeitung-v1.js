@@ -46,7 +46,7 @@
       '<div class="sec">Interner Hinweis für die Rechnungsstellung</div>'+
       '<textarea id="completed_invoice_note" style="width:100%;min-height:85px" placeholder="z. B. Kunde wünscht Rechnung per E-Mail, Restarbeiten gesondert berechnen ...">'+esc(r.rechnungshinweis||"")+'</textarea>'+
       '<div style="font-size:11px;color:#9ebbd4;margin-top:6px">Dieser Hinweis ist intern und wird nicht auf den Kunden-Regiebericht gedruckt.</div>'+
-      '<div style="display:flex;gap:8px;margin-top:18px"><button class="btnS" style="flex:1;padding:12px" onclick="closeServiceModal()">Abbrechen</button><button class="btnP" style="flex:1;padding:12px" onclick="saveCompletedServiceEdits('+JSON.stringify(String(id))+',false)">💾 Änderungen speichern</button></div>'+
+      '<div style="display:flex;gap:8px;margin-top:18px"><button type="button" class="btnS" style="flex:1;padding:12px" onclick="closeServiceModal()">Abbrechen</button><button type="button" class="btnP" style="flex:1;padding:12px" onclick="saveCompletedServiceEdits('+JSON.stringify(String(id))+',false)">💾 Änderungen speichern</button></div>'+
       '<button type="button" class="btnS" style="width:100%;padding:12px;margin-top:9px;border:1px solid #d97706;color:#fbbf24" onclick="saveCompletedServiceEdits('+JSON.stringify(String(id))+',true)">↻ Als nicht abschließbar markieren – Folgetermin erforderlich</button>';
     window.activeServiceId=String(id);
     window.__aussendienstZeitTracking=null;
