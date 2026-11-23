@@ -28,3 +28,7 @@ const AppData = {
         arbeitszeitHeute: 0
     }
 };
+
+// Explizit freigeben: Notdienst- und Workflow-Module greifen über window.AppData zu.
+// Beide Zugriffe müssen dieselbe Datenstruktur verwenden.
+window.AppData = AppData;
