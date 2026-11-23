@@ -46,6 +46,7 @@
     sidebar.querySelectorAll(".desktop-nav-tile").forEach(source=>{
       const tile=source.cloneNode(true);
       tile.type="button";
+      tile.removeAttribute("onclick");
       tile.classList.remove("active");
       tile.addEventListener("click",()=>{
         const target=tile.dataset.nav;
