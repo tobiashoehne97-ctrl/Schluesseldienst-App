@@ -73,7 +73,20 @@
         if(!data || !data.id){
           throw new Error('Die Datenbank hat den Einsatz nicht mit einer gültigen ID bestätigt. Bitte Datenbank-Berechtigungen (INSERT/SELECT) prüfen. Der Einsatz wurde nicht als gespeichert markiert.');
         }
-        created=normalizeKalenderEntryForNotdienst(data);
+        // Read-after-write: Nicht nur die Insert-Antwort, sondern auch
+        // ein separater Abruf muss den Datensatz unter derselben ID liefern.
+        // So erkennen wir fehlende SELECT-Rechte oder einen nicht dauerhaft
+        // lesbaren Datensatz, bevor der Dialog geschlossen wird.
+        const verify=await window.supabaseClient
+          .from('kalender_eintraege')
+          .select('*')
+          .eq('id',data.id)
+          .maybeSingle();
+        if(verify.error)throw verify.error;
+        if(!verify.data || String(verify.data.id)!==String(data.id)){
+          throw new Error('Der Einsatz wurde beim Speichern zurückgemeldet, ist aber anschließend nicht mehr aus der Datenbank abrufbar. Bitte die SELECT-Richtlinie der Tabelle kalender_eintraege prüfen. Das Formular bleibt geöffnet.');
+        }
+        created=normalizeKalenderEntryForNotdienst(verify.data);
       }else{
         created={...entry,id:'LOCAL-'+Date.now()};
       }
