@@ -76,7 +76,6 @@
       preis:Math.max(0,Number(row.querySelector(".completed-mat-price")?.value)||0)
     })).filter(m=>m.name);
     report.material=materials;
-    report.gesamtsumme=materials.reduce((sum,m)=>sum+m.menge*m.preis,0);
     report.rechnungshinweis=document.getElementById("completed_invoice_note")?.value.trim()||"";
     report.nachbearbeitet_am=new Date().toISOString();
     report.nachbearbeitet_von=window.currentEmployee||"";
@@ -106,6 +105,14 @@
       const entry=findEntry(id);
       if(!isCompleted(entry))return result;
       const card=document.querySelector("#kal_modal_content .card");
+      if(card && entry.regiebericht?.rechnungshinweis && !card.querySelector("#completed-invoice-note")){
+        const note=document.createElement("div");
+        note.id="completed-invoice-note";
+        note.style.cssText="margin-top:12px;padding:11px;border:1px solid #b7791f;border-radius:8px;background:#3b2b12;color:#ffe2a8;font-size:13px;white-space:pre-wrap";
+        note.innerHTML="<b>🧾 Hinweis für die Rechnungsstellung</b><div style='margin-top:5px'></div>";
+        note.lastElementChild.textContent=entry.regiebericht.rechnungshinweis;
+        card.appendChild(note);
+      }
       if(card&&!card.querySelector("#edit-completed-service")){
         const button=document.createElement("button");
         button.id="edit-completed-service";
