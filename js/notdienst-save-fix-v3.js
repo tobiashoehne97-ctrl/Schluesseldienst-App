@@ -95,10 +95,34 @@
           throw new Error('Der Einsatz wurde gespeichert, aber die Kalender-Ladefunktion ist nicht verfügbar. Bitte App-Version prüfen.');
         }
         const listLoaded=await window.loadKalenderFromSupabase();
-        const listed=(window.AppData?.kalender?.eintraege||[])
+        let listed=(window.AppData?.kalender?.eintraege||[])
           .find(e=>String(e.id)===String(created.id));
-        if(!listLoaded || !listed || listed.typ!=='notdienst'){
-          throw new Error('Der Einsatz wurde angelegt, erscheint aber nicht im vollständigen Kalenderabruf. Bitte Supabase-Berechtigungen und Datenbankregeln für kalender_eintraege prüfen. Das Formular bleibt geöffnet.');
+
+        // Diagnose über eine ID-Abfrage unabhängig vom vollständigen Listenabruf.
+        const exact=await window.supabaseClient
+          .from('kalender_eintraege')
+          .select('*')
+          .eq('id',created.id)
+          .maybeSingle();
+        if(exact.error)throw exact.error;
+        if(!exact.data){
+          throw new Error('Supabase hat den Einsatz beim Anlegen bestätigt, aber die ID-Abfrage findet ihn direkt danach nicht mehr. ID: '+created.id+'. Bitte prüfen wir als Nächstes die Datenbank-Trigger und RLS-Regeln der Tabelle kalender_eintraege.');
+        }
+        const exactEntry=normalizeKalenderEntryForNotdienst(exact.data);
+        if(exactEntry.typ!=='notdienst' && !normalerTermin){
+          throw new Error('Der Datensatz ist vorhanden, hat in Supabase aber den Typ „'+String(exactEntry.typ)+'“ statt „notdienst“. ID: '+created.id+'.');
+        }
+        // Ist der Datensatz einzeln vorhanden, übernehmen wir ihn auch dann
+        // in den App-Zustand, wenn der paginierte Listenabruf ihn ausgelassen hat.
+        if(!listed || String(listed.id)!==String(exactEntry.id)){
+          window.AppData=window.AppData||{};
+          window.AppData.kalender=window.AppData.kalender||{eintraege:[],letzterIndex:0};
+          window.AppData.kalender.eintraege=[
+            ...(window.AppData.kalender.eintraege||[]).filter(e=>String(e.id)!==String(exactEntry.id)),
+            exactEntry
+          ];
+          listed=exactEntry;
+          console.warn('Notdienst: Einzelabfrage erfolgreich, vollständiger Kalenderabruf enthält den Datensatz nicht.',{id:created.id,listLoaded});
         }
         created=listed;
       }else{
