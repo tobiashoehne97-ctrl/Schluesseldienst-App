@@ -29,5 +29,5 @@ if(typeof window.genPDF==='function')window.genPDF('rb');}
 window.nd2Finish=finish;
 function hook(){if(typeof window.ndContinueToClose==='function'&&window.ndContinueToClose!==hook){window.ndContinueToClose=hook}}
 function hook(id){closeView(id)}
-function init(){styles();load();hook()};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();setInterval(()=>{load();hook()},1200);
+function init(){styles();hook();window.loadNotdienstCatalog=load};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
