@@ -27,6 +27,11 @@
     }
     products=data||[]; loaded=true; render();
   }
+  // Gemeinsamer Produktzugriff für den Notdienst: nutzt exakt dieselbe Ladefunktion wie die Produktverwaltung.
+  window.getProductCatalogForNotdienst=async()=>{
+    if(!loaded)await load();
+    return (products||[]).filter(p=>p.active!==false).map(p=>({...p,preis:Number(p.sale_price_gross||0),einheit:"Stk",aktiv:p.active!==false}));
+  };
   function drawList(){
     const q=(val("pmSearch")||"").trim().toLocaleLowerCase("de"),cat=val("pmCategoryFilter");
     const rows=products.filter(p=>(!cat||p.category===cat)&&[p.name,p.article_number,p.manufacturer,p.category].some(v=>String(v||"").toLocaleLowerCase("de").includes(q)));
